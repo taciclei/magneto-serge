@@ -2,7 +2,7 @@
 //!
 //! These tests verify the complete WebSocket record/replay cycle.
 
-use matgto_serge::{
+use magneto_serge::{
     cassette::{CloseFrame, Direction, MessagePayload, WebSocketMessage},
     WebSocketInterceptor, WebSocketPlayer, WebSocketRecorder,
 };
@@ -12,7 +12,7 @@ use tempfile::TempDir;
 #[tokio::test]
 async fn test_websocket_recorder_basic() {
     let _ = tracing_subscriber::fmt()
-        .with_env_filter("matgto_serge=debug")
+        .with_env_filter("magneto_serge=debug")
         .try_init();
 
     let cassette_dir = TempDir::new().expect("Failed to create temp dir");
@@ -73,7 +73,7 @@ async fn test_websocket_recorder_basic() {
 #[tokio::test]
 async fn test_websocket_player_basic() {
     let _ = tracing_subscriber::fmt()
-        .with_env_filter("matgto_serge=debug")
+        .with_env_filter("magneto_serge=debug")
         .try_init();
 
     let cassette_dir = TempDir::new().unwrap();
@@ -141,7 +141,7 @@ async fn test_websocket_player_basic() {
 #[tokio::test]
 async fn test_websocket_full_cycle() {
     let _ = tracing_subscriber::fmt()
-        .with_env_filter("matgto_serge=debug")
+        .with_env_filter("magneto_serge=debug")
         .try_init();
 
     let cassette_dir = TempDir::new().unwrap();
@@ -274,7 +274,7 @@ async fn test_websocket_full_cycle() {
         tracing::info!("Cassette size: {} bytes", json.len());
 
         // Parse and verify
-        let cassette: matgto_serge::Cassette = serde_json::from_str(&json).unwrap();
+        let cassette: magneto_serge::Cassette = serde_json::from_str(&json).unwrap();
         assert_eq!(cassette.name, cassette_name);
         assert_eq!(cassette.version, "1.0");
         assert_eq!(cassette.interactions.len(), 3);
@@ -381,7 +381,7 @@ async fn test_websocket_reset() {
 #[ignore] // Requires real WebSocket server
 async fn test_websocket_interceptor_live() {
     let _ = tracing_subscriber::fmt()
-        .with_env_filter("matgto_serge=debug")
+        .with_env_filter("magneto_serge=debug")
         .try_init();
 
     tracing::info!("🔌 Testing live WebSocket interceptor");

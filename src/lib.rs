@@ -1,4 +1,4 @@
-//! # matgto-serge
+//! # magneto-serge
 //!
 //! Multi-language HTTP/WebSocket proxy library for testing with record/replay capabilities.
 //!

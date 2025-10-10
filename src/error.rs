@@ -1,11 +1,11 @@
-//! Error types for matgto-serge
+//! Error types for magneto-serge
 
 use thiserror::Error;
 
-/// Result type alias for matgto-serge operations
+/// Result type alias for magneto-serge operations
 pub type Result<T> = std::result::Result<T, MatgtoError>;
 
-/// Main error type for matgto-serge
+/// Main error type for magneto-serge
 #[derive(Error, Debug)]
 pub enum MatgtoError {
     /// Cassette file not found

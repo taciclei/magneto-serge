@@ -238,7 +238,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 return Ok(());
             }
 
-            let config = r#"# matgto-serge configuration
+            let config = r#"# magneto-serge configuration
 
 [proxy]
 # Default proxy port
@@ -278,7 +278,7 @@ simulate_latency = false
         }
 
         Commands::Version => {
-            println!("{}", "matgto-serge".bold());
+            println!("{}", "Magnéto-Serge".bold());
             println!("  Version: {}", env!("CARGO_PKG_VERSION").bright_cyan());
             println!("  Authors: {}", env!("CARGO_PKG_AUTHORS").dimmed());
             println!("  License: {}", env!("CARGO_PKG_LICENSE").dimmed());

@@ -1,4 +1,4 @@
-// UniFFI Definition Language (UDL) for matgto-serge
+// UniFFI Definition Language (UDL) for magneto-serge
 // Simplified API - exposes only the essential MatgtoProxy interface
 
 namespace matgto_serge {

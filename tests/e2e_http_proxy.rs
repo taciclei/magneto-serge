@@ -3,7 +3,7 @@
 //! These tests verify the complete record/replay cycle using real HTTP requests
 //! to httpbin.org (a public HTTP testing service).
 
-use matgto_serge::{
+use magneto_serge::{
     cassette::Cassette, player::Player, recorder::Recorder, CertificateAuthority, MatgtoProxy,
     ProxyMode,
 };
@@ -28,7 +28,7 @@ fn create_test_proxy() -> (MatgtoProxy, TempDir, TempDir) {
 async fn test_e2e_record_and_replay_simple_get() {
     // Initialize tracing for debugging
     let _ = tracing_subscriber::fmt()
-        .with_env_filter("matgto_serge=debug")
+        .with_env_filter("magneto_serge=debug")
         .try_init();
 
     let (mut proxy, cassette_dir, cert_dir) = create_test_proxy();
@@ -74,7 +74,7 @@ async fn test_e2e_record_and_replay_simple_get() {
 #[ignore]
 async fn test_e2e_auto_mode() {
     let _ = tracing_subscriber::fmt()
-        .with_env_filter("matgto_serge=debug")
+        .with_env_filter("magneto_serge=debug")
         .try_init();
 
     let (mut proxy, _cassette_dir, _cert_dir) = create_test_proxy();
@@ -97,8 +97,8 @@ async fn test_e2e_auto_mode() {
 #[tokio::test]
 async fn test_http_forwarder_direct() {
     // Test the HTTP forwarder directly without proxy
-    use matgto_serge::cassette::HttpRequest;
-    use matgto_serge::proxy::HttpForwarder;
+    use magneto_serge::cassette::HttpRequest;
+    use magneto_serge::proxy::HttpForwarder;
 
     let forwarder = HttpForwarder::new();
 
@@ -125,8 +125,8 @@ async fn test_http_forwarder_direct() {
 
 #[tokio::test]
 async fn test_http_forwarder_post() {
-    use matgto_serge::cassette::HttpRequest;
-    use matgto_serge::proxy::HttpForwarder;
+    use magneto_serge::cassette::HttpRequest;
+    use magneto_serge::proxy::HttpForwarder;
 
     let forwarder = HttpForwarder::new();
 
@@ -192,7 +192,7 @@ fn test_proxy_modes() {
 async fn test_full_record_replay_cycle() {
     // Initialize tracing
     let _ = tracing_subscriber::fmt()
-        .with_env_filter("matgto_serge=debug")
+        .with_env_filter("magneto_serge=debug")
         .try_init();
 
     let cassette_dir = TempDir::new().expect("Failed to create temp dir");
@@ -205,7 +205,7 @@ async fn test_full_record_replay_cycle() {
         let mut recorder = Recorder::new(cassette_name.to_string());
 
         // Simulate a recorded HTTP interaction
-        let request = matgto_serge::cassette::HttpRequest {
+        let request = magneto_serge::cassette::HttpRequest {
             method: "GET".to_string(),
             url: "https://httpbin.org/get".to_string(),
             headers: {
@@ -217,7 +217,7 @@ async fn test_full_record_replay_cycle() {
             body: None,
         };
 
-        let response = matgto_serge::cassette::HttpResponse {
+        let response = magneto_serge::cassette::HttpResponse {
             status: 200,
             headers: {
                 let mut h = HashMap::new();
@@ -264,7 +264,7 @@ async fn test_full_record_replay_cycle() {
         assert!(player.has_cassette(), "Player should have cassette loaded");
 
         // Create a matching request
-        let replay_request = matgto_serge::cassette::HttpRequest {
+        let replay_request = magneto_serge::cassette::HttpRequest {
             method: "GET".to_string(),
             url: "https://httpbin.org/get".to_string(),
             headers: HashMap::new(), // Headers can differ
@@ -331,7 +331,7 @@ async fn test_full_record_replay_cycle() {
 #[tokio::test]
 async fn test_record_with_post_body() {
     let _ = tracing_subscriber::fmt()
-        .with_env_filter("matgto_serge=debug")
+        .with_env_filter("magneto_serge=debug")
         .try_init();
 
     let cassette_dir = TempDir::new().unwrap();
@@ -405,13 +405,13 @@ async fn test_multiple_interactions() {
 
     // Interaction 1: GET
     recorder.record_http(
-        matgto_serge::cassette::HttpRequest {
+        magneto_serge::cassette::HttpRequest {
             method: "GET".to_string(),
             url: "https://api.example.com/users".to_string(),
             headers: HashMap::new(),
             body: None,
         },
-        matgto_serge::cassette::HttpResponse {
+        magneto_serge::cassette::HttpResponse {
             status: 200,
             headers: HashMap::new(),
             body: Some(b"[{\"id\":1,\"name\":\"Alice\"}]".to_vec()),
@@ -420,13 +420,13 @@ async fn test_multiple_interactions() {
 
     // Interaction 2: POST
     recorder.record_http(
-        matgto_serge::cassette::HttpRequest {
+        magneto_serge::cassette::HttpRequest {
             method: "POST".to_string(),
             url: "https://api.example.com/users".to_string(),
             headers: HashMap::new(),
             body: Some(b"{\"name\":\"Bob\"}".to_vec()),
         },
-        matgto_serge::cassette::HttpResponse {
+        magneto_serge::cassette::HttpResponse {
             status: 201,
             headers: HashMap::new(),
             body: Some(b"{\"id\":2,\"name\":\"Bob\"}".to_vec()),
@@ -435,13 +435,13 @@ async fn test_multiple_interactions() {
 
     // Interaction 3: DELETE
     recorder.record_http(
-        matgto_serge::cassette::HttpRequest {
+        magneto_serge::cassette::HttpRequest {
             method: "DELETE".to_string(),
             url: "https://api.example.com/users/1".to_string(),
             headers: HashMap::new(),
             body: None,
         },
-        matgto_serge::cassette::HttpResponse {
+        magneto_serge::cassette::HttpResponse {
             status: 204,
             headers: HashMap::new(),
             body: None,
@@ -455,7 +455,7 @@ async fn test_multiple_interactions() {
     player.load(cassette_dir.path(), cassette_name).unwrap();
 
     // Find GET
-    let get_req = matgto_serge::cassette::HttpRequest {
+    let get_req = magneto_serge::cassette::HttpRequest {
         method: "GET".to_string(),
         url: "https://api.example.com/users".to_string(),
         headers: HashMap::new(),
@@ -464,7 +464,7 @@ async fn test_multiple_interactions() {
     assert!(player.find_interaction(&get_req).is_ok());
 
     // Find POST
-    let post_req = matgto_serge::cassette::HttpRequest {
+    let post_req = magneto_serge::cassette::HttpRequest {
         method: "POST".to_string(),
         url: "https://api.example.com/users".to_string(),
         headers: HashMap::new(),
@@ -473,7 +473,7 @@ async fn test_multiple_interactions() {
     assert!(player.find_interaction(&post_req).is_ok());
 
     // Find DELETE
-    let delete_req = matgto_serge::cassette::HttpRequest {
+    let delete_req = magneto_serge::cassette::HttpRequest {
         method: "DELETE".to_string(),
         url: "https://api.example.com/users/1".to_string(),
         headers: HashMap::new(),

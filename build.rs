@@ -1,4 +1,4 @@
-// Build script for matgto-serge
+// Build script for magneto-serge
 // Generates UniFFI bindings for multiple languages
 
 fn main() {

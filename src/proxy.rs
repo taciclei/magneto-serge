@@ -82,7 +82,7 @@ impl MatgtoProxy {
         let ca_dir = cassette_dir
             .parent()
             .unwrap_or(cassette_dir.as_ref())
-            .join(".matgto/certs");
+            .join(".magneto/certs");
 
         let ca = Arc::new(CertificateAuthority::new(ca_dir)?);
 

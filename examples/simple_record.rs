@@ -12,7 +12,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create Certificate Authority
     println!("1️⃣  Initializing Certificate Authority...");
-    let ca = CertificateAuthority::new("./.matgto/certs")?;
+    let ca = CertificateAuthority::new("./.magneto/certs")?;
     ca.print_install_instructions();
 
     // Create proxy
