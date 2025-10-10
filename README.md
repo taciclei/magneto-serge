@@ -79,14 +79,18 @@ use Magneto\Serge\MagnetoProxy;
 use Magneto\Serge\ProxyMode;
 ```
 
-### 🟨 JavaScript/TypeScript (npm)
+### 🟨 JavaScript/TypeScript (GitHub Packages)
 
 ```bash
-npm install @magneto/serge
+# Configure GitHub Packages registry
+echo "@taciclei:registry=https://npm.pkg.github.com" >> .npmrc
+
+# Install package
+npm install @taciclei/magneto-serge
 ```
 
 ```javascript
-const { MagnetoProxy, ProxyMode } = require('@magneto/serge');
+const { MagnetoProxy, ProxyMode } = require('@taciclei/magneto-serge');
 ```
 
 ### ☕ Java (Maven)
@@ -94,8 +98,8 @@ const { MagnetoProxy, ProxyMode } = require('@magneto/serge');
 ```xml
 <dependency>
   <groupId>io.github.magneto</groupId>
-  <artifactId>serge</artifactId>
-  <version>0.1.0</version>
+  <artifactId>magneto-serge</artifactId>
+  <version>0.0.1</version>
 </dependency>
 ```
 
@@ -201,7 +205,7 @@ class ApiTest extends \PHPUnit\Framework\TestCase {
 <summary><b>🟨 JavaScript with Jest</b></summary>
 
 ```javascript
-const { MagnetoProxy, ProxyMode } = require('@magneto/serge');
+const { MagnetoProxy, ProxyMode } = require('@taciclei/magneto-serge');
 
 test('API with Magneto', async () => {
   const proxy = new MagnetoProxy('./cassettes');
