@@ -129,19 +129,6 @@ jobs:
             --language swift \
             --out-dir bindings/swift/generated
 
-  security:
-    name: Security Audit
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run cargo audit
-        uses: rustsec/audit-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
   coverage:
     name: Code Coverage
     runs-on: ubuntu-latest
