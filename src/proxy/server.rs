@@ -12,7 +12,6 @@ use crate::recorder::Recorder;
 use crate::tls::CertificateAuthority;
 
 use hudsucker::{
-    certificate_authority::RcgenAuthority,
     hyper::{Body, Request, Response, StatusCode},
     HttpContext, HttpHandler as HudsuckerHttpHandler, RequestOrResponse,
 };
@@ -92,6 +91,7 @@ impl MatgtoHttpHandler {
     }
 
     /// Reconstruct hyper Request from our HttpRequest and body bytes
+    #[allow(dead_code)]
     fn reconstruct_request(http_req: &HttpRequest, body_bytes: &[u8]) -> Result<Request<Body>> {
         let mut builder = Request::builder()
             .method(http_req.method.as_str())
@@ -174,7 +174,7 @@ impl HudsuckerHttpHandler for MatgtoHttpHandler {
 
                 // Buffer the request (this consumes it)
                 match Self::convert_request(req).await {
-                    Ok((http_req, body_bytes)) => {
+                    Ok((http_req, _body_bytes)) => {
                         // Forward via our HttpForwarder
                         match self.forwarder.forward(&http_req).await {
                             Ok(http_resp) => {
@@ -294,7 +294,7 @@ impl HudsuckerHttpHandler for MatgtoHttpHandler {
 
                 // Buffer the request first
                 match Self::convert_request(req).await {
-                    Ok((http_req, body_bytes)) => {
+                    Ok((http_req, _body_bytes)) => {
                         // Check if we should replay
                         let should_replay = if let Some(player) = &self.player {
                             player.lock().await.has_cassette()
@@ -426,6 +426,7 @@ impl HudsuckerHttpHandler for MatgtoHttpHandler {
 /// Proxy server configuration
 pub struct ProxyServer {
     addr: SocketAddr,
+    #[allow(dead_code)]
     ca: Arc<CertificateAuthority>,
     handler: MatgtoHttpHandler,
 }
