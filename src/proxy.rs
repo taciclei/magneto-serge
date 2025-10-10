@@ -146,7 +146,7 @@ impl MatgtoProxy {
     }
 
     /// Start recording a new cassette (internal version with Result)
-    fn start_recording_internal(&self, cassette_name: String) -> Result<()> {
+    pub fn start_recording_internal(&self, cassette_name: String) -> Result<()> {
         let mut state = self.state.lock().unwrap();
 
         state.current_cassette = Some(cassette_name.clone());
@@ -178,7 +178,7 @@ impl MatgtoProxy {
     }
 
     /// Stop recording and save the cassette (internal version with Result)
-    fn stop_recording_internal(&self) -> Result<()> {
+    pub fn stop_recording_internal(&self) -> Result<()> {
         let mut state = self.state.lock().unwrap();
 
         if let Some(cassette_name) = state.current_cassette.take() {
@@ -248,7 +248,7 @@ impl MatgtoProxy {
     }
 
     /// Shutdown the proxy (internal version with Result)
-    fn shutdown_internal(&self) -> Result<()> {
+    pub fn shutdown_internal(&self) -> Result<()> {
         let mut state = self.state.lock().unwrap();
 
         // TODO: Stop the proxy server

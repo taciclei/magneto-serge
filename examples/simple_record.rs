@@ -17,7 +17,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create proxy
     println!("\n2️⃣  Creating proxy...");
-    let mut proxy = MatgtoProxy::new("./cassettes")?
+    let mut proxy = MatgtoProxy::new_internal("./cassettes")?
         .with_port(8888)
         .with_mode(ProxyMode::Record);
 
@@ -25,7 +25,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Start recording
     println!("\n3️⃣  Starting recording...");
-    proxy.start_recording("example-api-call")?;
+    proxy.start_recording_internal("example-api-call".to_string())?;
     println!("   ✓ Recording to cassette: example-api-call.json");
 
     println!("\n📡 Proxy is now ready!");
@@ -47,11 +47,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Stop recording
     println!("\n4️⃣  Stopping recording...");
-    proxy.stop_recording()?;
+    proxy.stop_recording_internal()?;
     println!("   ✓ Cassette saved to ./cassettes/example-api-call.json");
 
     // Shutdown
-    proxy.shutdown()?;
+    proxy.shutdown_internal()?;
     println!("\n✅ Example completed!");
 
     Ok(())

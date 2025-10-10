@@ -6,10 +6,9 @@
 //! 3. Replay depuis la cassette
 
 use magneto_serge::{
-    cassette::{Cassette, HttpRequest, HttpResponse},
+    cassette::{HttpRequest, HttpResponse},
     player::Player,
     recorder::Recorder,
-    CertificateAuthority, MatgtoProxy, ProxyMode,
 };
 use std::collections::HashMap;
 use std::path::Path;
@@ -98,40 +97,44 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
     // Charger la cassette
-    let mut player = Player::new();
-    player.load(Path::new(cassette_dir), "api-example")?;
+    let mut player = Player::load(Path::new(cassette_dir), "api-example")?;
     println!("  ✓ Cassette chargée : api-example.json");
 
-    // Créer une requête identique
-    let replay_request = HttpRequest {
+    // Créer une signature de requête pour la recherche
+    use magneto_serge::player::RequestSignature;
+    let replay_signature = RequestSignature {
         method: "GET".to_string(),
         url: "https://api.github.com/users/octocat".to_string(),
-        headers: HashMap::new(), // Headers peuvent être différents
-        body: None,
+        body_hash: None,
     };
 
     println!(
         "  ✓ Recherche interaction pour : {} {}",
-        replay_request.method, replay_request.url
+        replay_signature.method, replay_signature.url
     );
 
     // Trouver l'interaction correspondante
-    match player.find_interaction(&replay_request) {
-        Ok(interaction) => {
-            if let Some(recorded_response) = interaction.response() {
-                println!("  ✓ Interaction trouvée !\n");
-                println!("  Réponse enregistrée :");
-                println!("  - Status : {}", recorded_response.status);
-                println!("  - Headers : {} headers", recorded_response.headers.len());
+    match player.find_interaction(&replay_signature) {
+        Ok(idx) => {
+            if let Some(interaction) = player.get_interaction(idx) {
+                if let magneto_serge::cassette::InteractionKind::Http { response, .. } =
+                    &interaction.kind
+                {
+                    println!("  ✓ Interaction trouvée !\n");
+                    println!("  Réponse enregistrée :");
+                    println!("  - Status : {}", response.status);
+                    println!("  - Headers : {} headers", response.headers.len());
 
-                if let Some(body) = &recorded_response.body {
-                    println!("  - Body : {} bytes", body.len());
+                    if let Some(body) = &response.body {
+                        println!("  - Body : {} bytes", body.len());
 
-                    // Afficher le body JSON formaté
-                    if let Ok(body_str) = String::from_utf8(body.clone()) {
-                        if let Ok(json) = serde_json::from_str::<serde_json::Value>(&body_str) {
-                            println!("\n  Body JSON :");
-                            println!("  {}", serde_json::to_string_pretty(&json)?);
+                        // Afficher le body JSON formaté
+                        if let Ok(body_str) = String::from_utf8(body.clone()) {
+                            if let Ok(json) = serde_json::from_str::<serde_json::Value>(&body_str)
+                            {
+                                println!("\n  Body JSON :");
+                                println!("  {}", serde_json::to_string_pretty(&json)?);
+                            }
                         }
                     }
                 }
