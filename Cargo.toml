@@ -27,6 +27,11 @@ name = "magneto_serge"
 name = "magneto"
 path = "src/bin/cli.rs"
 
+[[bin]]
+name = "uniffi-bindgen"
+path = "src/bin/uniffi-bindgen.rs"
+required-features = ["uniffi/cli"]
+
 [dependencies]
 # === Proxy & HTTP ===
 hudsucker = "0.20"
