@@ -8,8 +8,9 @@
     "test": "jest",
     "example": "node examples/basic.js",
     "build": "tsc",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "pnpm run build"
   },
+  "packageManager": "pnpm@8.0.0",
   "keywords": [
     "magneto-serge",
     "testing",

@@ -8,7 +8,14 @@ Bindings JavaScript/Node.js pour **matgto-serge** - Enregistrez et rejouez vos r
 ## 📦 Installation
 
 ```bash
+# npm
 npm install @magneto/serge
+
+# pnpm (recommandé)
+pnpm add @magneto/serge
+
+# yarn
+yarn add @magneto/serge
 ```
 
 ## 🚀 Utilisation Rapide
@@ -334,48 +341,54 @@ test.describe('E2E Tests', () => {
 });
 ```
 
-## 📚 Scripts NPM
+## 📚 Scripts Package Manager
 
 ```json
 {
   "scripts": {
     "test": "jest",
-    "test:record": "MATGTO_MODE=record jest",
-    "test:replay": "MATGTO_MODE=replay jest"
+    "test:record": "MAGNETO_MODE=record jest",
+    "test:replay": "MAGNETO_MODE=replay jest"
   }
 }
 ```
 
 Utilisation:
 ```bash
-# Enregistrer les cassettes
+# Avec pnpm (recommandé)
+pnpm test:record     # Enregistrer les cassettes
+pnpm test:replay     # Rejouer depuis les cassettes
+pnpm test            # Mode auto (défaut)
+
+# Avec npm
 npm run test:record
-
-# Rejouer depuis les cassettes
 npm run test:replay
-
-# Mode auto (défaut)
 npm test
+
+# Avec yarn
+yarn test:record
+yarn test:replay
+yarn test
 ```
 
 ## ⚙️ Variables d'Environnement
 
 ```bash
 # Mode du proxy
-export MATGTO_MODE=record    # ou replay, auto, passthrough
+export MAGNETO_MODE=record    # ou replay, auto, passthrough
 
 # Port du proxy
-export MATGTO_PORT=8888
+export MAGNETO_PORT=8888
 
 # Répertoire des cassettes
-export MATGTO_CASSETTE_DIR=./cassettes
+export MAGNETO_CASSETTE_DIR=./cassettes
 ```
 
 Usage dans le code:
 ```javascript
-const mode = process.env.MATGTO_MODE || 'auto';
-const port = parseInt(process.env.MATGTO_PORT || '8888');
-const dir = process.env.MATGTO_CASSETTE_DIR || './cassettes';
+const mode = process.env.MAGNETO_MODE || 'auto';
+const port = parseInt(process.env.MAGNETO_PORT || '8888');
+const dir = process.env.MAGNETO_CASSETTE_DIR || './cassettes';
 
 const proxy = new MagnetoProxy(dir);
 proxy.setPort(port);
@@ -384,16 +397,16 @@ proxy.setMode(ProxyMode[mode.toUpperCase()]);
 
 ## 🐛 Troubleshooting
 
-### Module not found: libuniffi_matgto_serge
+### Module not found: libuniffi_magneto_serge
 
 Si vous voyez cette erreur, assurez-vous que la bibliothèque native est présente:
 
 ```bash
 # macOS
-cp ../../target/release/libmatgto_serge.dylib lib/libuniffi_matgto_serge.dylib
+cp ../../target/release/libmagneto_serge.dylib lib/libuniffi_magneto_serge.dylib
 
 # Linux
-cp ../../target/release/libmatgto_serge.so lib/libuniffi_matgto_serge.so
+cp ../../target/release/libmagneto_serge.so lib/libuniffi_magneto_serge.so
 ```
 
 ### Proxy not intercepting requests
@@ -413,6 +426,6 @@ matgto-serge contributors
 
 ## 🔗 Liens
 
-- [Documentation](https://github.com/your-org/matgto-serge)
+- [Documentation](https://github.com/taciclei/magneto-serge)
 - [NPM Package](https://www.npmjs.com/package/@magneto/serge)
-- [Issues](https://github.com/your-org/matgto-serge/issues)
+- [Issues](https://github.com/taciclei/magneto-serge/issues)
