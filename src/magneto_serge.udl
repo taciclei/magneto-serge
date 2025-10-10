@@ -1,7 +1,7 @@
 // UniFFI Definition Language (UDL) for magneto-serge
 // Simplified API - exposes only the essential MatgtoProxy interface
 
-namespace matgto_serge {
+namespace magneto_serge {
   // Factory function to create a new proxy instance
   MatgtoProxy? create_proxy(string cassette_dir);
 

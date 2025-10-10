@@ -8,9 +8,7 @@ use crate::error::{MatgtoError, Result};
 use futures::StreamExt;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use tokio_tungstenite::{
-    connect_async, tungstenite::protocol::Message,
-};
+use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 use tracing::{debug, error, info, warn};
 
 /// WebSocket interceptor that captures bidirectional messages

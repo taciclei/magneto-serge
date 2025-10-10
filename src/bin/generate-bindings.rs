@@ -6,8 +6,8 @@ use std::process::Command;
 
 fn main() {
     let manifest_dir = env!("CARGO_MANIFEST_DIR");
-    let udl_file = format!("{}/src/matgto_serge.udl", manifest_dir);
-    let lib_file = format!("{}/target/release/libmatgto_serge.dylib", manifest_dir);
+    let udl_file = format!("{}/src/magneto_serge.udl", manifest_dir);
+    let lib_file = format!("{}/target/release/libmagneto_serge.dylib", manifest_dir);
 
     println!("🔗 Generating UniFFI bindings...");
     println!("UDL file: {}", udl_file);

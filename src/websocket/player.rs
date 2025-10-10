@@ -74,10 +74,7 @@ impl WebSocketPlayer {
 
         for (idx, interaction) in cassette.interactions.iter().enumerate() {
             if let InteractionKind::WebSocket { url, .. } = &interaction.kind {
-                self.ws_index
-                    .entry(url.clone())
-                    .or_insert_with(Vec::new)
-                    .push(idx);
+                self.ws_index.entry(url.clone()).or_default().push(idx);
 
                 // Initialize replay position
                 self.replay_positions.entry(url.clone()).or_insert(0);

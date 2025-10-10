@@ -5,6 +5,9 @@
 //! This library provides a MITM proxy that intercepts HTTP/HTTPS and WebSocket traffic,
 //! records interactions into "cassettes", and can replay them deterministically.
 
+// Allow clippy warnings from UniFFI generated code
+#![allow(clippy::empty_line_after_doc_comments)]
+
 pub mod cassette;
 pub mod error;
 pub mod player;
@@ -39,15 +42,13 @@ pub fn version() -> String {
 }
 
 // Include UniFFI scaffolding
-uniffi::include_scaffolding!("matgto_serge");
+uniffi::include_scaffolding!("magneto_serge");
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_library_loads() {
-        // Basic smoke test
-        assert!(true);
+        // Basic smoke test - verify version is set
+        assert!(!crate::version().is_empty());
     }
 }

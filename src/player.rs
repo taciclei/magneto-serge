@@ -112,6 +112,11 @@ impl Player {
     pub fn get_interaction(&self, idx: usize) -> Option<&crate::cassette::Interaction> {
         self.cassette.as_ref()?.interactions.get(idx)
     }
+
+    /// Get total number of replays across all interactions
+    pub fn replay_count(&self) -> usize {
+        self.replay_count.values().sum()
+    }
 }
 
 impl Default for Player {
@@ -123,9 +128,8 @@ impl Default for Player {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::cassette::{Cassette, HttpRequest, HttpResponse, Interaction, InteractionKind};
+    use crate::cassette::{HttpRequest, HttpResponse};
     use crate::recorder::Recorder;
-    use chrono::Utc;
     use std::collections::HashMap;
     use tempfile::tempdir;
 
