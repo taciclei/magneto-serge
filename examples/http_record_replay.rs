@@ -130,8 +130,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                         // Afficher le body JSON formaté
                         if let Ok(body_str) = String::from_utf8(body.clone()) {
-                            if let Ok(json) = serde_json::from_str::<serde_json::Value>(&body_str)
-                            {
+                            if let Ok(json) = serde_json::from_str::<serde_json::Value>(&body_str) {
                                 println!("\n  Body JSON :");
                                 println!("  {}", serde_json::to_string_pretty(&json)?);
                             }

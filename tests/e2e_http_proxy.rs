@@ -4,11 +4,12 @@
 //! to httpbin.org (a public HTTP testing service).
 
 use magneto_serge::{
-    cassette::Cassette, player::Player, recorder::Recorder, CertificateAuthority, MatgtoProxy,
-    ProxyMode,
+    cassette::Cassette,
+    player::{Player, RequestSignature},
+    recorder::Recorder,
+    CertificateAuthority, MatgtoProxy, ProxyMode,
 };
 use std::collections::HashMap;
-use std::path::Path;
 use tempfile::TempDir;
 
 /// Helper to create a test proxy with temporary directories
@@ -16,7 +17,7 @@ fn create_test_proxy() -> (MatgtoProxy, TempDir, TempDir) {
     let cassette_dir = TempDir::new().expect("Failed to create temp cassette dir");
     let cert_dir = TempDir::new().expect("Failed to create temp cert dir");
 
-    let proxy = MatgtoProxy::new(cassette_dir.path())
+    let proxy = MatgtoProxy::new_internal(cassette_dir.path())
         .expect("Failed to create proxy")
         .with_port(18888); // Use non-standard port for tests
 
@@ -37,14 +38,15 @@ async fn test_e2e_record_and_replay_simple_get() {
     tracing::info!("Starting record phase...");
 
     proxy = proxy.with_mode(ProxyMode::Record);
-    proxy
-        .start_recording("httpbin-test")
-        .expect("Failed to start recording");
+    assert!(
+        proxy.start_recording("httpbin-test".to_string()),
+        "Failed to start recording"
+    );
 
     // TODO: Make actual HTTP request through proxy
     // For now, this is a placeholder for the integration
 
-    proxy.stop_recording().expect("Failed to stop recording");
+    assert!(proxy.stop_recording(), "Failed to stop recording");
 
     tracing::info!("Recording complete");
 
@@ -58,14 +60,15 @@ async fn test_e2e_record_and_replay_simple_get() {
     tracing::info!("Starting replay phase...");
 
     proxy = proxy.with_mode(ProxyMode::Replay);
-    proxy
-        .replay("httpbin-test")
-        .expect("Failed to start replay");
+    assert!(
+        proxy.replay("httpbin-test".to_string()),
+        "Failed to start replay"
+    );
 
     // TODO: Make same HTTP request - should return cached response
     // Verify response matches recorded one
 
-    proxy.shutdown().expect("Failed to shutdown proxy");
+    proxy.shutdown();
 
     tracing::info!("E2E test complete");
 }
@@ -84,14 +87,15 @@ async fn test_e2e_auto_mode() {
     // Second request should replay (cassette exists)
 
     proxy = proxy.with_mode(ProxyMode::Auto);
-    proxy
-        .start_recording("auto-test")
-        .expect("Failed to start auto mode");
+    assert!(
+        proxy.start_recording("auto-test".to_string()),
+        "Failed to start auto mode"
+    );
 
     // TODO: Make first request - should trigger recording
     // TODO: Make second request - should trigger replay
 
-    proxy.shutdown().expect("Failed to shutdown");
+    proxy.shutdown();
 }
 
 #[tokio::test]
@@ -252,38 +256,40 @@ async fn test_full_record_replay_cycle() {
 
     // ========== PHASE 2: REPLAY ==========
     {
-        let mut player = Player::new();
-
         // Load cassette
-        player
-            .load(cassette_dir.path(), cassette_name)
-            .expect("Failed to load cassette");
+        let mut player =
+            Player::load(cassette_dir.path(), cassette_name).expect("Failed to load cassette");
         tracing::info!("📼 Cassette loaded");
 
         // Verify cassette was loaded
         assert!(player.has_cassette(), "Player should have cassette loaded");
 
-        // Create a matching request
-        let replay_request = magneto_serge::cassette::HttpRequest {
+        // Create a matching request signature
+        let replay_signature = RequestSignature {
             method: "GET".to_string(),
             url: "https://httpbin.org/get".to_string(),
-            headers: HashMap::new(), // Headers can differ
-            body: None,
+            body_hash: None,
         };
 
         // Find matching interaction
-        let interaction = player
-            .find_interaction(&replay_request)
+        let interaction_idx = player
+            .find_interaction(&replay_signature)
             .expect("Should find matching interaction");
 
         tracing::info!("✅ Interaction found in cassette");
 
-        // Verify response
-        if let Some(recorded_response) = interaction.response() {
-            assert_eq!(recorded_response.status, 200);
-            assert!(recorded_response.body.is_some());
+        // Get the interaction
+        let interaction = player
+            .get_interaction(interaction_idx)
+            .expect("Should get interaction");
 
-            let body = recorded_response.body.as_ref().unwrap();
+        // Verify response
+        if let magneto_serge::cassette::InteractionKind::Http { response, .. } = &interaction.kind
+        {
+            assert_eq!(response.status, 200);
+            assert!(response.body.is_some());
+
+            let body = response.body.as_ref().unwrap();
             let body_str = String::from_utf8_lossy(body);
             assert!(body_str.contains("httpbin.org"));
             assert!(body_str.contains("matgto-test/1.0"));
@@ -291,7 +297,7 @@ async fn test_full_record_replay_cycle() {
             tracing::info!("✅ Response validated");
             tracing::info!("Response body: {}", body_str);
         } else {
-            panic!("Interaction should have response");
+            panic!("Interaction should be HTTP type");
         }
 
         // Verify replay count
@@ -369,10 +375,9 @@ async fn test_record_with_post_body() {
     tracing::info!("✅ POST with body recorded");
 
     // Replay
-    let mut player = Player::new();
-    player.load(cassette_dir.path(), cassette_name).unwrap();
+    let mut player = Player::load(cassette_dir.path(), cassette_name).unwrap();
 
-    let replay_request = magneto_serge::cassette::HttpRequest {
+    let replay_signature = RequestSignature::from(magneto_serge::cassette::HttpRequest {
         method: "POST".to_string(),
         url: "https://httpbin.org/post".to_string(),
         headers: {
@@ -381,10 +386,18 @@ async fn test_record_with_post_body() {
             h
         },
         body: Some(b"{\"name\":\"test\",\"value\":42}".to_vec()),
-    };
+    });
 
-    let interaction = player.find_interaction(&replay_request).unwrap();
-    let replayed_response = interaction.response().unwrap();
+    let interaction_idx = player.find_interaction(&replay_signature).unwrap();
+    let interaction = player.get_interaction(interaction_idx).unwrap();
+
+    let replayed_response = if let magneto_serge::cassette::InteractionKind::Http { response, .. } =
+        &interaction.kind
+    {
+        response
+    } else {
+        panic!("Expected HTTP interaction");
+    };
 
     // Verify body was preserved
     assert!(replayed_response.body.is_some());
@@ -451,35 +464,34 @@ async fn test_multiple_interactions() {
     recorder.save(cassette_dir.path()).unwrap();
 
     // Replay and verify all interactions
-    let mut player = Player::new();
-    player.load(cassette_dir.path(), cassette_name).unwrap();
+    let mut player = Player::load(cassette_dir.path(), cassette_name).unwrap();
 
     // Find GET
-    let get_req = magneto_serge::cassette::HttpRequest {
+    let get_sig = RequestSignature::from(magneto_serge::cassette::HttpRequest {
         method: "GET".to_string(),
         url: "https://api.example.com/users".to_string(),
         headers: HashMap::new(),
         body: None,
-    };
-    assert!(player.find_interaction(&get_req).is_ok());
+    });
+    assert!(player.find_interaction(&get_sig).is_ok());
 
     // Find POST
-    let post_req = magneto_serge::cassette::HttpRequest {
+    let post_sig = RequestSignature::from(magneto_serge::cassette::HttpRequest {
         method: "POST".to_string(),
         url: "https://api.example.com/users".to_string(),
         headers: HashMap::new(),
         body: Some(b"{\"name\":\"Bob\"}".to_vec()),
-    };
-    assert!(player.find_interaction(&post_req).is_ok());
+    });
+    assert!(player.find_interaction(&post_sig).is_ok());
 
     // Find DELETE
-    let delete_req = magneto_serge::cassette::HttpRequest {
+    let delete_sig = RequestSignature::from(magneto_serge::cassette::HttpRequest {
         method: "DELETE".to_string(),
         url: "https://api.example.com/users/1".to_string(),
         headers: HashMap::new(),
         body: None,
-    };
-    assert!(player.find_interaction(&delete_req).is_ok());
+    });
+    assert!(player.find_interaction(&delete_sig).is_ok());
 
     assert_eq!(player.replay_count(), 3);
 }

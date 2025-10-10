@@ -14,6 +14,25 @@ pub struct RequestSignature {
     pub body_hash: Option<u64>,
 }
 
+impl From<crate::cassette::HttpRequest> for RequestSignature {
+    fn from(request: crate::cassette::HttpRequest) -> Self {
+        use std::collections::hash_map::DefaultHasher;
+        use std::hash::{Hash, Hasher};
+
+        let body_hash = request.body.as_ref().map(|b| {
+            let mut hasher = DefaultHasher::new();
+            b.hash(&mut hasher);
+            hasher.finish()
+        });
+
+        Self {
+            method: request.method,
+            url: request.url,
+            body_hash,
+        }
+    }
+}
+
 /// Plays back recorded interactions from cassettes
 #[derive(Debug)]
 pub struct Player {

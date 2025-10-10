@@ -17,7 +17,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create proxy
     println!("\n2️⃣  Creating proxy...");
-    let mut proxy = MatgtoProxy::new_internal("./cassettes")?
+    let proxy = MatgtoProxy::new_internal("./cassettes")?
         .with_port(8888)
         .with_mode(ProxyMode::Record);
 
