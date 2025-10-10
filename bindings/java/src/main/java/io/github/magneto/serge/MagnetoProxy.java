@@ -1,19 +1,19 @@
 package io.github.magneto.serge;
 
-import uniffi.matgto_serge.ProxyMode;
+import uniffi.magneto_serge.ProxyMode;
 
 /**
- * Java wrapper pour matgto-serge
+ * Java wrapper pour magneto-serge
  *
  * Cette classe wraps les bindings Kotlin générés par UniFFI
  * pour une utilisation native depuis Java.
  *
- * @author matgto-serge contributors
- * @version 0.1.0
+ * @author magneto-serge contributors
+ * @version 0.4.0
  */
 public class MagnetoProxy {
 
-    private final uniffi.matgto_serge.MagnetoProxy kotlinProxy;
+    private final uniffi.magneto_serge.MagnetoProxy kotlinProxy;
 
     /**
      * Mode du proxy
@@ -51,8 +51,8 @@ public class MagnetoProxy {
      * @throws IllegalStateException si la création échoue
      */
     public MagnetoProxy(String cassetteDir) {
-        uniffi.matgto_serge.MagnetoProxy proxy =
-            uniffi.matgto_serge.MatgtoSergeKt.createProxy(cassetteDir);
+        uniffi.magneto_serge.MagnetoProxy proxy =
+            uniffi.magneto_serge.MagnetoSergeKt.createProxy(cassetteDir);
 
         if (proxy == null) {
             throw new IllegalStateException(
@@ -139,12 +139,12 @@ public class MagnetoProxy {
     }
 
     /**
-     * Obtient la version de matgto-serge
+     * Obtient la version de magneto-serge
      *
-     * @return Version (ex: "0.1.0")
+     * @return Version (ex: "0.4.0")
      */
     public static String getVersion() {
-        return uniffi.matgto_serge.MatgtoSergeKt.version();
+        return uniffi.magneto_serge.MagnetoSergeKt.version();
     }
 
     /**

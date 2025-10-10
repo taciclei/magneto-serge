@@ -82,8 +82,8 @@
     </dependencies>
 
     <build>
-        <sourceDirectory>.</sourceDirectory>
-        <testSourceDirectory>.</testSourceDirectory>
+        <sourceDirectory>src/main/java</sourceDirectory>
+        <testSourceDirectory>src/test/java</testSourceDirectory>
 
         <plugins>
             <!-- Kotlin Maven Plugin -->
