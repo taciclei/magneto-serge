@@ -109,7 +109,7 @@ jobs:
         run: cargo build --release
 
       - name: Install UniFFI bindgen
-        run: cargo install uniffi-bindgen-cli --version 0.28.3
+        run: cargo install uniffi-bindgen --version 0.28.0
 
       - name: Generate Kotlin bindings
         run: |
@@ -154,7 +154,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            target/release/matgto
+            target/release/magneto
             target/release/libmagneto_serge.so
             target/release/libmagneto_serge.dylib
           generate_release_notes: true
