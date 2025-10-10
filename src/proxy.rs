@@ -213,7 +213,7 @@ impl MagnetoProxy {
     }
 
     /// Replay an existing cassette (internal version with Result)
-    fn replay_internal(&self, cassette_name: String) -> Result<()> {
+    pub fn replay_internal(&self, cassette_name: String) -> Result<()> {
         let mut state = self.state.lock().unwrap();
 
         state.current_cassette = Some(cassette_name.clone());
