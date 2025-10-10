@@ -12,7 +12,7 @@
 
     <name>magneto-serge</name>
     <description>Magnéto-Serge - Multi-language HTTP/WebSocket testing library with record/replay capabilities</description>
-    <url>https://github.com/taciclei/matgto-serge</url>
+    <url>https://github.com/taciclei/magneto-serge</url>
 
     <licenses>
         <license>
@@ -37,9 +37,9 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/taciclei/matgto-serge.git</connection>
-        <developerConnection>scm:git:ssh://github.com:taciclei/matgto-serge.git</developerConnection>
-        <url>https://github.com/taciclei/matgto-serge/tree/main</url>
+        <connection>scm:git:git://github.com/taciclei/magneto-serge.git</connection>
+        <developerConnection>scm:git:ssh://github.com:taciclei/magneto-serge.git</developerConnection>
+        <url>https://github.com/taciclei/magneto-serge/tree/main</url>
     </scm>
 
     <properties>

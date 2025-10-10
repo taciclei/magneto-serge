@@ -25,7 +25,7 @@
   "license": "MIT OR Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/taciclei/matgto-serge.git"
+    "url": "https://github.com/taciclei/magneto-serge.git"
   },
   "dependencies": {
     "ffi-napi": "^4.0.3",
