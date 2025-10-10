@@ -342,7 +342,7 @@ async fn test_record_with_post_body() {
     // Record a POST request with JSON body
     let mut recorder = Recorder::new(cassette_name.to_string());
 
-    let request = matgto_serge::cassette::HttpRequest {
+    let request = magneto_serge::cassette::HttpRequest {
         method: "POST".to_string(),
         url: "https://httpbin.org/post".to_string(),
         headers: {
@@ -353,7 +353,7 @@ async fn test_record_with_post_body() {
         body: Some(b"{\"name\":\"test\",\"value\":42}".to_vec()),
     };
 
-    let response = matgto_serge::cassette::HttpResponse {
+    let response = magneto_serge::cassette::HttpResponse {
         status: 200,
         headers: {
             let mut h = HashMap::new();
@@ -372,7 +372,7 @@ async fn test_record_with_post_body() {
     let mut player = Player::new();
     player.load(cassette_dir.path(), cassette_name).unwrap();
 
-    let replay_request = matgto_serge::cassette::HttpRequest {
+    let replay_request = magneto_serge::cassette::HttpRequest {
         method: "POST".to_string(),
         url: "https://httpbin.org/post".to_string(),
         headers: {
