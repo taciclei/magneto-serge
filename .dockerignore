@@ -1,0 +1,64 @@
+# Git
+.git
+.gitignore
+
+# Build artifacts
+target/
+dist/
+pkg/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Cassettes
+cassettes/
+*.cassette.json
+*.cassette.msgpack
+
+# Certificates
+*.pem
+*.key
+*.crt
+*.der
+
+# Logs
+*.log
+logs/
+
+# Test files
+test_cassettes/
+.matgto/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# CI/CD
+.github/
+
+# Bindings
+bindings/
+
+# Node
+node_modules/
+package-lock.json
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+
+# Java/Kotlin
+*.class
+.gradle/
+build/
+*.iml
+
+# macOS
+.DS_Store
