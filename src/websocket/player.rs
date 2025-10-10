@@ -2,7 +2,7 @@
 //!
 //! Replays WebSocket interactions from cassettes.
 
-use crate::cassette::{Cassette, InteractionKind, WebSocketMessage, CloseFrame};
+use crate::cassette::{Cassette, CloseFrame, InteractionKind, WebSocketMessage};
 use crate::error::{MatgtoError, Result};
 use std::collections::HashMap;
 use std::path::Path;
@@ -49,11 +49,10 @@ impl WebSocketPlayer {
             }
         })?;
 
-        let cassette: Cassette = serde_json::from_str(&json).map_err(|e| {
-            MatgtoError::CassetteLoadFailed {
+        let cassette: Cassette =
+            serde_json::from_str(&json).map_err(|e| MatgtoError::CassetteLoadFailed {
                 reason: format!("Failed to parse cassette JSON: {}", e),
-            }
-        })?;
+            })?;
 
         info!(
             "✅ Cassette loaded: {} ({} interactions)",
@@ -94,7 +93,10 @@ impl WebSocketPlayer {
     }
 
     /// Find and replay messages for a WebSocket URL
-    pub fn replay_session(&mut self, url: &str) -> Result<(Vec<WebSocketMessage>, Option<CloseFrame>)> {
+    pub fn replay_session(
+        &mut self,
+        url: &str,
+    ) -> Result<(Vec<WebSocketMessage>, Option<CloseFrame>)> {
         if self.cassette.is_none() {
             return Err(MatgtoError::WebSocketError {
                 reason: "No cassette loaded".to_string(),
@@ -102,11 +104,12 @@ impl WebSocketPlayer {
         }
 
         // Get interaction indices for this URL
-        let indices = self.ws_index.get(url).ok_or_else(|| {
-            MatgtoError::WebSocketError {
+        let indices = self
+            .ws_index
+            .get(url)
+            .ok_or_else(|| MatgtoError::WebSocketError {
                 reason: format!("No WebSocket session found for URL: {}", url),
-            }
-        })?;
+            })?;
 
         // Get current replay position for this URL
         let position = self.replay_positions.get(url).copied().unwrap_or(0);
@@ -146,7 +149,10 @@ impl WebSocketPlayer {
             Ok((messages.clone(), close_frame.clone()))
         } else {
             Err(MatgtoError::WebSocketError {
-                reason: format!("Interaction #{} is not a WebSocket session", interaction_idx),
+                reason: format!(
+                    "Interaction #{} is not a WebSocket session",
+                    interaction_idx
+                ),
             })
         }
     }

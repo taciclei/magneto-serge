@@ -5,10 +5,11 @@
 //! 2. Sauvegarde dans une cassette
 //! 3. Replay depuis la cassette
 
-use matgto_serge::{
-    MatgtoProxy, ProxyMode, CertificateAuthority,
+use magneto_serge::{
     cassette::{Cassette, HttpRequest, HttpResponse},
-    recorder::Recorder, player::Player,
+    player::Player,
+    recorder::Recorder,
+    CertificateAuthority, MatgtoProxy, ProxyMode,
 };
 use std::collections::HashMap;
 use std::path::Path;
@@ -17,10 +18,10 @@ use std::path::Path;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialiser le logging
     tracing_subscriber::fmt()
-        .with_env_filter("matgto_serge=info")
+        .with_env_filter("magneto_serge=info")
         .init();
 
-    println!("🎬 matgto-serge - Exemple Record/Replay HTTP\n");
+    println!("🎬 magneto-serge - Exemple Record/Replay HTTP\n");
 
     // ========== PHASE 1: RECORD ==========
     println!("📹 Phase 1: Enregistrement");
@@ -38,7 +39,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         url: "https://api.github.com/users/octocat".to_string(),
         headers: {
             let mut h = HashMap::new();
-            h.insert("User-Agent".to_string(), "matgto-serge/0.1.0".to_string());
+            h.insert("User-Agent".to_string(), "magneto-serge/0.1.0".to_string());
             h.insert("Accept".to_string(), "application/json".to_string());
             h
         },
@@ -79,7 +80,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Sauvegarder la cassette
     recorder.save(Path::new(cassette_dir))?;
-    println!("  ✓ Cassette sauvegardée : {}/api-example.json\n", cassette_dir);
+    println!(
+        "  ✓ Cassette sauvegardée : {}/api-example.json\n",
+        cassette_dir
+    );
 
     // ========== PHASE 2: AFFICHER LA CASSETTE ==========
     println!("📼 Phase 2: Contenu de la cassette");
@@ -106,8 +110,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         body: None,
     };
 
-    println!("  ✓ Recherche interaction pour : {} {}",
-        replay_request.method, replay_request.url);
+    println!(
+        "  ✓ Recherche interaction pour : {} {}",
+        replay_request.method, replay_request.url
+    );
 
     // Trouver l'interaction correspondante
     match player.find_interaction(&replay_request) {

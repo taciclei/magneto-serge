@@ -4,8 +4,8 @@
 //! to httpbin.org (a public HTTP testing service).
 
 use matgto_serge::{
-    MatgtoProxy, ProxyMode, CertificateAuthority,
-    cassette::Cassette, recorder::Recorder, player::Player,
+    cassette::Cassette, player::Player, recorder::Recorder, CertificateAuthority, MatgtoProxy,
+    ProxyMode,
 };
 use std::collections::HashMap;
 use std::path::Path;
@@ -37,14 +37,14 @@ async fn test_e2e_record_and_replay_simple_get() {
     tracing::info!("Starting record phase...");
 
     proxy = proxy.with_mode(ProxyMode::Record);
-    proxy.start_recording("httpbin-test")
+    proxy
+        .start_recording("httpbin-test")
         .expect("Failed to start recording");
 
     // TODO: Make actual HTTP request through proxy
     // For now, this is a placeholder for the integration
 
-    proxy.stop_recording()
-        .expect("Failed to stop recording");
+    proxy.stop_recording().expect("Failed to stop recording");
 
     tracing::info!("Recording complete");
 
@@ -58,14 +58,14 @@ async fn test_e2e_record_and_replay_simple_get() {
     tracing::info!("Starting replay phase...");
 
     proxy = proxy.with_mode(ProxyMode::Replay);
-    proxy.replay("httpbin-test")
+    proxy
+        .replay("httpbin-test")
         .expect("Failed to start replay");
 
     // TODO: Make same HTTP request - should return cached response
     // Verify response matches recorded one
 
-    proxy.shutdown()
-        .expect("Failed to shutdown proxy");
+    proxy.shutdown().expect("Failed to shutdown proxy");
 
     tracing::info!("E2E test complete");
 }
@@ -84,14 +84,14 @@ async fn test_e2e_auto_mode() {
     // Second request should replay (cassette exists)
 
     proxy = proxy.with_mode(ProxyMode::Auto);
-    proxy.start_recording("auto-test")
+    proxy
+        .start_recording("auto-test")
         .expect("Failed to start auto mode");
 
     // TODO: Make first request - should trigger recording
     // TODO: Make second request - should trigger replay
 
-    proxy.shutdown()
-        .expect("Failed to shutdown");
+    proxy.shutdown().expect("Failed to shutdown");
 }
 
 #[tokio::test]
@@ -164,7 +164,10 @@ fn test_certificate_authority_creation() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let ca = CertificateAuthority::new(temp_dir.path());
 
-    assert!(ca.is_ok(), "Certificate authority should be created successfully");
+    assert!(
+        ca.is_ok(),
+        "Certificate authority should be created successfully"
+    );
 }
 
 #[test]
@@ -234,7 +237,9 @@ async fn test_full_record_replay_cycle() {
         tracing::info!("✅ Interaction recorded");
 
         // Save cassette
-        recorder.save(cassette_dir.path()).expect("Failed to save cassette");
+        recorder
+            .save(cassette_dir.path())
+            .expect("Failed to save cassette");
         tracing::info!("💾 Cassette saved");
 
         // Verify cassette file exists
@@ -300,14 +305,14 @@ async fn test_full_record_replay_cycle() {
     {
         // Read and parse cassette file
         let cassette_path = cassette_dir.path().join(format!("{}.json", cassette_name));
-        let cassette_json = std::fs::read_to_string(&cassette_path)
-            .expect("Failed to read cassette");
+        let cassette_json =
+            std::fs::read_to_string(&cassette_path).expect("Failed to read cassette");
 
         tracing::info!("Cassette JSON:\n{}", cassette_json);
 
         // Parse cassette
-        let cassette: Cassette = serde_json::from_str(&cassette_json)
-            .expect("Failed to parse cassette");
+        let cassette: Cassette =
+            serde_json::from_str(&cassette_json).expect("Failed to parse cassette");
 
         // Verify cassette structure
         assert_eq!(cassette.name, cassette_name);

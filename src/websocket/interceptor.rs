@@ -3,13 +3,13 @@
 //! This module provides WebSocket connection interception and message proxying.
 //! It handles WebSocket upgrades and bidirectional message flow between client and server.
 
+use crate::cassette::{Direction, MessagePayload, WebSocketMessage};
 use crate::error::{MatgtoError, Result};
-use crate::cassette::{WebSocketMessage, MessagePayload, Direction};
 use futures::{SinkExt, StreamExt};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_tungstenite::{
-    connect_async, tungstenite::protocol::Message, WebSocketStream, MaybeTlsStream,
+    connect_async, tungstenite::protocol::Message, MaybeTlsStream, WebSocketStream,
 };
 use tracing::{debug, error, info, warn};
 
@@ -41,11 +41,12 @@ impl WebSocketInterceptor {
         info!("🔌 Starting WebSocket interceptor for: {}", self.url);
 
         // Connect to target WebSocket server
-        let (ws_stream, _) = connect_async(&self.url)
-            .await
-            .map_err(|e| MatgtoError::WebSocketError {
-                reason: format!("Failed to connect to WebSocket: {}", e),
-            })?;
+        let (ws_stream, _) =
+            connect_async(&self.url)
+                .await
+                .map_err(|e| MatgtoError::WebSocketError {
+                    reason: format!("Failed to connect to WebSocket: {}", e),
+                })?;
 
         info!("✅ Connected to WebSocket: {}", self.url);
 

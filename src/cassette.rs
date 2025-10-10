@@ -9,13 +9,13 @@ use std::collections::HashMap;
 pub struct Cassette {
     /// Cassette format version
     pub version: String,
-    
+
     /// Cassette name
     pub name: String,
-    
+
     /// Recording timestamp
     pub recorded_at: DateTime<Utc>,
-    
+
     /// List of recorded interactions
     pub interactions: Vec<Interaction>,
 }
@@ -26,7 +26,7 @@ pub struct Interaction {
     /// Type of interaction
     #[serde(flatten)]
     pub kind: InteractionKind,
-    
+
     /// When this interaction was recorded
     pub recorded_at: DateTime<Utc>,
 }
@@ -40,7 +40,7 @@ pub enum InteractionKind {
         request: HttpRequest,
         response: HttpResponse,
     },
-    
+
     /// WebSocket connection with messages
     WebSocket {
         url: String,
@@ -54,13 +54,13 @@ pub enum InteractionKind {
 pub struct HttpRequest {
     /// HTTP method (GET, POST, etc.)
     pub method: String,
-    
+
     /// Request URL
     pub url: String,
-    
+
     /// Request headers
     pub headers: HashMap<String, String>,
-    
+
     /// Request body (None if empty)
     pub body: Option<Vec<u8>>,
 }
@@ -70,10 +70,10 @@ pub struct HttpRequest {
 pub struct HttpResponse {
     /// HTTP status code
     pub status: u16,
-    
+
     /// Response headers
     pub headers: HashMap<String, String>,
-    
+
     /// Response body (None if empty)
     pub body: Option<Vec<u8>>,
 }
@@ -83,10 +83,10 @@ pub struct HttpResponse {
 pub struct WebSocketMessage {
     /// Message direction
     pub direction: Direction,
-    
+
     /// Timestamp in milliseconds (relative to connection start)
     pub timestamp_ms: u64,
-    
+
     /// Message payload
     #[serde(flatten)]
     pub payload: MessagePayload,
@@ -97,7 +97,7 @@ pub struct WebSocketMessage {
 pub enum Direction {
     /// Client → Server
     Sent,
-    
+
     /// Server → Client
     Received,
 }
@@ -108,13 +108,13 @@ pub enum Direction {
 pub enum MessagePayload {
     /// Text message
     Text { data: String },
-    
+
     /// Binary message
     Binary { data: Vec<u8> },
-    
+
     /// Ping frame
     Ping { data: Vec<u8> },
-    
+
     /// Pong frame
     Pong { data: Vec<u8> },
 }
@@ -124,7 +124,7 @@ pub enum MessagePayload {
 pub struct CloseFrame {
     /// Close code
     pub code: u16,
-    
+
     /// Close reason
     pub reason: String,
 }
@@ -139,7 +139,7 @@ impl Cassette {
             interactions: Vec::new(),
         }
     }
-    
+
     /// Add an interaction to the cassette
     pub fn add_interaction(&mut self, kind: InteractionKind) {
         self.interactions.push(Interaction {

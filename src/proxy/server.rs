@@ -3,23 +3,23 @@
 //! This module implements the actual MITM proxy server that intercepts
 //! HTTP/HTTPS and WebSocket traffic.
 
+use crate::cassette::{HttpRequest, HttpResponse};
 use crate::error::{MatgtoError, Result};
+use crate::player::{Player, RequestSignature};
+use crate::proxy::client::HttpForwarder;
 use crate::proxy::ProxyMode;
 use crate::recorder::Recorder;
-use crate::player::{Player, RequestSignature};
-use crate::cassette::{HttpRequest, HttpResponse};
 use crate::tls::CertificateAuthority;
-use crate::proxy::client::HttpForwarder;
 
 use hudsucker::{
     certificate_authority::RcgenAuthority,
     hyper::{Body, Request, Response, StatusCode},
     HttpContext, HttpHandler as HudsuckerHttpHandler, RequestOrResponse,
 };
+use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use std::collections::HashMap;
 
 /// Matgto HTTP handler that implements Hudsucker's HttpHandler trait
 #[derive(Debug, Clone)]
@@ -68,11 +68,11 @@ impl MatgtoHttpHandler {
         }
 
         // Read and buffer the body
-        let body_bytes = hyper::body::to_bytes(req.into_body())
-            .await
-            .map_err(|e| MatgtoError::ProxyStartFailed {
+        let body_bytes = hyper::body::to_bytes(req.into_body()).await.map_err(|e| {
+            MatgtoError::ProxyStartFailed {
                 reason: format!("Failed to read request body: {}", e),
-            })?;
+            }
+        })?;
 
         let body_vec = body_bytes.to_vec();
         let body_option = if !body_vec.is_empty() {
@@ -109,15 +109,16 @@ impl MatgtoHttpHandler {
             Body::empty()
         };
 
-        builder.body(body).map_err(|e| MatgtoError::ProxyStartFailed {
-            reason: format!("Failed to reconstruct request: {}", e),
-        })
+        builder
+            .body(body)
+            .map_err(|e| MatgtoError::ProxyStartFailed {
+                reason: format!("Failed to reconstruct request: {}", e),
+            })
     }
 
     /// Convert our HttpResponse to hyper Response
     fn convert_response(resp: &HttpResponse) -> Result<Response<Body>> {
-        let mut builder = Response::builder()
-            .status(resp.status);
+        let mut builder = Response::builder().status(resp.status);
 
         // Add headers
         for (name, value) in &resp.headers {
@@ -131,9 +132,11 @@ impl MatgtoHttpHandler {
             Body::empty()
         };
 
-        builder.body(body).map_err(|e| MatgtoError::ProxyStartFailed {
-            reason: format!("Failed to build response: {}", e),
-        })
+        builder
+            .body(body)
+            .map_err(|e| MatgtoError::ProxyStartFailed {
+                reason: format!("Failed to build response: {}", e),
+            })
     }
 
     /// Convert HttpRequest to RequestSignature for player lookups
@@ -231,16 +234,26 @@ impl HudsuckerHttpHandler for MatgtoHttpHandler {
                             match player_lock.find_interaction(&signature) {
                                 Ok(idx) => {
                                     if let Some(interaction) = player_lock.get_interaction(idx) {
-                                        if let crate::cassette::InteractionKind::Http { response, .. } = &interaction.kind {
-                                            tracing::info!("✅ Replay match found for {} {}",
-                                                http_req.method, http_req.url);
+                                        if let crate::cassette::InteractionKind::Http {
+                                            response,
+                                            ..
+                                        } = &interaction.kind
+                                        {
+                                            tracing::info!(
+                                                "✅ Replay match found for {} {}",
+                                                http_req.method,
+                                                http_req.url
+                                            );
 
                                             match Self::convert_response(response) {
                                                 Ok(response) => {
                                                     return RequestOrResponse::Response(response);
                                                 }
                                                 Err(e) => {
-                                                    tracing::error!("Failed to convert response: {}", e);
+                                                    tracing::error!(
+                                                        "Failed to convert response: {}",
+                                                        e
+                                                    );
                                                 }
                                             }
                                         }
@@ -253,8 +266,11 @@ impl HudsuckerHttpHandler for MatgtoHttpHandler {
                         }
 
                         // If replay fails, return 404
-                        tracing::warn!("❌ No matching interaction found for {} {}",
-                            http_req.method, http_req.url);
+                        tracing::warn!(
+                            "❌ No matching interaction found for {} {}",
+                            http_req.method,
+                            http_req.url
+                        );
                         let response = Response::builder()
                             .status(StatusCode::NOT_FOUND)
                             .body(Body::from("No matching interaction in cassette"))
@@ -295,7 +311,11 @@ impl HudsuckerHttpHandler for MatgtoHttpHandler {
 
                                 if let Ok(idx) = player_lock.find_interaction(&signature) {
                                     if let Some(interaction) = player_lock.get_interaction(idx) {
-                                        if let crate::cassette::InteractionKind::Http { response, .. } = &interaction.kind {
+                                        if let crate::cassette::InteractionKind::Http {
+                                            response,
+                                            ..
+                                        } = &interaction.kind
+                                        {
                                             tracing::info!("✅ Auto replay: Match found");
                                             if let Ok(response) = Self::convert_response(response) {
                                                 return RequestOrResponse::Response(response);
@@ -354,34 +374,34 @@ impl HudsuckerHttpHandler for MatgtoHttpHandler {
 
             ProxyMode::Passthrough => {
                 // Pass through - forward without recording
-                tracing::info!("Passthrough mode: Forwarding {} {}", req.method(), req.uri());
+                tracing::info!(
+                    "Passthrough mode: Forwarding {} {}",
+                    req.method(),
+                    req.uri()
+                );
 
                 match Self::convert_request(req).await {
-                    Ok((http_req, _body_bytes)) => {
-                        match self.forwarder.forward(&http_req).await {
-                            Ok(http_resp) => {
-                                match Self::convert_response(&http_resp) {
-                                    Ok(response) => RequestOrResponse::Response(response),
-                                    Err(e) => {
-                                        tracing::error!("Failed to convert response: {}", e);
-                                        let err_response = Response::builder()
-                                            .status(StatusCode::INTERNAL_SERVER_ERROR)
-                                            .body(Body::from("Failed to convert response"))
-                                            .unwrap();
-                                        RequestOrResponse::Response(err_response)
-                                    }
-                                }
-                            }
+                    Ok((http_req, _body_bytes)) => match self.forwarder.forward(&http_req).await {
+                        Ok(http_resp) => match Self::convert_response(&http_resp) {
+                            Ok(response) => RequestOrResponse::Response(response),
                             Err(e) => {
-                                tracing::error!("Failed to forward request: {}", e);
+                                tracing::error!("Failed to convert response: {}", e);
                                 let err_response = Response::builder()
-                                    .status(StatusCode::BAD_GATEWAY)
-                                    .body(Body::from(format!("Proxy error: {}", e)))
+                                    .status(StatusCode::INTERNAL_SERVER_ERROR)
+                                    .body(Body::from("Failed to convert response"))
                                     .unwrap();
                                 RequestOrResponse::Response(err_response)
                             }
+                        },
+                        Err(e) => {
+                            tracing::error!("Failed to forward request: {}", e);
+                            let err_response = Response::builder()
+                                .status(StatusCode::BAD_GATEWAY)
+                                .body(Body::from(format!("Proxy error: {}", e)))
+                                .unwrap();
+                            RequestOrResponse::Response(err_response)
                         }
-                    }
+                    },
                     Err(e) => {
                         tracing::error!("Failed to buffer request: {}", e);
                         let err_response = Response::builder()
@@ -395,11 +415,7 @@ impl HudsuckerHttpHandler for MatgtoHttpHandler {
         }
     }
 
-    async fn handle_response(
-        &mut self,
-        _ctx: &HttpContext,
-        res: Response<Body>,
-    ) -> Response<Body> {
+    async fn handle_response(&mut self, _ctx: &HttpContext, res: Response<Body>) -> Response<Body> {
         // We handle everything in handle_request now (with buffering)
         // This method just passes through responses unchanged
         tracing::debug!("Response passthrough: {}", res.status());
@@ -416,19 +432,11 @@ pub struct ProxyServer {
 
 impl ProxyServer {
     /// Create a new proxy server
-    pub fn new(
-        port: u16,
-        ca: Arc<CertificateAuthority>,
-        mode: ProxyMode,
-    ) -> Result<Self> {
+    pub fn new(port: u16, ca: Arc<CertificateAuthority>, mode: ProxyMode) -> Result<Self> {
         let addr = SocketAddr::from(([127, 0, 0, 1], port));
         let handler = MatgtoHttpHandler::new(mode);
 
-        Ok(Self {
-            addr,
-            ca,
-            handler,
-        })
+        Ok(Self { addr, ca, handler })
     }
 
     /// Set recorder for Record mode
@@ -479,9 +487,7 @@ mod tests {
     #[test]
     fn test_proxy_server_creation() {
         let temp_dir = TempDir::new().unwrap();
-        let ca = Arc::new(
-            CertificateAuthority::new(temp_dir.path()).unwrap()
-        );
+        let ca = Arc::new(CertificateAuthority::new(temp_dir.path()).unwrap());
 
         let server = ProxyServer::new(8888, ca, ProxyMode::Record);
         assert!(server.is_ok());

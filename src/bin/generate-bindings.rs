@@ -41,10 +41,17 @@ fn main() {
 
         match status {
             Ok(exit_status) if exit_status.success() => {
-                println!("✅ {} bindings generated successfully in {}", lang, output_dir);
+                println!(
+                    "✅ {} bindings generated successfully in {}",
+                    lang, output_dir
+                );
             }
             Ok(exit_status) => {
-                eprintln!("❌ Failed to generate {} bindings (exit code: {:?})", lang, exit_status.code());
+                eprintln!(
+                    "❌ Failed to generate {} bindings (exit code: {:?})",
+                    lang,
+                    exit_status.code()
+                );
             }
             Err(e) => {
                 eprintln!("❌ Error running uniffi-bindgen for {}: {}", lang, e);

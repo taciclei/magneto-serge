@@ -2,7 +2,7 @@
 //!
 //! Records WebSocket messages into cassettes for later replay.
 
-use crate::cassette::{Cassette, Interaction, InteractionKind, WebSocketMessage, CloseFrame};
+use crate::cassette::{Cassette, CloseFrame, Interaction, InteractionKind, WebSocketMessage};
 use crate::error::{MatgtoError, Result};
 use chrono::Utc;
 use std::path::Path;
@@ -165,9 +165,7 @@ mod tests {
         let cassette = recorder.cassette();
         assert_eq!(cassette.interactions.len(), 1);
 
-        if let InteractionKind::WebSocket { url, messages, .. } =
-            &cassette.interactions[0].kind
-        {
+        if let InteractionKind::WebSocket { url, messages, .. } = &cassette.interactions[0].kind {
             assert_eq!(url, "ws://example.com/socket");
             assert_eq!(messages.len(), 2);
         } else {

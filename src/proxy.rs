@@ -1,24 +1,24 @@
 //! Core proxy implementation
 
 // Module declarations (must come first)
+pub mod client;
 pub mod http_handler;
 pub mod server;
-pub mod client;
 
 use crate::error::{MatgtoError, Result};
-use crate::recorder::Recorder;
 use crate::player::Player;
+use crate::recorder::Recorder;
 use crate::tls::CertificateAuthority;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex as StdMutex};
-use tokio::sync::Mutex;
 use tokio::runtime::Runtime;
+use tokio::sync::Mutex;
 
 // Import from submodules
 use self::server::ProxyServer;
+pub use client::HttpForwarder;
 pub use http_handler::HttpHandler;
 pub use server::MatgtoHttpHandler;
-pub use client::HttpForwarder;
 
 /// Proxy operation mode
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -74,13 +74,13 @@ impl MatgtoProxy {
     pub fn new_internal(cassette_dir: impl Into<PathBuf>) -> Result<Self> {
         let cassette_dir = cassette_dir.into();
 
-        let runtime = Runtime::new()
-            .map_err(|e| MatgtoError::ProxyStartFailed {
-                reason: format!("Failed to create Tokio runtime: {}", e)
-            })?;
+        let runtime = Runtime::new().map_err(|e| MatgtoError::ProxyStartFailed {
+            reason: format!("Failed to create Tokio runtime: {}", e),
+        })?;
 
         // Create certificate authority
-        let ca_dir = cassette_dir.parent()
+        let ca_dir = cassette_dir
+            .parent()
             .unwrap_or(cassette_dir.as_ref())
             .join(".matgto/certs");
 
@@ -202,7 +202,7 @@ impl MatgtoProxy {
             Ok(())
         } else {
             Err(MatgtoError::RecordingFailed {
-                reason: "No recording in progress".to_string()
+                reason: "No recording in progress".to_string(),
             })
         }
     }

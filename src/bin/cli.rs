@@ -101,7 +101,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Ensure cassette directory exists
     if !cli.cassette_dir.exists() {
         fs::create_dir_all(&cli.cassette_dir)?;
-        println!("{} Created cassette directory: {}",
+        println!(
+            "{} Created cassette directory: {}",
             "✓".green(),
             cli.cassette_dir.display().to_string().bold()
         );
@@ -112,10 +113,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("{} {}", "⏺".red(), "Recording Mode".bold());
             println!("  Cassette: {}", name.bright_cyan());
             println!("  Port: {}", port.to_string().yellow());
-            println!("  Directory: {}", cli.cassette_dir.display().to_string().dimmed());
+            println!(
+                "  Directory: {}",
+                cli.cassette_dir.display().to_string().dimmed()
+            );
             println!();
-            println!("Configure your HTTP client to use proxy: {}:{}",
-                "localhost".green(), port.to_string().green());
+            println!(
+                "Configure your HTTP client to use proxy: {}:{}",
+                "localhost".green(),
+                port.to_string().green()
+            );
             println!("Press {} to stop recording...", "Ctrl+C".bold());
             println!();
 
@@ -126,10 +133,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("{} {}", "▶".green(), "Replay Mode".bold());
             println!("  Cassette: {}", name.bright_cyan());
             println!("  Port: {}", port.to_string().yellow());
-            println!("  Directory: {}", cli.cassette_dir.display().to_string().dimmed());
+            println!(
+                "  Directory: {}",
+                cli.cassette_dir.display().to_string().dimmed()
+            );
             println!();
-            println!("Configure your HTTP client to use proxy: {}:{}",
-                "localhost".green(), port.to_string().green());
+            println!(
+                "Configure your HTTP client to use proxy: {}:{}",
+                "localhost".green(),
+                port.to_string().green()
+            );
             println!("Press {} to stop...", "Ctrl+C".bold());
             println!();
 
@@ -140,7 +153,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("{} {}", "🔄".blue(), "Auto Mode".bold());
             println!("  Cassette: {}", name.bright_cyan());
             println!("  Port: {}", port.to_string().yellow());
-            println!("  Directory: {}", cli.cassette_dir.display().to_string().dimmed());
+            println!(
+                "  Directory: {}",
+                cli.cassette_dir.display().to_string().dimmed()
+            );
 
             let cassette_path = cli.cassette_dir.join(format!("{}.json", name));
             let mode = if cassette_path.exists() {
@@ -152,8 +168,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             };
 
             println!();
-            println!("Configure your HTTP client to use proxy: {}:{}",
-                "localhost".green(), port.to_string().green());
+            println!(
+                "Configure your HTTP client to use proxy: {}:{}",
+                "localhost".green(),
+                port.to_string().green()
+            );
             println!("Press {} to stop...", "Ctrl+C".bold());
             println!();
 
@@ -162,7 +181,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         Commands::List => {
             println!("{} {}", "📼".blue(), "Available Cassettes".bold());
-            println!("  Directory: {}", cli.cassette_dir.display().to_string().dimmed());
+            println!(
+                "  Directory: {}",
+                cli.cassette_dir.display().to_string().dimmed()
+            );
             println!();
 
             list_cassettes(&cli.cassette_dir)?;
@@ -199,12 +221,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         Commands::Init => {
-            println!("{} {}", "🔧".yellow(), "Initializing matgto configuration...".bold());
+            println!(
+                "{} {}",
+                "🔧".yellow(),
+                "Initializing matgto configuration...".bold()
+            );
 
             let config_path = Path::new("matgto.toml");
 
             if config_path.exists() {
-                println!("{} Configuration already exists: {}",
+                println!(
+                    "{} Configuration already exists: {}",
                     "✓".green(),
                     config_path.display().to_string().dimmed()
                 );
@@ -243,7 +270,8 @@ simulate_latency = false
 "#;
 
             fs::write(config_path, config)?;
-            println!("{} Created configuration: {}",
+            println!(
+                "{} Created configuration: {}",
                 "✓".green(),
                 config_path.display().to_string().bright_cyan()
             );
@@ -267,8 +295,8 @@ fn run_proxy(
     port: u16,
     mode: ProxyMode,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    use tokio::signal;
     use colored::Colorize;
+    use tokio::signal;
 
     let runtime = tokio::runtime::Runtime::new()?;
 
@@ -329,7 +357,8 @@ fn list_cassettes(cassette_dir: &Path) -> Result<(), Box<dyn std::error::Error>>
     let mut entries: Vec<_> = fs::read_dir(cassette_dir)?
         .filter_map(|e| e.ok())
         .filter(|e| {
-            e.path().extension()
+            e.path()
+                .extension()
                 .and_then(|s| s.to_str())
                 .map(|s| s == "json" || s == "msgpack")
                 .unwrap_or(false)
@@ -345,15 +374,14 @@ fn list_cassettes(cassette_dir: &Path) -> Result<(), Box<dyn std::error::Error>>
 
     for entry in entries {
         let path = entry.path();
-        let name = path.file_stem()
-            .and_then(|s| s.to_str())
-            .unwrap_or("?");
+        let name = path.file_stem().and_then(|s| s.to_str()).unwrap_or("?");
 
         let metadata = entry.metadata()?;
         let size = metadata.len();
         let size_kb = size as f64 / 1024.0;
 
-        println!("  {} {} {}",
+        println!(
+            "  {} {} {}",
             "•".bright_cyan(),
             name.bold(),
             format!("({:.1} KB)", size_kb).dimmed()
@@ -381,7 +409,10 @@ fn inspect_cassette(cassette_dir: &Path, name: &str) -> Result<(), Box<dyn std::
     println!("  Name: {}", cassette.name.bright_cyan());
     println!("  Version: {}", cassette.version.dimmed());
     println!("  Recorded: {}", cassette.recorded_at.to_string().dimmed());
-    println!("  Interactions: {}", cassette.interactions.len().to_string().yellow());
+    println!(
+        "  Interactions: {}",
+        cassette.interactions.len().to_string().yellow()
+    );
     println!();
 
     if !cassette.interactions.is_empty() {
@@ -390,14 +421,16 @@ fn inspect_cassette(cassette_dir: &Path, name: &str) -> Result<(), Box<dyn std::
             use magneto_serge::cassette::InteractionKind;
             match &interaction.kind {
                 InteractionKind::Http { request, .. } => {
-                    println!("    {}. {} {}",
+                    println!(
+                        "    {}. {} {}",
                         (i + 1).to_string().dimmed(),
                         request.method.bright_green(),
                         request.url.dimmed()
                     );
                 }
                 InteractionKind::WebSocket { .. } => {
-                    println!("    {}. {}",
+                    println!(
+                        "    {}. {}",
                         (i + 1).to_string().dimmed(),
                         "WebSocket".bright_blue()
                     );
@@ -406,7 +439,8 @@ fn inspect_cassette(cassette_dir: &Path, name: &str) -> Result<(), Box<dyn std::
         }
 
         if cassette.interactions.len() > 10 {
-            println!("    {} ... and {} more",
+            println!(
+                "    {} ... and {} more",
                 "•".dimmed(),
                 (cassette.interactions.len() - 10).to_string().dimmed()
             );

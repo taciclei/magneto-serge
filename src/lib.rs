@@ -5,21 +5,21 @@
 //! This library provides a MITM proxy that intercepts HTTP/HTTPS and WebSocket traffic,
 //! records interactions into "cassettes", and can replay them deterministically.
 
-pub mod proxy;
-pub mod recorder;
-pub mod player;
 pub mod cassette;
 pub mod error;
+pub mod player;
+pub mod proxy;
+pub mod recorder;
 pub mod tls;
 pub mod websocket;
 
+pub use error::{MatgtoError, Result};
 pub use proxy::{MatgtoProxy, ProxyMode};
-pub use error::{Result, MatgtoError};
 pub use tls::CertificateAuthority;
-pub use websocket::{WebSocketInterceptor, WebSocketRecorder, WebSocketPlayer};
+pub use websocket::{WebSocketInterceptor, WebSocketPlayer, WebSocketRecorder};
 
 // Re-export common types
-pub use cassette::{Cassette, Interaction, HttpRequest, HttpResponse, WebSocketMessage};
+pub use cassette::{Cassette, HttpRequest, HttpResponse, Interaction, WebSocketMessage};
 
 // UniFFI factory function
 /// Create a new MatgtoProxy instance (returns None on error)
@@ -28,7 +28,9 @@ pub use cassette::{Cassette, Interaction, HttpRequest, HttpResponse, WebSocketMe
 pub fn create_proxy(cassette_dir: String) -> Option<std::sync::Arc<MatgtoProxy>> {
     use proxy::MatgtoProxy;
     let path: &std::path::Path = cassette_dir.as_ref();
-    MatgtoProxy::new_internal(path).ok().map(std::sync::Arc::new)
+    MatgtoProxy::new_internal(path)
+        .ok()
+        .map(std::sync::Arc::new)
 }
 
 /// Get library version

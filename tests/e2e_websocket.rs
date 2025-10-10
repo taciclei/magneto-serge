@@ -3,8 +3,8 @@
 //! These tests verify the complete WebSocket record/replay cycle.
 
 use matgto_serge::{
-    WebSocketInterceptor, WebSocketRecorder, WebSocketPlayer,
-    cassette::{WebSocketMessage, MessagePayload, Direction, CloseFrame},
+    cassette::{CloseFrame, Direction, MessagePayload, WebSocketMessage},
+    WebSocketInterceptor, WebSocketPlayer, WebSocketRecorder,
 };
 use std::path::Path;
 use tempfile::TempDir;
@@ -59,7 +59,9 @@ async fn test_websocket_recorder_basic() {
     assert_eq!(recorder.interaction_count(), 1);
 
     // Save cassette
-    recorder.save(cassette_dir.path()).expect("Failed to save cassette");
+    recorder
+        .save(cassette_dir.path())
+        .expect("Failed to save cassette");
 
     // Verify cassette file exists
     let cassette_path = cassette_dir.path().join(format!("{}.json", cassette_name));
@@ -106,7 +108,8 @@ async fn test_websocket_player_basic() {
     let mut player = WebSocketPlayer::new();
     assert!(!player.has_cassette());
 
-    player.load(cassette_dir.path(), cassette_name)
+    player
+        .load(cassette_dir.path(), cassette_name)
         .expect("Failed to load cassette");
     assert!(player.has_cassette());
 
@@ -209,16 +212,12 @@ async fn test_websocket_full_cycle() {
         recorder.record_message(WebSocketMessage {
             direction: Direction::Sent,
             timestamp_ms: 4000,
-            payload: MessagePayload::Ping {
-                data: vec![],
-            },
+            payload: MessagePayload::Ping { data: vec![] },
         });
         recorder.record_message(WebSocketMessage {
             direction: Direction::Received,
             timestamp_ms: 4050,
-            payload: MessagePayload::Pong {
-                data: vec![],
-            },
+            payload: MessagePayload::Pong { data: vec![] },
         });
         recorder.end_session(None);
 
@@ -235,13 +234,17 @@ async fn test_websocket_full_cycle() {
         player.load(cassette_dir.path(), cassette_name).unwrap();
 
         // Replay session 1
-        let (messages, close_frame) = player.replay_session("ws://chat.example.com/room1").unwrap();
+        let (messages, close_frame) = player
+            .replay_session("ws://chat.example.com/room1")
+            .unwrap();
         assert_eq!(messages.len(), 4);
         assert!(close_frame.is_some());
         assert_eq!(close_frame.unwrap().code, 1000);
 
         // Replay session 2
-        let (messages, _) = player.replay_session("ws://data.example.com/stream").unwrap();
+        let (messages, _) = player
+            .replay_session("ws://data.example.com/stream")
+            .unwrap();
         assert_eq!(messages.len(), 2);
 
         // Verify binary data
@@ -316,7 +319,9 @@ async fn test_websocket_multiple_replays() {
     player.load(cassette_dir.path(), cassette_name).unwrap();
 
     for i in 1..=3 {
-        let (messages, _) = player.replay_session("ws://api.example.com/events").unwrap();
+        let (messages, _) = player
+            .replay_session("ws://api.example.com/events")
+            .unwrap();
         assert_eq!(messages.len(), 2);
 
         if let MessagePayload::Text { data } = &messages[0].payload {

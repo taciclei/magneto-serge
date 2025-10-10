@@ -1,7 +1,7 @@
 //! HTTP client for forwarding requests to real servers
 
-use crate::error::{MatgtoError, Result};
 use crate::cassette::{HttpRequest, HttpResponse};
+use crate::error::{MatgtoError, Result};
 
 use hyper::{Body, Client, Request, Uri};
 use hyper_rustls::HttpsConnectorBuilder;
@@ -55,16 +55,15 @@ impl HttpForwarder {
         tracing::debug!("Forwarding request: {} {}", http_req.method, http_req.url);
 
         // Parse URI
-        let uri = http_req.url.parse::<Uri>().map_err(|e| {
-            MatgtoError::ProxyStartFailed {
+        let uri = http_req
+            .url
+            .parse::<Uri>()
+            .map_err(|e| MatgtoError::ProxyStartFailed {
                 reason: format!("Invalid URL: {}", e),
-            }
-        })?;
+            })?;
 
         // Build hyper request
-        let mut builder = Request::builder()
-            .method(http_req.method.as_str())
-            .uri(uri);
+        let mut builder = Request::builder().method(http_req.method.as_str()).uri(uri);
 
         // Add headers
         for (name, value) in &http_req.headers {
@@ -78,18 +77,20 @@ impl HttpForwarder {
             Body::empty()
         };
 
-        let request = builder.body(body).map_err(|e| {
-            MatgtoError::ProxyStartFailed {
+        let request = builder
+            .body(body)
+            .map_err(|e| MatgtoError::ProxyStartFailed {
                 reason: format!("Failed to build request: {}", e),
-            }
-        })?;
+            })?;
 
         // Send request
-        let response = self.client.request(request).await.map_err(|e| {
-            MatgtoError::ProxyStartFailed {
-                reason: format!("Request failed: {}", e),
-            }
-        })?;
+        let response =
+            self.client
+                .request(request)
+                .await
+                .map_err(|e| MatgtoError::ProxyStartFailed {
+                    reason: format!("Request failed: {}", e),
+                })?;
 
         // Extract status
         let status = response.status().as_u16();
