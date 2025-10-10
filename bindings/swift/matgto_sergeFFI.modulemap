@@ -1,0 +1,4 @@
+module matgto_sergeFFI {
+    header "matgto_sergeFFI.h"
+    export *
+}

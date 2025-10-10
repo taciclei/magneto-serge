@@ -1,0 +1,45 @@
+{
+    "name": "matgto/serge",
+    "description": "PHP bindings for matgto-serge - HTTP/WebSocket testing library with record/replay",
+    "type": "library",
+    "keywords": ["testing", "http", "websocket", "proxy", "vcr", "mock", "record", "replay"],
+    "homepage": "https://github.com/your-org/matgto-serge",
+    "license": ["MIT", "Apache-2.0"],
+    "authors": [
+        {
+            "name": "matgto-serge contributors",
+            "homepage": "https://github.com/your-org/matgto-serge/contributors"
+        }
+    ],
+    "require": {
+        "php": ">=8.1",
+        "ext-ffi": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0",
+        "phpstan/phpstan": "^1.10"
+    },
+    "autoload": {
+        "psr-4": {
+            "MatgtoSerge\\": "src/"
+        },
+        "files": [
+            "MatgtoProxy.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "MatgtoSerge\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "analyse": "phpstan analyse src tests --level=max"
+    },
+    "config": {
+        "sort-packages": true,
+        "preferred-install": "dist"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

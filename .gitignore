@@ -1,0 +1,72 @@
+# Rust
+/target/
+**/*.rs.bk
+*.pdb
+Cargo.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Cassettes (test fixtures)
+/cassettes/
+*.cassette.json
+*.cassette.msgpack
+
+# Certificates (MITM)
+*.pem
+*.key
+*.crt
+*.der
+
+# Logs
+*.log
+logs/
+
+# UniFFI generated bindings
+/bindings/java/generated/
+/bindings/javascript/generated/
+/bindings/python/generated/
+/bindings/ruby/generated/
+
+# Build artifacts
+/dist/
+/pkg/
+
+# Benchmarks
+/target/criterion/
+
+# Examples
+/examples/target/
+
+# Documentation
+/target/doc/
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+*.tgz
+package-lock.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+dist/
+*.egg-info/
+
+# Java/Kotlin
+*.class
+.gradle/
+build/
+*.iml
+
+# Test cassettes
+test_cassettes/
+.matgto/

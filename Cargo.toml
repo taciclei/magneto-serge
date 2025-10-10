@@ -1,0 +1,134 @@
+[package]
+name = "magneto-serge"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+authors = ["Magnéto-Serge contributors"]
+license = "MIT OR Apache-2.0"
+description = "Multi-language HTTP/WebSocket testing library with record/replay capabilities - like VCR for the modern web"
+readme = "README.md"
+homepage = "https://github.com/taciclei/matgto-serge"
+repository = "https://github.com/taciclei/matgto-serge"
+documentation = "https://docs.rs/magneto-serge"
+keywords = ["testing", "http", "websocket", "proxy", "vcr"]
+categories = ["development-tools::testing", "network-programming"]
+exclude = [
+    "bindings/",
+    "docs/",
+    ".gitignore",
+    ".github/",
+]
+
+[lib]
+crate-type = ["cdylib", "rlib", "staticlib"]
+name = "magneto_serge"
+
+[[bin]]
+name = "matgto"
+path = "src/bin/cli.rs"
+
+[dependencies]
+# === Proxy & HTTP ===
+hudsucker = "0.20"
+hyper = { version = "0.14", features = ["full"] }
+hyper-rustls = { version = "0.24", features = ["native-tokio"] }
+http = "0.2"
+http-body-util = "0.1"
+
+# === WebSocket ===
+tokio-tungstenite = { version = "0.21", features = ["native-tls"] }
+tungstenite = "0.21"
+
+# === Async Runtime ===
+tokio = { version = "1.35", features = [
+    "full",
+    "macros",
+    "rt-multi-thread",
+    "sync",
+    "time",
+    "io-util",
+    "net",
+] }
+async-trait = "0.1"
+futures = "0.3"
+
+# === Serialization ===
+serde = { version = "1.0", features = ["derive", "rc"] }
+serde_json = { version = "1.0", features = ["preserve_order"] }
+rmp-serde = { version = "1.1", optional = true }
+
+# === TLS & Certificates ===
+rcgen = { version = "0.11", features = ["pem"] }
+rustls = { version = "0.21", features = ["dangerous_configuration"] }
+rustls-pemfile = "1.0"
+webpki = "0.22"
+
+# === Multi-Language Bindings ===
+uniffi = { version = "0.28", features = ["cli"] }
+
+# === CLI ===
+clap = { version = "4.4", features = ["derive", "env", "color"], optional = true }
+colored = { version = "2.1", optional = true }
+indicatif = { version = "0.17", optional = true }
+
+# === Configuration ===
+toml = "0.8"
+dirs = "5.0"
+
+# === Logging & Tracing ===
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+tracing-appender = "0.2"
+
+# === Error Handling ===
+thiserror = "1.0"
+anyhow = "1.0"
+
+# === Utilities ===
+bytes = "1.5"
+url = "2.5"
+regex = "1.10"
+lazy_static = "1.4"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.6", features = ["v4", "serde"] }
+
+# === Hashing ===
+sha2 = "0.10"
+base64 = "0.21"
+
+[dev-dependencies]
+tokio-test = "0.4"
+mockito = "1.2"
+assert_cmd = "2.0"
+predicates = "3.0"
+tempfile = "3.8"
+proptest = "1.4"
+criterion = { version = "0.5", features = ["html_reports"] }
+wiremock = "0.5"
+httptest = "0.15"
+
+[features]
+default = ["cli", "msgpack"]
+cli = ["clap", "colored", "indicatif"]
+msgpack = ["rmp-serde"]
+
+[build-dependencies]
+uniffi = { version = "0.28", features = ["build"] }
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+strip = true
+panic = "abort"
+
+[profile.dev]
+opt-level = 1
+
+[[bench]]
+name = "http_proxy"
+harness = false
+
+[[bench]]
+name = "websocket_proxy"
+harness = false

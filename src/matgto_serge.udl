@@ -1,0 +1,40 @@
+// UniFFI Definition Language (UDL) for matgto-serge
+// Simplified API - exposes only the essential MatgtoProxy interface
+
+namespace matgto_serge {
+  // Factory function to create a new proxy instance
+  MatgtoProxy? create_proxy(string cassette_dir);
+
+  // Get version info
+  string version();
+};
+
+// Proxy operating modes
+enum ProxyMode {
+  "Auto",
+  "Record",
+  "Replay",
+  "Passthrough",
+};
+
+// Main proxy interface - the primary API for all languages
+interface MatgtoProxy {
+  // Constructor - returns null on error
+  constructor(string cassette_dir);
+
+  // Configuration methods (setters instead of builder)
+  void set_port(u16 port);
+  void set_mode(ProxyMode mode);
+
+  // Recording methods - return false on error
+  boolean start_recording(string cassette_name);
+  boolean stop_recording();
+
+  // Replay methods - return false on error
+  boolean replay(string cassette_name);
+  void shutdown();
+
+  // Getters
+  ProxyMode mode();
+  u16 port();
+};

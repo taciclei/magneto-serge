@@ -1,0 +1,110 @@
+plugins {
+    id 'java'
+    id 'java-library'
+}
+
+group = 'io.github.matgto'
+version = '0.1.0'
+
+sourceCompatibility = '11'
+targetCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Bindings Kotlin générés par UniFFI
+    implementation fileTree(dir: '../kotlin', include: ['**/*.jar'])
+
+    // JNA pour l'interfaçage natif (requis par UniFFI/Kotlin)
+    implementation 'net.java.dev.jna:jna:5.13.0'
+
+    // Kotlin stdlib (requis pour utiliser les bindings Kotlin)
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.9.20'
+
+    // JUnit 5 pour les tests
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.10.0'
+}
+
+// Configuration pour inclure la bibliothèque native
+tasks.register('copyNativeLib', Copy) {
+    from '../kotlin/libuniffi_matgto_serge.dylib'
+    into 'build/libs'
+}
+
+// S'assurer que la lib native est copiée avant les tests
+test.dependsOn copyNativeLib
+
+// Configuration JUnit 5
+test {
+    useJUnitPlatform()
+
+    // Ajouter la bibliothèque native au path
+    systemProperty 'java.library.path', 'build/libs'
+
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+        showStandardStreams = false
+    }
+}
+
+// Configuration du JAR
+jar {
+    manifest {
+        attributes(
+            'Implementation-Title': 'matgto-serge Java Bindings',
+            'Implementation-Version': version,
+            'Main-Class': 'io.github.matgto.serge.examples.Example'
+        )
+    }
+
+    // Inclure les dépendances dans le JAR
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// Tâche pour exécuter l'exemple
+tasks.register('runExample', JavaExec) {
+    dependsOn copyNativeLib
+
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'io.github.matgto.serge.examples.Example'
+
+    // Ajouter la lib native
+    systemProperty 'java.library.path', 'build/libs'
+}
+
+// Configuration Javadoc
+javadoc {
+    options.encoding = 'UTF-8'
+    options.charSet = 'UTF-8'
+    options.author = true
+    options.version = true
+    options.links(
+        'https://docs.oracle.com/en/java/javase/11/docs/api/'
+    )
+}
+
+// Tâche pour créer un JAR avec sources
+tasks.register('sourcesJar', Jar) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+// Tâche pour créer un JAR avec javadoc
+tasks.register('javadocJar', Jar) {
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
