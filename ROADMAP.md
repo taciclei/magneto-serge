@@ -1,8 +1,8 @@
-# 🗺️ Roadmap - matgto-serge
+# 🗺️ Roadmap - Magnéto-Serge
 
 ## Vision
 
-**matgto-serge** est une bibliothèque Rust multi-langage pour enregistrer et rejouer les interactions HTTP/WebSocket dans vos tests. Inspiré par VCR (Ruby) et Polly (Node.js), mais écrit en Rust pour performance et sécurité.
+**Magnéto-Serge** est une bibliothèque Rust multi-langage pour enregistrer et rejouer les interactions HTTP/WebSocket dans vos tests. Inspiré par VCR (Ruby) et Polly (Node.js), mais écrit en Rust pour performance et sécurité.
 
 ---
 
@@ -12,8 +12,8 @@
 |-------|-------------|--------|-------------|
 | **Phase 1** | HTTP/HTTPS Proxy | ✅ Terminé | 100% |
 | **Phase 2** | WebSocket Support | ✅ Terminé | 100% |
-| **Phase 3** | Multi-language Bindings | 🟡 En cours | 95% |
-| **Phase 4** | CLI & Production | 🟡 En cours | 40% |
+| **Phase 3** | Multi-language Bindings | ✅ Terminé | 100% |
+| **Phase 4** | CLI & Production | 🟡 En cours | 75% |
 | **Phase 5** | Advanced Features | ⏳ À venir | 0% |
 
 ---
@@ -178,19 +178,28 @@
 - [x] Configuration via fichier (matgto.toml)
 - [x] Variables d'environnement (via clap)
 - [x] Logging avec tracing
+- [x] CLI testé et fonctionnel
+- [x] Erreurs de compilation corrigées
 
-### 4.2 - CI/CD
-- [ ] GitHub Actions
-  - [ ] Tests Rust
-  - [ ] Tests Python
-  - [ ] Tests Kotlin
-  - [ ] Tests Swift
-  - [ ] Tests Java
-  - [ ] Tests JavaScript
-- [ ] Release automatique
-  - [ ] Versioning sémantique
-  - [ ] Changelog automatique
-  - [ ] Publication packages
+### 4.2 - CI/CD ✅
+- [x] GitHub Actions
+  - [x] Tests Rust multi-plateformes (Ubuntu, macOS, Windows)
+  - [x] Tests Rust multi-versions (stable, beta)
+  - [x] Lint (rustfmt + clippy)
+  - [x] Build CLI pour 3 plateformes
+  - [x] Génération bindings (Python, Kotlin, Swift)
+  - [x] Security audit (cargo-audit)
+  - [x] Code coverage (tarpaulin)
+- [x] Release automatique (CD)
+  - [x] Publication crates.io
+  - [x] Publication NPM
+  - [x] Publication PyPI
+  - [x] Publication Maven Central
+  - [x] Création releases GitHub
+  - [x] Build binaires multi-plateformes (5 architectures)
+  - [x] Docker multi-arch (linux/amd64, linux/arm64)
+- [x] Documentation CI/CD (CI_CD.md)
+- [ ] Configuration secrets GitHub (pour publication)
 
 ### 4.3 - Production Ready
 - [ ] Benchmarks de performance
@@ -271,15 +280,16 @@
 - WebSocket record/replay
 - Tests et documentation
 
-### v0.3.0 (Multi-language) 🟡 - EN COURS
+### v0.3.0 (Multi-language) ✅ - ATTEINT
 - ✅ Bindings Python, Kotlin, Swift, Java, JavaScript
-- ⏳ Distribution packages
-- ⏳ Documentation en ligne
+- ✅ Distribution packages préparés
+- ✅ Documentation complète
 
-### v0.4.0 (CLI)
-- CLI complet
-- Configuration avancée
-- CI/CD
+### v0.4.0 (CLI) 🟡 - EN COURS
+- ✅ CLI complet et testé
+- ✅ Configuration avancée
+- ✅ CI/CD configuré
+- ⏳ Publication packages
 
 ### v1.0.0 (Production Ready)
 - Tous les bindings publiés
@@ -300,16 +310,19 @@
 ### Technique
 - ✅ 0 erreurs de compilation Rust
 - ✅ Tests Python : 4/4 passent
-- ⏳ Tests Java : à exécuter
-- ⏳ Tests JavaScript : à exécuter
+- ✅ Tests Java : 11/11 passent
+- ✅ Tests JavaScript : créés
+- ✅ CLI : 8 commandes fonctionnelles
+- ✅ CI/CD : workflows GitHub Actions configurés
 - ⏳ Couverture de code > 80%
 - ⏳ Performance : < 10ms overhead par requête
 
 ### Distribution
-- ⏳ Package PyPI publié
-- ⏳ Package Maven publié
-- ⏳ Package NPM publié
-- ⏳ Package SPM publié
+- ⏳ Package PyPI (prêt à publier)
+- ⏳ Package Maven Central (prêt à publier)
+- ⏳ Package NPM (prêt à publier)
+- ⏳ Package crates.io (prêt à publier)
+- ⏳ Package SPM (en préparation)
 
 ### Adoption
 - ⏳ 100+ stars GitHub
@@ -322,16 +335,16 @@
 
 Vous pouvez contribuer sur :
 
-### Phase actuelle (3.3 - Distribution)
-1. Tester les bindings Kotlin
-2. Tester les bindings Swift
-3. Créer les packages de distribution
-4. Améliorer la documentation
+### Phase actuelle (4.2 - CI/CD & Publication)
+1. Configurer les secrets GitHub pour la publication
+2. Tester la publication sur les registres de packages
+3. Créer la première release (v0.4.0)
+4. Nettoyer les warnings Rust
 
 ### Prochaines phases
-1. Implémenter le CLI (Phase 4.1)
-2. Configurer CI/CD (Phase 4.2)
-3. Optimiser la performance (Phase 4.3)
+1. Optimiser la performance (Phase 4.3)
+2. Benchmarks et métriques (Phase 4.3)
+3. Features avancées (Phase 5)
 
 ---
 
@@ -342,17 +355,20 @@ Vous pouvez contribuer sur :
 | **Semaine 1-2** | Phase 1 - HTTP Proxy | ✅ Terminé |
 | **Semaine 3** | Phase 2 - WebSocket | ✅ Terminé |
 | **Semaine 4-5** | Phase 3.1-3.2 - Bindings | ✅ Terminé |
-| **Semaine 6** | Phase 3.3 - Distribution | 🟡 En cours |
-| **Semaine 7-8** | Phase 4 - CLI & Production | ⏳ À venir |
-| **Semaine 9+** | Phase 5 - Advanced Features | ⏳ À venir |
+| **Semaine 6** | Phase 3.3 - Distribution | ✅ Terminé |
+| **Semaine 7** | Phase 4.1 - CLI | ✅ Terminé |
+| **Semaine 8** | Phase 4.2 - CI/CD | 🟡 En cours |
+| **Semaine 9** | Phase 4.3 - Production Ready | ⏳ À venir |
+| **Semaine 10+** | Phase 5 - Advanced Features | ⏳ À venir |
 
 ---
 
 ## 🔗 Ressources
 
-- [GitHub Repository](https://github.com/matgto/serge)
+- [GitHub Repository](https://github.com/taciclei/magneto-serge)
+- [GitHub Actions (CI/CD)](https://github.com/taciclei/magneto-serge/actions)
 - [Documentation Bindings](BINDINGS.md)
-- [Documentation API](docs/API.md)
+- [Documentation CI/CD](CI_CD.md)
 - [Exemples](examples/)
 - [Tests](tests/)
 
@@ -365,5 +381,5 @@ MIT OR Apache-2.0
 ---
 
 **Dernière mise à jour** : 2025-10-10
-**Version actuelle** : v0.3.0-dev
-**Prochaine milestone** : v0.3.0 (Distribution)
+**Version actuelle** : v0.4.0-dev
+**Prochaine milestone** : v0.4.0 (CLI & CI/CD)
