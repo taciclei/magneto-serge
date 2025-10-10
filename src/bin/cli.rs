@@ -1,10 +1,10 @@
-//! CLI for matgto-serge
+//! CLI for magneto-serge
 
 #[cfg(feature = "cli")]
 use clap::{Parser, Subcommand};
 
 #[cfg(feature = "cli")]
-use matgto_serge::{MatgtoProxy, ProxyMode};
+use magneto_serge::{MatgtoProxy, ProxyMode};
 
 #[cfg(feature = "cli")]
 use std::path::{Path, PathBuf};
@@ -366,7 +366,7 @@ fn list_cassettes(cassette_dir: &Path) -> Result<(), Box<dyn std::error::Error>>
 #[cfg(feature = "cli")]
 fn inspect_cassette(cassette_dir: &Path, name: &str) -> Result<(), Box<dyn std::error::Error>> {
     use colored::Colorize;
-    use matgto_serge::cassette::Cassette;
+    use magneto_serge::cassette::Cassette;
 
     let cassette_path = cassette_dir.join(format!("{}.json", name));
 
@@ -387,7 +387,7 @@ fn inspect_cassette(cassette_dir: &Path, name: &str) -> Result<(), Box<dyn std::
     if !cassette.interactions.is_empty() {
         println!("  {}", "Interactions:".bold());
         for (i, interaction) in cassette.interactions.iter().enumerate().take(10) {
-            use matgto_serge::cassette::InteractionKind;
+            use magneto_serge::cassette::InteractionKind;
             match &interaction.kind {
                 InteractionKind::Http { request, .. } => {
                     println!("    {}. {} {}",

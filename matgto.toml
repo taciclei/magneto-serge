@@ -1,0 +1,29 @@
+# matgto-serge configuration
+
+[proxy]
+# Default proxy port
+port = 8888
+
+# Default mode: auto, record, replay, passthrough
+mode = "auto"
+
+[cassettes]
+# Cassette storage directory
+directory = "./cassettes"
+
+# Cassette format: json or msgpack
+format = "json"
+
+[recording]
+# Record request/response bodies
+record_bodies = true
+
+# Maximum body size to record (in bytes)
+max_body_size = 1048576  # 1MB
+
+[replay]
+# Strict matching (fail if no match found)
+strict = false
+
+# Simulate network latency
+simulate_latency = false
