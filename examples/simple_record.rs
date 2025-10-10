@@ -1,6 +1,6 @@
 //! Simple example demonstrating record mode
 
-use magneto_serge::{CertificateAuthority, MatgtoProxy, ProxyMode};
+use magneto_serge::{CertificateAuthority, MagnetoProxy, ProxyMode};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize tracing
@@ -17,7 +17,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create proxy
     println!("\n2️⃣  Creating proxy...");
-    let proxy = MatgtoProxy::new_internal("./cassettes")?
+    let proxy = MagnetoProxy::new_internal("./cassettes")?
         .with_port(8888)
         .with_mode(ProxyMode::Record);
 

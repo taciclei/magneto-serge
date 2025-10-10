@@ -1,6 +1,6 @@
 <?php
 /**
- * MatgtoProxy - PHP bindings for matgto-serge
+ * MagnetoProxy - PHP bindings for matgto-serge
  *
  * This class provides PHP bindings to the Rust-based matgto-serge library
  * using PHP's FFI (Foreign Function Interface).
@@ -26,9 +26,9 @@ enum ProxyMode: string {
 }
 
 /**
- * Main MatgtoProxy class
+ * Main MagnetoProxy class
  */
-class MatgtoProxy {
+class MagnetoProxy {
     private FFI $ffi;
     private mixed $proxy_ptr;
     private string $cassette_dir;
@@ -51,36 +51,36 @@ class MatgtoProxy {
         // Define FFI interface
         $this->ffi = FFI::cdef("
             // Opaque pointer types
-            typedef struct MatgtoProxy MatgtoProxy;
+            typedef struct MagnetoProxy MagnetoProxy;
 
             // Factory function
-            MatgtoProxy* matgto_create_proxy(const char* cassette_dir);
+            MagnetoProxy* matgto_create_proxy(const char* cassette_dir);
 
             // Configuration
-            void matgto_proxy_set_port(MatgtoProxy* proxy, uint16_t port);
-            void matgto_proxy_set_mode(MatgtoProxy* proxy, const char* mode);
+            void matgto_proxy_set_port(MagnetoProxy* proxy, uint16_t port);
+            void matgto_proxy_set_mode(MagnetoProxy* proxy, const char* mode);
 
             // Recording
-            int matgto_start_recording(MatgtoProxy* proxy, const char* cassette_name);
-            int matgto_stop_recording(MatgtoProxy* proxy);
+            int matgto_start_recording(MagnetoProxy* proxy, const char* cassette_name);
+            int matgto_stop_recording(MagnetoProxy* proxy);
 
             // Replay
-            int matgto_replay(MatgtoProxy* proxy, const char* cassette_name);
+            int matgto_replay(MagnetoProxy* proxy, const char* cassette_name);
 
             // Getters
-            uint16_t matgto_proxy_get_port(MatgtoProxy* proxy);
-            const char* matgto_proxy_get_mode(MatgtoProxy* proxy);
+            uint16_t matgto_proxy_get_port(MagnetoProxy* proxy);
+            const char* matgto_proxy_get_mode(MagnetoProxy* proxy);
 
             // Cleanup
-            void matgto_proxy_shutdown(MatgtoProxy* proxy);
-            void matgto_proxy_free(MatgtoProxy* proxy);
+            void matgto_proxy_shutdown(MagnetoProxy* proxy);
+            void matgto_proxy_free(MagnetoProxy* proxy);
         ", $lib_path);
 
         // Create proxy instance
         $this->proxy_ptr = $this->ffi->matgto_create_proxy($cassette_dir);
 
         if ($this->proxy_ptr === null) {
-            throw new Exception("Failed to create MatgtoProxy instance");
+            throw new Exception("Failed to create MagnetoProxy instance");
         }
     }
 
@@ -185,6 +185,6 @@ class MatgtoProxy {
 /**
  * Factory function for convenience
  */
-function createProxy(string $cassetteDir): MatgtoProxy {
-    return new MatgtoProxy($cassetteDir);
+function createProxy(string $cassetteDir): MagnetoProxy {
+    return new MagnetoProxy($cassetteDir);
 }

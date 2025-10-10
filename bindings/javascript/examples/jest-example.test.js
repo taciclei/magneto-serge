@@ -2,11 +2,11 @@
  * Exemple de tests Jest avec matgto-serge
  */
 
-const { MatgtoProxy, createProxy, version, ProxyMode } = require('../index');
+const { MagnetoProxy, createProxy, version, ProxyMode } = require('../index');
 const https = require('https');
 const http = require('http');
 
-describe('MatgtoProxy', () => {
+describe('MagnetoProxy', () => {
     let proxy;
 
     beforeEach(() => {
@@ -22,7 +22,7 @@ describe('MatgtoProxy', () => {
     describe('Creation', () => {
         test('should create proxy successfully', () => {
             expect(proxy).toBeTruthy();
-            expect(proxy).toBeInstanceOf(MatgtoProxy);
+            expect(proxy).toBeInstanceOf(MagnetoProxy);
         });
 
         test('should create proxy with factory function', () => {

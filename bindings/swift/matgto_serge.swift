@@ -480,7 +480,7 @@ fileprivate struct FfiConverterString: FfiConverter {
 
 
 
-public protocol MatgtoProxyProtocol : AnyObject {
+public protocol MagnetoProxyProtocol : AnyObject {
     
     func mode()  -> ProxyMode
     
@@ -500,8 +500,8 @@ public protocol MatgtoProxyProtocol : AnyObject {
     
 }
 
-open class MatgtoProxy:
-    MatgtoProxyProtocol {
+open class MagnetoProxy:
+    MagnetoProxyProtocol {
     fileprivate let pointer: UnsafeMutableRawPointer!
 
     /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
@@ -621,20 +621,20 @@ open func stopRecording() -> Bool {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
-public struct FfiConverterTypeMatgtoProxy: FfiConverter {
+public struct FfiConverterTypeMagnetoProxy: FfiConverter {
 
     typealias FfiType = UnsafeMutableRawPointer
-    typealias SwiftType = MatgtoProxy
+    typealias SwiftType = MagnetoProxy
 
-    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> MatgtoProxy {
-        return MatgtoProxy(unsafeFromRawPointer: pointer)
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> MagnetoProxy {
+        return MagnetoProxy(unsafeFromRawPointer: pointer)
     }
 
-    public static func lower(_ value: MatgtoProxy) -> UnsafeMutableRawPointer {
+    public static func lower(_ value: MagnetoProxy) -> UnsafeMutableRawPointer {
         return value.uniffiClonePointer()
     }
 
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> MatgtoProxy {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> MagnetoProxy {
         let v: UInt64 = try readInt(&buf)
         // The Rust code won't compile if a pointer won't fit in a UInt64.
         // We have to go via `UInt` because that's the thing that's the size of a pointer.
@@ -645,7 +645,7 @@ public struct FfiConverterTypeMatgtoProxy: FfiConverter {
         return try lift(ptr!)
     }
 
-    public static func write(_ value: MatgtoProxy, into buf: inout [UInt8]) {
+    public static func write(_ value: MagnetoProxy, into buf: inout [UInt8]) {
         // This fiddling is because `Int` is the thing that's the same size as a pointer.
         // The Rust code won't compile if a pointer won't fit in a `UInt64`.
         writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
@@ -658,15 +658,15 @@ public struct FfiConverterTypeMatgtoProxy: FfiConverter {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
-public func FfiConverterTypeMatgtoProxy_lift(_ pointer: UnsafeMutableRawPointer) throws -> MatgtoProxy {
-    return try FfiConverterTypeMatgtoProxy.lift(pointer)
+public func FfiConverterTypeMagnetoProxy_lift(_ pointer: UnsafeMutableRawPointer) throws -> MagnetoProxy {
+    return try FfiConverterTypeMagnetoProxy.lift(pointer)
 }
 
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
-public func FfiConverterTypeMatgtoProxy_lower(_ value: MatgtoProxy) -> UnsafeMutableRawPointer {
-    return FfiConverterTypeMatgtoProxy.lower(value)
+public func FfiConverterTypeMagnetoProxy_lower(_ value: MagnetoProxy) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeMagnetoProxy.lower(value)
 }
 
 // Note that we don't yet support `indirect` for enums.
@@ -750,8 +750,8 @@ extension ProxyMode: Equatable, Hashable {}
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
-fileprivate struct FfiConverterOptionTypeMatgtoProxy: FfiConverterRustBuffer {
-    typealias SwiftType = MatgtoProxy?
+fileprivate struct FfiConverterOptionTypeMagnetoProxy: FfiConverterRustBuffer {
+    typealias SwiftType = MagnetoProxy?
 
     public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
         guard let value = value else {
@@ -759,19 +759,19 @@ fileprivate struct FfiConverterOptionTypeMatgtoProxy: FfiConverterRustBuffer {
             return
         }
         writeInt(&buf, Int8(1))
-        FfiConverterTypeMatgtoProxy.write(value, into: &buf)
+        FfiConverterTypeMagnetoProxy.write(value, into: &buf)
     }
 
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
         switch try readInt(&buf) as Int8 {
         case 0: return nil
-        case 1: return try FfiConverterTypeMatgtoProxy.read(from: &buf)
+        case 1: return try FfiConverterTypeMagnetoProxy.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }
 }
-public func createProxy(cassetteDir: String) -> MatgtoProxy? {
-    return try!  FfiConverterOptionTypeMatgtoProxy.lift(try! rustCall() {
+public func createProxy(cassetteDir: String) -> MagnetoProxy? {
+    return try!  FfiConverterOptionTypeMagnetoProxy.lift(try! rustCall() {
     uniffi_matgto_serge_fn_func_create_proxy(
         FfiConverterString.lower(cassetteDir),$0
     )

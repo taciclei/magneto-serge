@@ -8,9 +8,9 @@
  * 3. Stop recording and save to cassette
  */
 
-require_once __DIR__ . '/MatgtoProxy.php';
+require_once __DIR__ . '/MagnetoProxy.php';
 
-use MatgtoSerge\MatgtoProxy;
+use MatgtoSerge\MagnetoProxy;
 use MatgtoSerge\ProxyMode;
 
 echo "🎬 matgto-serge PHP Example - Basic Recording\n";
@@ -19,7 +19,7 @@ echo str_repeat("=", 50) . "\n\n";
 try {
     // Create proxy instance
     echo "1️⃣ Creating proxy...\n";
-    $proxy = new MatgtoProxy("./cassettes");
+    $proxy = new MagnetoProxy("./cassettes");
     $proxy->withPort(8888)
           ->withMode(ProxyMode::Record);
     echo "   ✅ Proxy created on port " . $proxy->getPort() . "\n";

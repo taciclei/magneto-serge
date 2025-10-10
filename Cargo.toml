@@ -24,7 +24,7 @@ crate-type = ["cdylib", "rlib", "staticlib"]
 name = "magneto_serge"
 
 [[bin]]
-name = "matgto"
+name = "magneto"
 path = "src/bin/cli.rs"
 
 [dependencies]

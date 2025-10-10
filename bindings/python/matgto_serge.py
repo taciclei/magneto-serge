@@ -1035,7 +1035,7 @@ class _UniffiConverterString:
 
 
 
-class MatgtoProxyProtocol(typing.Protocol):
+class MagnetoProxyProtocol(typing.Protocol):
     def mode(self, ):
         raise NotImplementedError
     def port(self, ):
@@ -1054,7 +1054,7 @@ class MatgtoProxyProtocol(typing.Protocol):
         raise NotImplementedError
 
 
-class MatgtoProxy:
+class MagnetoProxy:
     _pointer: ctypes.c_void_p
     def __init__(self, cassette_dir: "str"):
         _UniffiConverterString.check_lower(cassette_dir)
@@ -1163,21 +1163,21 @@ class MatgtoProxy:
 
 
 
-class _UniffiConverterTypeMatgtoProxy:
+class _UniffiConverterTypeMagnetoProxy:
 
     @staticmethod
     def lift(value: int):
-        return MatgtoProxy._make_instance_(value)
+        return MagnetoProxy._make_instance_(value)
 
     @staticmethod
-    def check_lower(value: MatgtoProxy):
-        if not isinstance(value, MatgtoProxy):
-            raise TypeError("Expected MatgtoProxy instance, {} found".format(type(value).__name__))
+    def check_lower(value: MagnetoProxy):
+        if not isinstance(value, MagnetoProxy):
+            raise TypeError("Expected MagnetoProxy instance, {} found".format(type(value).__name__))
 
     @staticmethod
-    def lower(value: MatgtoProxyProtocol):
-        if not isinstance(value, MatgtoProxy):
-            raise TypeError("Expected MatgtoProxy instance, {} found".format(type(value).__name__))
+    def lower(value: MagnetoProxyProtocol):
+        if not isinstance(value, MagnetoProxy):
+            raise TypeError("Expected MagnetoProxy instance, {} found".format(type(value).__name__))
         return value._uniffi_clone_pointer()
 
     @classmethod
@@ -1188,7 +1188,7 @@ class _UniffiConverterTypeMatgtoProxy:
         return cls.lift(ptr)
 
     @classmethod
-    def write(cls, value: MatgtoProxyProtocol, buf: _UniffiRustBuffer):
+    def write(cls, value: MagnetoProxyProtocol, buf: _UniffiRustBuffer):
         buf.write_u64(cls.lower(value))
 
 
@@ -1247,11 +1247,11 @@ class _UniffiConverterTypeProxyMode(_UniffiConverterRustBuffer):
 
 
 
-class _UniffiConverterOptionalTypeMatgtoProxy(_UniffiConverterRustBuffer):
+class _UniffiConverterOptionalTypeMagnetoProxy(_UniffiConverterRustBuffer):
     @classmethod
     def check_lower(cls, value):
         if value is not None:
-            _UniffiConverterTypeMatgtoProxy.check_lower(value)
+            _UniffiConverterTypeMagnetoProxy.check_lower(value)
 
     @classmethod
     def write(cls, value, buf):
@@ -1260,7 +1260,7 @@ class _UniffiConverterOptionalTypeMatgtoProxy(_UniffiConverterRustBuffer):
             return
 
         buf.write_u8(1)
-        _UniffiConverterTypeMatgtoProxy.write(value, buf)
+        _UniffiConverterTypeMagnetoProxy.write(value, buf)
 
     @classmethod
     def read(cls, buf):
@@ -1268,16 +1268,16 @@ class _UniffiConverterOptionalTypeMatgtoProxy(_UniffiConverterRustBuffer):
         if flag == 0:
             return None
         elif flag == 1:
-            return _UniffiConverterTypeMatgtoProxy.read(buf)
+            return _UniffiConverterTypeMagnetoProxy.read(buf)
         else:
             raise InternalError("Unexpected flag byte for optional type")
 
 # Async support
 
-def create_proxy(cassette_dir: "str") -> "typing.Optional[MatgtoProxy]":
+def create_proxy(cassette_dir: "str") -> "typing.Optional[MagnetoProxy]":
     _UniffiConverterString.check_lower(cassette_dir)
     
-    return _UniffiConverterOptionalTypeMatgtoProxy.lift(_uniffi_rust_call(_UniffiLib.uniffi_matgto_serge_fn_func_create_proxy,
+    return _UniffiConverterOptionalTypeMagnetoProxy.lift(_uniffi_rust_call(_UniffiLib.uniffi_matgto_serge_fn_func_create_proxy,
         _UniffiConverterString.lower(cassette_dir)))
 
 
@@ -1290,6 +1290,6 @@ __all__ = [
     "ProxyMode",
     "create_proxy",
     "version",
-    "MatgtoProxy",
+    "MagnetoProxy",
 ]
 

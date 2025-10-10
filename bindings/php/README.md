@@ -13,7 +13,7 @@ PHP bindings for [matgto-serge](https://github.com/your-org/matgto-serge) - HTTP
 ### Via Composer
 
 ```bash
-composer require matgto/serge
+composer require magneto/serge
 ```
 
 ### Manual Installation
@@ -24,11 +24,11 @@ composer require matgto/serge
    cargo build --release
    ```
 
-2. Copy `MatgtoProxy.php` to your project
+2. Copy `MagnetoProxy.php` to your project
 
 3. Require it in your code:
    ```php
-   require_once 'path/to/MatgtoProxy.php';
+   require_once 'path/to/MagnetoProxy.php';
    ```
 
 ## Quick Start
@@ -37,11 +37,11 @@ composer require matgto/serge
 
 ```php
 <?php
-use MatgtoSerge\MatgtoProxy;
+use MatgtoSerge\MagnetoProxy;
 use MatgtoSerge\ProxyMode;
 
 // Create proxy
-$proxy = new MatgtoProxy('./cassettes');
+$proxy = new MagnetoProxy('./cassettes');
 $proxy->withPort(8888)
       ->withMode(ProxyMode::Record);
 
@@ -62,11 +62,11 @@ $proxy->shutdown();
 
 ```php
 <?php
-use MatgtoSerge\MatgtoProxy;
+use MatgtoSerge\MagnetoProxy;
 use MatgtoSerge\ProxyMode;
 
 // Create proxy in replay mode
-$proxy = new MatgtoProxy('./cassettes');
+$proxy = new MagnetoProxy('./cassettes');
 $proxy->withPort(8888)
       ->withMode(ProxyMode::Replay);
 
@@ -85,7 +85,7 @@ $proxy->shutdown();
 ```php
 <?php
 // Auto mode: records if cassette doesn't exist, replays if it does
-$proxy = new MatgtoProxy('./cassettes');
+$proxy = new MagnetoProxy('./cassettes');
 $proxy->withPort(8888)
       ->withMode(ProxyMode::Auto);
 
@@ -99,16 +99,16 @@ $proxy->stopRecording();
 ```php
 <?php
 use PHPUnit\Framework\TestCase;
-use MatgtoSerge\MatgtoProxy;
+use MatgtoSerge\MagnetoProxy;
 use MatgtoSerge\ProxyMode;
 
 class ApiTest extends TestCase
 {
-    private MatgtoProxy $proxy;
+    private MagnetoProxy $proxy;
 
     protected function setUp(): void
     {
-        $this->proxy = new MatgtoProxy('./test-cassettes');
+        $this->proxy = new MagnetoProxy('./test-cassettes');
         $this->proxy->withPort(8888)
                     ->withMode(ProxyMode::Auto);
     }
@@ -137,12 +137,12 @@ class ApiTest extends TestCase
 
 ## API Reference
 
-### MatgtoProxy
+### MagnetoProxy
 
 #### Constructor
 
 ```php
-new MatgtoProxy(string $cassetteDir)
+new MagnetoProxy(string $cassetteDir)
 ```
 
 Create a new proxy instance.
@@ -266,15 +266,15 @@ Create a service provider:
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use MatgtoSerge\MatgtoProxy;
+use MatgtoSerge\MagnetoProxy;
 use MatgtoSerge\ProxyMode;
 
 class MatgtoServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->singleton(MatgtoProxy::class, function ($app) {
-            $proxy = new MatgtoProxy(storage_path('cassettes'));
+        $this->app->singleton(MagnetoProxy::class, function ($app) {
+            $proxy = new MagnetoProxy(storage_path('cassettes'));
             $proxy->withPort(8888)
                   ->withMode(ProxyMode::Auto);
             return $proxy;
@@ -290,13 +290,13 @@ Use in tests:
 namespace Tests\Feature;
 
 use Tests\TestCase;
-use MatgtoSerge\MatgtoProxy;
+use MatgtoSerge\MagnetoProxy;
 
 class ApiTest extends TestCase
 {
     public function test_api_call()
     {
-        $proxy = app(MatgtoProxy::class);
+        $proxy = app(MagnetoProxy::class);
         $proxy->startRecording('api-test');
 
         // Make API calls...
@@ -313,7 +313,7 @@ class ApiTest extends TestCase
 // WebSocket recording/replay is supported
 // Configure your WebSocket client to use the proxy
 
-$proxy = new MatgtoProxy('./cassettes');
+$proxy = new MagnetoProxy('./cassettes');
 $proxy->withPort(8888)
       ->withMode(ProxyMode::Record);
 

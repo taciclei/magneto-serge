@@ -1,9 +1,9 @@
 /**
- * @matgto/serge - JavaScript/Node.js Bindings
+ * @magneto/serge - JavaScript/Node.js Bindings
  *
  * Multi-language HTTP/WebSocket testing library with record/replay
  *
- * @module @matgto/serge
+ * @module @magneto/serge
  */
 
 const ffi = require('ffi-napi');
@@ -33,9 +33,9 @@ const ProxyMode = {
 };
 
 /**
- * Classe principale MatgtoProxy
+ * Classe principale MagnetoProxy
  */
-class MatgtoProxy {
+class MagnetoProxy {
     /**
      * Crée une nouvelle instance de proxy
      * @param {string} cassetteDir - Répertoire des cassettes
@@ -56,7 +56,7 @@ class MatgtoProxy {
         this._isRecording = false;
         this._currentCassette = null;
 
-        console.log(`✅ MatgtoProxy créé (cassetteDir: ${cassetteDir})`);
+        console.log(`✅ MagnetoProxy créé (cassetteDir: ${cassetteDir})`);
     }
 
     /**
@@ -161,18 +161,18 @@ class MatgtoProxy {
      */
     toString() {
         const modeNames = ['AUTO', 'RECORD', 'REPLAY', 'PASSTHROUGH'];
-        return `MatgtoProxy { port: ${this._port}, mode: ${modeNames[this._mode]}, recording: ${this._isRecording} }`;
+        return `MagnetoProxy { port: ${this._port}, mode: ${modeNames[this._mode]}, recording: ${this._isRecording} }`;
     }
 }
 
 /**
  * Factory function pour créer un proxy
  * @param {string} cassetteDir - Répertoire des cassettes
- * @returns {MatgtoProxy|null} Instance de proxy ou null si échec
+ * @returns {MagnetoProxy|null} Instance de proxy ou null si échec
  */
 function createProxy(cassetteDir) {
     try {
-        return new MatgtoProxy(cassetteDir);
+        return new MagnetoProxy(cassetteDir);
     } catch (error) {
         console.error('❌ Erreur création proxy:', error.message);
         return null;
@@ -189,11 +189,11 @@ function version() {
 
 // Exports
 module.exports = {
-    MatgtoProxy,
+    MagnetoProxy,
     createProxy,
     version,
     ProxyMode
 };
 
 // Export TypeScript (pour IDE autocomplete)
-module.exports.default = MatgtoProxy;
+module.exports.default = MagnetoProxy;

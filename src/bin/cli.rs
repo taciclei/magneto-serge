@@ -4,7 +4,7 @@
 use clap::{Parser, Subcommand};
 
 #[cfg(feature = "cli")]
-use magneto_serge::{MatgtoProxy, ProxyMode};
+use magneto_serge::{MagnetoProxy, ProxyMode};
 
 #[cfg(feature = "cli")]
 use std::path::{Path, PathBuf};
@@ -14,7 +14,7 @@ use std::fs;
 
 #[cfg(feature = "cli")]
 #[derive(Parser)]
-#[command(name = "matgto")]
+#[command(name = "magneto")]
 #[command(version, about = "HTTP/WebSocket testing with record/replay", long_about = None)]
 struct Cli {
     /// Cassette directory (default: ./cassettes)
@@ -224,10 +224,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!(
                 "{} {}",
                 "🔧".yellow(),
-                "Initializing matgto configuration...".bold()
+                "Initializing magneto configuration...".bold()
             );
 
-            let config_path = Path::new("matgto.toml");
+            let config_path = Path::new("magneto.toml");
 
             if config_path.exists() {
                 println!(
@@ -301,7 +301,7 @@ fn run_proxy(
     let runtime = tokio::runtime::Runtime::new()?;
 
     runtime.block_on(async {
-        let proxy = MatgtoProxy::new_internal(cassette_dir)
+        let proxy = MagnetoProxy::new_internal(cassette_dir)
             .map_err(|e| format!("Failed to create proxy: {}", e))?;
 
         proxy.set_port(port);

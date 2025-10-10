@@ -3,7 +3,7 @@ plugins {
     id 'java-library'
 }
 
-group = 'io.github.matgto'
+group = 'io.github.magneto'
 version = '0.1.0'
 
 sourceCompatibility = '11'
@@ -58,7 +58,7 @@ jar {
         attributes(
             'Implementation-Title': 'matgto-serge Java Bindings',
             'Implementation-Version': version,
-            'Main-Class': 'io.github.matgto.serge.examples.Example'
+            'Main-Class': 'io.github.magneto.serge.examples.Example'
         )
     }
 
@@ -75,7 +75,7 @@ tasks.register('runExample', JavaExec) {
     dependsOn copyNativeLib
 
     classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'io.github.matgto.serge.examples.Example'
+    mainClass = 'io.github.magneto.serge.examples.Example'
 
     // Ajouter la lib native
     systemProperty 'java.library.path', 'build/libs'

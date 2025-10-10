@@ -99,7 +99,7 @@ cargo run --example simple_record
 cargo run --example http_record_replay
 
 # Avec logs debug
-RUST_LOG=matgto_serge=debug cargo run --example simple_record
+RUST_LOG=magneto_serge=debug cargo run --example simple_record
 
 # Avec logs trace (très verbeux)
 RUST_LOG=trace cargo run --example http_record_replay
@@ -113,31 +113,31 @@ RUST_LOG=trace cargo run --example http_record_replay
 
 ```bash
 # Le certificat est généré automatiquement au premier lancement
-# Il est stocké dans .matgto/certs/matgto-ca.pem
+# Il est stocké dans .magneto/certs/magneto-ca.pem
 
 # macOS - Installer dans keychain système
 sudo security add-trusted-cert -d -r trustRoot \
   -k /Library/Keychains/System.keychain \
-  .matgto/certs/matgto-ca.pem
+  .magneto/certs/magneto-ca.pem
 
 # macOS - Désinstaller
-sudo security delete-certificate -c "matgto-serge CA"
+sudo security delete-certificate -c "magneto-serge CA"
 
 # Linux (Ubuntu/Debian) - Installer
-sudo cp .matgto/certs/matgto-ca.pem \
-  /usr/local/share/ca-certificates/matgto-ca.crt
+sudo cp .magneto/certs/magneto-ca.pem \
+  /usr/local/share/ca-certificates/magneto-ca.crt
 sudo update-ca-certificates
 
 # Linux - Désinstaller
-sudo rm /usr/local/share/ca-certificates/matgto-ca.crt
+sudo rm /usr/local/share/ca-certificates/magneto-ca.crt
 sudo update-ca-certificates --fresh
 
 # Windows (PowerShell Admin) - Installer
-Import-Certificate -FilePath .matgto\certs\matgto-ca.pem `
+Import-Certificate -FilePath .magneto\certs\magneto-ca.pem `
   -CertStoreLocation Cert:\LocalMachine\Root
 
 # Vérifier certificat
-openssl x509 -in .matgto/certs/matgto-ca.pem -text -noout
+openssl x509 -in .magneto/certs/magneto-ca.pem -text -noout
 ```
 
 ---
@@ -247,9 +247,9 @@ print(response.json())
 
 ```python
 # Avec matgto-serge (à venir)
-from matgto_serge import MatgtoProxy
+from matgto_serge import MagnetoProxy
 
-proxy = MatgtoProxy(cassette_dir="./cassettes")
+proxy = MagnetoProxy(cassette_dir="./cassettes")
 proxy.start_recording("my-test")
 
 # Vos tests HTTP ici
@@ -276,7 +276,7 @@ proxy.stop_recording()
 ### Usage
 
 ```java
-import com.matgto.serge.MatgtoProxy;
+import com.matgto.serge.MagnetoProxy;
 
 // Configurer proxy système
 System.setProperty("http.proxyHost", "localhost");
@@ -345,10 +345,10 @@ cargo clean
 rm -rf ./cassettes/*.json
 
 # Supprimer certificats
-rm -rf .matgto/certs/
+rm -rf .magneto/certs/
 
 # Supprimer tout
-cargo clean && rm -rf ./cassettes .matgto/
+cargo clean && rm -rf ./cassettes .magneto/
 
 # Nettoyer cache Cargo (ATTENTION: global)
 cargo cache --autoclean
@@ -364,14 +364,14 @@ cargo cache --autoclean
 # Logs info
 RUST_LOG=info cargo run
 
-# Logs debug matgto-serge seulement
-RUST_LOG=matgto_serge=debug cargo run
+# Logs debug magneto-serge seulement
+RUST_LOG=magneto_serge=debug cargo run
 
 # Logs trace (très verbeux)
 RUST_LOG=trace cargo run
 
 # Logs colorés
-RUST_LOG=matgto_serge=debug cargo run | bunyan
+RUST_LOG=magneto_serge=debug cargo run | bunyan
 ```
 
 ### Profiling
@@ -485,10 +485,10 @@ cargo clippy -- -D warnings
 cargo build --release --all-features
 
 # Vérifier taille binaires
-ls -lh target/release/matgto
+ls -lh target/release/magneto
 
 # Strip symbols
-strip target/release/matgto
+strip target/release/magneto
 ```
 
 ### Publier (à venir)
@@ -538,7 +538,7 @@ export RUSTFLAGS="-C link-arg=-fuse-ld=lld"
 ```bash
 # Reset projet
 cargo clean
-rm -rf .matgto/ cassettes/
+rm -rf .magneto/ cassettes/
 rm Cargo.lock
 
 # Re-build

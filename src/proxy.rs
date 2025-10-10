@@ -36,7 +36,7 @@ pub enum ProxyMode {
     Passthrough,
 }
 
-/// Internal mutable state for MatgtoProxy
+/// Internal mutable state for MagnetoProxy
 struct ProxyState {
     /// Directory where cassettes are stored
     cassette_dir: PathBuf,
@@ -58,7 +58,7 @@ struct ProxyState {
 }
 
 /// Main proxy struct - uses interior mutability for UniFFI compatibility
-pub struct MatgtoProxy {
+pub struct MagnetoProxy {
     /// Mutable state protected by Mutex
     state: Arc<StdMutex<ProxyState>>,
 
@@ -69,7 +69,7 @@ pub struct MatgtoProxy {
     ca: Arc<CertificateAuthority>,
 }
 
-impl MatgtoProxy {
+impl MagnetoProxy {
     /// Create a new proxy instance (internal version with Result)
     pub fn new_internal(cassette_dir: impl Into<PathBuf>) -> Result<Self> {
         let cassette_dir = cassette_dir.into();
@@ -106,7 +106,7 @@ impl MatgtoProxy {
     /// For non-UniFFI Rust code, use new_internal() instead
     pub fn new(cassette_dir: String) -> Self {
         use std::path::Path;
-        Self::new_internal(Path::new(&cassette_dir)).expect("Failed to create MatgtoProxy")
+        Self::new_internal(Path::new(&cassette_dir)).expect("Failed to create MagnetoProxy")
     }
 
     /// Set the proxy port (builder style - returns clone for chaining)
@@ -264,7 +264,7 @@ impl MatgtoProxy {
     }
 }
 
-impl Drop for MatgtoProxy {
+impl Drop for MagnetoProxy {
     fn drop(&mut self) {
         self.shutdown();
     }
@@ -276,21 +276,21 @@ mod tests {
 
     #[test]
     fn test_proxy_creation() {
-        let proxy = MatgtoProxy::new("./cassettes".to_string());
+        let proxy = MagnetoProxy::new("./cassettes".to_string());
         assert_eq!(proxy.port(), 8888);
         assert_eq!(proxy.mode(), ProxyMode::Auto);
     }
 
     #[test]
     fn test_proxy_with_custom_port() {
-        let proxy = MatgtoProxy::new("./cassettes".to_string());
+        let proxy = MagnetoProxy::new("./cassettes".to_string());
         proxy.set_port(9999);
         assert_eq!(proxy.port(), 9999);
     }
 
     #[test]
     fn test_proxy_with_mode() {
-        let proxy = MatgtoProxy::new("./cassettes".to_string());
+        let proxy = MagnetoProxy::new("./cassettes".to_string());
         proxy.set_mode(ProxyMode::Record);
         assert_eq!(proxy.mode(), ProxyMode::Record);
     }

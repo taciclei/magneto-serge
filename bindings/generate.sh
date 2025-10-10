@@ -22,7 +22,7 @@ if [ ! -f "$LIB_PATH" ]; then
     LIB_PATH="../target/release/matgto_serge.dll"  # Windows
 fi
 
-UDL_FILE="../src/matgto_serge.udl"
+UDL_FILE="../src/magneto_serge.udl"
 
 # Generate Python bindings
 echo -e "${GREEN}🐍 Generating Python bindings...${NC}"

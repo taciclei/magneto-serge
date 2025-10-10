@@ -33,7 +33,7 @@
 ### Core UniFFI
 - ✅ `src/matgto_serge.udl` (170 lignes)
   - Namespace matgto_serge
-  - Interface MatgtoProxy (proxy principal)
+  - Interface MagnetoProxy (proxy principal)
   - Interface Recorder / Player (HTTP)
   - Interface WebSocketRecorder / WebSocketPlayer
   - Dictionaries: HttpRequest, HttpResponse, Cassette, etc.
@@ -79,13 +79,13 @@
 
 ```rust
 // Factory function
-MatgtoProxy create_proxy(string cassette_dir);
+MagnetoProxy create_proxy(string cassette_dir);
 
 // Proxy interface
-interface MatgtoProxy {
+interface MagnetoProxy {
   constructor(string cassette_dir);
-  MatgtoProxy with_port(u16 port);
-  MatgtoProxy with_mode(ProxyMode mode);
+  MagnetoProxy with_port(u16 port);
+  MagnetoProxy with_mode(ProxyMode mode);
   void start_recording(string cassette_name);
   void stop_recording();
   void replay(string cassette_name);

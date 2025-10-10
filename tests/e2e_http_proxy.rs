@@ -7,17 +7,17 @@ use magneto_serge::{
     cassette::Cassette,
     player::{Player, RequestSignature},
     recorder::Recorder,
-    CertificateAuthority, MatgtoProxy, ProxyMode,
+    CertificateAuthority, MagnetoProxy, ProxyMode,
 };
 use std::collections::HashMap;
 use tempfile::TempDir;
 
 /// Helper to create a test proxy with temporary directories
-fn create_test_proxy() -> (MatgtoProxy, TempDir, TempDir) {
+fn create_test_proxy() -> (MagnetoProxy, TempDir, TempDir) {
     let cassette_dir = TempDir::new().expect("Failed to create temp cassette dir");
     let cert_dir = TempDir::new().expect("Failed to create temp cert dir");
 
-    let proxy = MatgtoProxy::new_internal(cassette_dir.path())
+    let proxy = MagnetoProxy::new_internal(cassette_dir.path())
         .expect("Failed to create proxy")
         .with_port(18888); // Use non-standard port for tests
 

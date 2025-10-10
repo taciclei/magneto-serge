@@ -44,8 +44,8 @@
 <td>
 
 **🌍 Multi-Language**
+- PHP, JavaScript, Java
 - Python, Kotlin, Swift
-- Java, JavaScript/TypeScript
 - Universal cassette format
 
 </td>
@@ -66,17 +66,27 @@
 
 ## 📦 Installation
 
-### 🦀 Rust (Cargo)
-
-```toml
-[dependencies]
-magneto-serge = "0.1"
-```
-
-### 🐍 Python (PyPI)
+### 🐘 PHP (Composer)
 
 ```bash
-pip install magneto-serge
+composer require magneto/serge
+```
+
+```php
+<?php
+require 'vendor/autoload.php';
+use Magneto\Serge\MagnetoProxy;
+use Magneto\Serge\ProxyMode;
+```
+
+### 🟨 JavaScript/TypeScript (npm)
+
+```bash
+npm install @magneto/serge
+```
+
+```javascript
+const { MagnetoProxy, ProxyMode } = require('@magneto/serge');
 ```
 
 ### ☕ Java (Maven)
@@ -89,10 +99,17 @@ pip install magneto-serge
 </dependency>
 ```
 
-### 🟨 JavaScript/TypeScript (npm)
+### 🐍 Python (PyPI)
 
 ```bash
-npm install @magneto/serge
+pip install magneto-serge
+```
+
+### 🦀 Rust (Cargo)
+
+```toml
+[dependencies]
+magneto-serge = "0.1"
 ```
 
 ### 🟣 Kotlin & 🍎 Swift
@@ -106,11 +123,11 @@ See [BINDINGS.md](BINDINGS.md) for complete installation instructions.
 ### Record & Replay in 3 Lines
 
 ```rust
-use magneto_serge::{MatgtoProxy, ProxyMode};
+use magneto_serge::{MagnetoProxy, ProxyMode};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create proxy with auto mode (record if missing, else replay)
-    let mut proxy = MatgtoProxy::new_internal("./cassettes")?
+    let mut proxy = MagnetoProxy::new_internal("./cassettes")?
         .with_port(8888)
         .with_mode(ProxyMode::Auto);
 
@@ -151,26 +168,53 @@ graph LR
 ## 💡 Examples
 
 <details>
-<summary><b>🐍 Python with pytest</b></summary>
+<summary><b>🐘 PHP with PHPUnit</b></summary>
 
-```python
-from magneto_serge import MatgtoProxy, ProxyMode
-import requests
+```php
+<?php
+use Magneto\Serge\MagnetoProxy;
+use Magneto\Serge\ProxyMode;
 
-def test_api_with_magneto():
-    proxy = MatgtoProxy(cassette_dir="./cassettes")
-    proxy.set_mode(ProxyMode.Auto)
-    proxy.start_recording("github-api-test")
+class ApiTest extends \PHPUnit\Framework\TestCase {
+    public function testApiWithMagneto() {
+        $proxy = new MagnetoProxy("./cassettes");
+        $proxy->setMode(ProxyMode::AUTO);
+        $proxy->startRecording("github-api-test");
 
-    # First run: records
-    # Second run: replays from cassette
-    response = requests.get(
-        "https://api.github.com/users/octocat",
-        proxies={"https": "http://localhost:8888"}
-    )
+        // First run: records
+        // Second run: replays from cassette
+        $client = new \GuzzleHttp\Client([
+            'proxy' => 'http://localhost:8888'
+        ]);
 
-    assert response.status_code == 200
-    proxy.stop_recording()
+        $response = $client->get('https://api.github.com/users/octocat');
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $proxy->stopRecording();
+    }
+}
+```
+
+</details>
+
+<details>
+<summary><b>🟨 JavaScript with Jest</b></summary>
+
+```javascript
+const { MagnetoProxy, ProxyMode } = require('@magneto/serge');
+
+test('API with Magneto', async () => {
+  const proxy = new MagnetoProxy('./cassettes');
+  proxy.setMode(ProxyMode.Auto);
+  proxy.startRecording('github-api-test');
+
+  const response = await fetch('https://api.github.com/users/octocat', {
+    agent: new HttpsProxyAgent('http://localhost:8888')
+  });
+
+  expect(response.status).toBe(200);
+  proxy.stopRecording();
+});
 ```
 
 </details>
@@ -181,7 +225,7 @@ def test_api_with_magneto():
 ```java
 @Test
 public void testApiWithMagneto() {
-    MatgtoProxy proxy = new MatgtoProxy("./cassettes");
+    MagnetoProxy proxy = new MagnetoProxy("./cassettes");
     proxy.setMode(ProxyMode.AUTO);
     proxy.startRecording("github-api-test");
 
@@ -196,23 +240,26 @@ public void testApiWithMagneto() {
 </details>
 
 <details>
-<summary><b>🟨 JavaScript with Jest</b></summary>
+<summary><b>🐍 Python with pytest</b></summary>
 
-```javascript
-const { MatgtoProxy, ProxyMode } = require('@magneto/serge');
+```python
+from magneto_serge import MagnetoProxy, ProxyMode
+import requests
 
-test('API with Magneto', async () => {
-  const proxy = new MatgtoProxy('./cassettes');
-  proxy.setMode(ProxyMode.Auto);
-  proxy.startRecording('github-api-test');
+def test_api_with_magneto():
+    proxy = MagnetoProxy(cassette_dir="./cassettes")
+    proxy.set_mode(ProxyMode.Auto)
+    proxy.start_recording("github-api-test")
 
-  const response = await fetch('https://api.github.com/users/octocat', {
-    agent: new HttpsProxyAgent('http://localhost:8888')
-  });
+    # First run: records
+    # Second run: replays from cassette
+    response = requests.get(
+        "https://api.github.com/users/octocat",
+        proxies={"https": "http://localhost:8888"}
+    )
 
-  expect(response.status).toBe(200);
-  proxy.stopRecording();
-});
+    assert response.status_code == 200
+    proxy.stop_recording()
 ```
 
 </details>
@@ -267,7 +314,7 @@ Cassettes are **language-agnostic JSON** files - record in Rust, replay in Pytho
 
 ```mermaid
 graph TB
-    A[MatgtoProxy API] --> B[HTTP Handler]
+    A[MagnetoProxy API] --> B[HTTP Handler]
     A --> C[WebSocket Interceptor]
     B --> D[Recorder/Player]
     C --> D
@@ -278,7 +325,7 @@ graph TB
 ```
 
 **Core components:**
-- 🎯 **MatgtoProxy**: Public API (Rust + UniFFI)
+- 🎯 **MagnetoProxy**: Public API (Rust + UniFFI)
 - 🔄 **HTTP Handler**: MITM proxy with Hudsucker
 - 🔌 **WebSocket Interceptor**: Bidirectional message capture
 - 💾 **Recorder/Player**: Cassette serialization & matching
@@ -341,7 +388,7 @@ cargo run --bin generate-bindings
 magneto-serge/
 ├── src/
 │   ├── lib.rs              # Core library
-│   ├── proxy.rs            # MatgtoProxy implementation
+│   ├── proxy.rs            # MagnetoProxy implementation
 │   ├── cassette.rs         # Cassette format
 │   ├── player.rs           # Replay engine
 │   ├── recorder.rs         # Record engine
@@ -364,11 +411,12 @@ magneto-serge/
 | Documentation | Description |
 |---------------|-------------|
 | [**BINDINGS.md**](BINDINGS.md) | 🌐 Complete multi-language guide |
+| [**PHP README**](bindings/php/README.md) | 🐘 PHP-specific docs |
+| [**JavaScript README**](bindings/javascript/README.md) | 🟨 JS/TS-specific docs |
+| [**Java README**](bindings/java/README.md) | ☕ Java-specific docs |
+| [**Python README**](bindings/python/README.md) | 🐍 Python-specific docs |
 | [**ROADMAP.md**](ROADMAP.md) | 🗺️ Development roadmap |
 | [**CLAUDE.md**](CLAUDE.md) | 🤖 AI assistant instructions |
-| [**Python README**](bindings/python/README.md) | 🐍 Python-specific docs |
-| [**Java README**](bindings/java/README.md) | ☕ Java-specific docs |
-| [**JavaScript README**](bindings/javascript/README.md) | 🟨 JS/TS-specific docs |
 
 ---
 
@@ -383,7 +431,7 @@ magneto-serge/
 
 **Next milestones:**
 - [ ] Publish to crates.io, PyPI, NPM, Maven
-- [ ] CLI tool with `matgto` command
+- [ ] CLI tool with `magneto` command
 - [ ] Performance benchmarks
 - [ ] 1.0 stable release
 

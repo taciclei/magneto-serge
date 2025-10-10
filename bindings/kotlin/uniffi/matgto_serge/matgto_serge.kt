@@ -1277,7 +1277,7 @@ private class JavaLangRefCleanable(
 ) : UniffiCleaner.Cleanable {
     override fun clean() = cleanable.clean()
 }
-public interface MatgtoProxyInterface {
+public interface MagnetoProxyInterface {
     
     fun `mode`(): ProxyMode
     
@@ -1298,7 +1298,7 @@ public interface MatgtoProxyInterface {
     companion object
 }
 
-open class MatgtoProxy: Disposable, AutoCloseable, MatgtoProxyInterface {
+open class MagnetoProxy: Disposable, AutoCloseable, MagnetoProxyInterface {
 
     constructor(pointer: Pointer) {
         this.pointer = pointer
@@ -1490,25 +1490,25 @@ open class MatgtoProxy: Disposable, AutoCloseable, MatgtoProxyInterface {
 /**
  * @suppress
  */
-public object FfiConverterTypeMatgtoProxy: FfiConverter<MatgtoProxy, Pointer> {
+public object FfiConverterTypeMagnetoProxy: FfiConverter<MagnetoProxy, Pointer> {
 
-    override fun lower(value: MatgtoProxy): Pointer {
+    override fun lower(value: MagnetoProxy): Pointer {
         return value.uniffiClonePointer()
     }
 
-    override fun lift(value: Pointer): MatgtoProxy {
-        return MatgtoProxy(value)
+    override fun lift(value: Pointer): MagnetoProxy {
+        return MagnetoProxy(value)
     }
 
-    override fun read(buf: ByteBuffer): MatgtoProxy {
+    override fun read(buf: ByteBuffer): MagnetoProxy {
         // The Rust code always writes pointers as 8 bytes, and will
         // fail to compile if they don't fit.
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: MatgtoProxy) = 8UL
+    override fun allocationSize(value: MagnetoProxy) = 8UL
 
-    override fun write(value: MatgtoProxy, buf: ByteBuffer) {
+    override fun write(value: MagnetoProxy, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -1553,32 +1553,32 @@ public object FfiConverterTypeProxyMode: FfiConverterRustBuffer<ProxyMode> {
 /**
  * @suppress
  */
-public object FfiConverterOptionalTypeMatgtoProxy: FfiConverterRustBuffer<MatgtoProxy?> {
-    override fun read(buf: ByteBuffer): MatgtoProxy? {
+public object FfiConverterOptionalTypeMagnetoProxy: FfiConverterRustBuffer<MagnetoProxy?> {
+    override fun read(buf: ByteBuffer): MagnetoProxy? {
         if (buf.get().toInt() == 0) {
             return null
         }
-        return FfiConverterTypeMatgtoProxy.read(buf)
+        return FfiConverterTypeMagnetoProxy.read(buf)
     }
 
-    override fun allocationSize(value: MatgtoProxy?): ULong {
+    override fun allocationSize(value: MagnetoProxy?): ULong {
         if (value == null) {
             return 1UL
         } else {
-            return 1UL + FfiConverterTypeMatgtoProxy.allocationSize(value)
+            return 1UL + FfiConverterTypeMagnetoProxy.allocationSize(value)
         }
     }
 
-    override fun write(value: MatgtoProxy?, buf: ByteBuffer) {
+    override fun write(value: MagnetoProxy?, buf: ByteBuffer) {
         if (value == null) {
             buf.put(0)
         } else {
             buf.put(1)
-            FfiConverterTypeMatgtoProxy.write(value, buf)
+            FfiConverterTypeMagnetoProxy.write(value, buf)
         }
     }
-} fun `createProxy`(`cassetteDir`: kotlin.String): MatgtoProxy? {
-            return FfiConverterOptionalTypeMatgtoProxy.lift(
+} fun `createProxy`(`cassetteDir`: kotlin.String): MagnetoProxy? {
+            return FfiConverterOptionalTypeMagnetoProxy.lift(
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matgto_serge_fn_func_create_proxy(
         FfiConverterString.lower(`cassetteDir`),_status)

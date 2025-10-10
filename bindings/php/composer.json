@@ -1,5 +1,5 @@
 {
-    "name": "matgto/serge",
+    "name": "magneto/serge",
     "description": "PHP bindings for matgto-serge - HTTP/WebSocket testing library with record/replay",
     "type": "library",
     "keywords": ["testing", "http", "websocket", "proxy", "vcr", "mock", "record", "replay"],
@@ -24,7 +24,7 @@
             "MatgtoSerge\\": "src/"
         },
         "files": [
-            "MatgtoProxy.php"
+            "MagnetoProxy.php"
         ]
     },
     "autoload-dev": {

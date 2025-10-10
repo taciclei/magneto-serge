@@ -69,4 +69,4 @@ build/
 
 # Test cassettes
 test_cassettes/
-.matgto/
+.magneto/

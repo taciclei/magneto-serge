@@ -8,7 +8,7 @@ Bindings Java pour **matgto-serge**, générés via interopérabilité Kotlin/Ja
 
 ```gradle
 dependencies {
-    implementation 'io.github.matgto:matgto-serge:0.1.0'
+    implementation 'io.github.magneto:matgto-serge:0.1.0'
     implementation 'net.java.dev.jna:jna:5.13.0'
 }
 ```
@@ -17,7 +17,7 @@ dependencies {
 
 ```xml
 <dependency>
-    <groupId>io.github.matgto</groupId>
+    <groupId>io.github.magneto</groupId>
     <artifactId>matgto-serge</artifactId>
     <version>0.1.0</version>
 </dependency>
@@ -31,13 +31,13 @@ dependencies {
 ## 🚀 Utilisation Rapide
 
 ```java
-import io.github.matgto.serge.MatgtoProxy;
-import io.github.matgto.serge.MatgtoProxy.Mode;
+import io.github.magneto.serge.MagnetoProxy;
+import io.github.magneto.serge.MagnetoProxy.Mode;
 
 public class MyTest {
     public void testApi() {
         // Créer un proxy
-        MatgtoProxy proxy = new MatgtoProxy("./cassettes");
+        MagnetoProxy proxy = new MagnetoProxy("./cassettes");
 
         // Configurer
         proxy.setPort(8888);
@@ -59,16 +59,16 @@ public class MyTest {
 ## 🧪 Intégration JUnit 5
 
 ```java
-import io.github.matgto.serge.MatgtoProxy;
+import io.github.magneto.serge.MagnetoProxy;
 import org.junit.jupiter.api.*;
 
 public class ApiTest {
 
-    private MatgtoProxy proxy;
+    private MagnetoProxy proxy;
 
     @BeforeEach
     void setUp() {
-        proxy = new MatgtoProxy("./cassettes");
+        proxy = new MagnetoProxy("./cassettes");
         proxy.setPort(8888);
     }
 
@@ -80,7 +80,7 @@ public class ApiTest {
     @Test
     void testApiEndpoint() {
         // Mode enregistrement
-        proxy.setMode(MatgtoProxy.Mode.RECORD);
+        proxy.setMode(MagnetoProxy.Mode.RECORD);
         proxy.startRecording("api_endpoint_test");
 
         // Faire requête HTTP via proxy
@@ -108,7 +108,7 @@ public class ApiTest {
     @Test
     void testApiReplay() {
         // Mode replay
-        proxy.setMode(MatgtoProxy.Mode.REPLAY);
+        proxy.setMode(MagnetoProxy.Mode.REPLAY);
         proxy.replay("api_endpoint_test");
 
         // Les requêtes seront rejouées depuis la cassette
@@ -119,12 +119,12 @@ public class ApiTest {
 
 ## 📖 API
 
-### MatgtoProxy
+### MagnetoProxy
 
 **Constructeur:**
 ```java
-MatgtoProxy(String cassetteDir)
-MatgtoProxy.create(String cassetteDir) // Factory method
+MagnetoProxy(String cassetteDir)
+MagnetoProxy.create(String cassetteDir) // Factory method
 ```
 
 **Configuration:**
@@ -160,10 +160,10 @@ static String getVersion()
 ### Mode (Enum)
 
 ```java
-MatgtoProxy.Mode.AUTO        // Auto-détection
-MatgtoProxy.Mode.RECORD      // Enregistrement
-MatgtoProxy.Mode.REPLAY      // Replay
-MatgtoProxy.Mode.PASSTHROUGH // Passthrough sans enregistrement
+MagnetoProxy.Mode.AUTO        // Auto-détection
+MagnetoProxy.Mode.RECORD      // Enregistrement
+MagnetoProxy.Mode.REPLAY      // Replay
+MagnetoProxy.Mode.PASSTHROUGH // Passthrough sans enregistrement
 ```
 
 ## 🔧 Configuration HttpClient

@@ -6,19 +6,19 @@
  */
 
 use PHPUnit\Framework\TestCase;
-use MatgtoSerge\MatgtoProxy;
+use MatgtoSerge\MagnetoProxy;
 use MatgtoSerge\ProxyMode;
 use GuzzleHttp\Client;
 
 class ApiTest extends TestCase
 {
-    private MatgtoProxy $proxy;
+    private MagnetoProxy $proxy;
     private Client $httpClient;
 
     protected function setUp(): void
     {
         // Create proxy in auto mode
-        $this->proxy = new MatgtoProxy('./test-cassettes');
+        $this->proxy = new MagnetoProxy('./test-cassettes');
         $this->proxy->withPort(8888)
                     ->withMode(ProxyMode::Auto);
 

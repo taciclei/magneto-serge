@@ -31,7 +31,7 @@ logs/
 
 # Test files
 test_cassettes/
-.matgto/
+.magneto/
 
 # Documentation
 docs/

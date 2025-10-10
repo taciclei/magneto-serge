@@ -1,7 +1,7 @@
-package io.github.matgto.serge.test;
+package io.github.magneto.serge.test;
 
-import io.github.matgto.serge.MatgtoProxy;
-import io.github.matgto.serge.MatgtoProxy.Mode;
+import io.github.magneto.serge.MagnetoProxy;
+import io.github.magneto.serge.MagnetoProxy.Mode;
 
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,17 +20,17 @@ import java.io.IOException;
  * Exemple d'intégration avec JUnit pour tester des APIs HTTP
  * en utilisant le mode record/replay de matgto-serge.
  */
-@DisplayName("MatgtoProxy Tests")
+@DisplayName("MagnetoProxy Tests")
 public class MatgtoTest {
 
-    private MatgtoProxy proxy;
+    private MagnetoProxy proxy;
     private static final String CASSETTE_DIR = "./test_cassettes";
     private static final int PROXY_PORT = 8889;
 
     @BeforeEach
     void setUp() {
         // Créer un proxy pour chaque test
-        proxy = MatgtoProxy.create(CASSETTE_DIR);
+        proxy = MagnetoProxy.create(CASSETTE_DIR);
         assertNotNull(proxy, "Proxy should be created");
 
         // Configuration de base
@@ -116,7 +116,7 @@ public class MatgtoTest {
     @Test
     @DisplayName("Should return version")
     void testVersion() {
-        String version = MatgtoProxy.getVersion();
+        String version = MagnetoProxy.getVersion();
         assertNotNull(version);
         assertFalse(version.isEmpty());
         assertEquals("0.1.0", version);
@@ -150,7 +150,7 @@ public class MatgtoTest {
     @Test
     @DisplayName("Should create proxy with factory method")
     void testFactoryMethod() {
-        MatgtoProxy newProxy = MatgtoProxy.create(CASSETTE_DIR);
+        MagnetoProxy newProxy = MagnetoProxy.create(CASSETTE_DIR);
         assertNotNull(newProxy);
         newProxy.shutdown();
     }
@@ -158,7 +158,7 @@ public class MatgtoTest {
     @Test
     @DisplayName("Should handle null cassette dir gracefully")
     void testNullCassetteDir() {
-        MatgtoProxy nullProxy = MatgtoProxy.create(null);
+        MagnetoProxy nullProxy = MagnetoProxy.create(null);
         // Le comportement dépend de l'implémentation
         // On accepte null ou exception
     }

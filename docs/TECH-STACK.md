@@ -19,7 +19,7 @@ rust-version = "1.75"
 authors = ["matgto-serge contributors"]
 license = "MIT OR Apache-2.0"
 description = "Multi-language HTTP/WebSocket testing library with record/replay"
-repository = "https://github.com/your-org/matgto-serge"
+repository = "https://github.com/your-org/magneto-serge"
 keywords = ["testing", "http", "websocket", "proxy", "vcr"]
 categories = ["development-tools::testing", "network-programming"]
 
@@ -28,7 +28,7 @@ crate-type = ["cdylib", "rlib", "staticlib"]
 name = "matgto_serge"
 
 [[bin]]
-name = "matgto"
+name = "magneto"
 path = "src/bin/cli.rs"
 
 [workspace]
@@ -339,7 +339,7 @@ Rust (lib.rs) → UDL (matgto_serge.udl) → uniffi-bindgen
 ```rust
 // build.rs
 fn main() {
-    uniffi::generate_scaffolding("src/matgto_serge.udl").unwrap();
+    uniffi::generate_scaffolding("src/magneto_serge.udl").unwrap();
 }
 ```
 
@@ -347,17 +347,17 @@ fn main() {
 ```bash
 # Java
 cargo run --features=uniffi/cli \
-    --bin uniffi-bindgen generate src/matgto_serge.udl \
+    --bin uniffi-bindgen generate src/magneto_serge.udl \
     --language java --out-dir bindings/java
 
 # JavaScript
 cargo run --features=uniffi/cli \
-    --bin uniffi-bindgen generate src/matgto_serge.udl \
+    --bin uniffi-bindgen generate src/magneto_serge.udl \
     --language typescript --out-dir bindings/js
 
 # Python
 cargo run --features=uniffi/cli \
-    --bin uniffi-bindgen generate src/matgto_serge.udl \
+    --bin uniffi-bindgen generate src/magneto_serge.udl \
     --language python --out-dir bindings/python
 ```
 
@@ -388,7 +388,7 @@ cargo run --features=uniffi/cli \
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name = "matgto")]
+#[command(name = "magneto")]
 #[command(about = "HTTP/WebSocket testing with record/replay")]
 struct Cli {
     #[command(subcommand)]
@@ -502,10 +502,10 @@ tracing_subscriber::registry()
 RUST_LOG=matgto_serge=trace,tokio=debug cargo run
 
 # Prod : errors uniquement
-RUST_LOG=error ./matgto
+RUST_LOG=error ./magneto
 
 # JSON pour ingestion
-RUST_LOG_FORMAT=json ./matgto
+RUST_LOG_FORMAT=json ./magneto
 ```
 
 ---
@@ -641,11 +641,11 @@ println!("Request ID: {}", id);
 // build.rs
 fn main() {
     // Générer scaffolding UniFFI
-    uniffi::generate_scaffolding("src/matgto_serge.udl")
+    uniffi::generate_scaffolding("src/magneto_serge.udl")
         .expect("Failed to generate UniFFI scaffolding");
 
     // Recompiler si UDL change
-    println!("cargo:rerun-if-changed=src/matgto_serge.udl");
+    println!("cargo:rerun-if-changed=src/magneto_serge.udl");
 
     // Embedder version Git
     let git_hash = std::process::Command::new("git")
@@ -668,9 +668,9 @@ rustflags = ["-C", "target-cpu=native"]  # Optimisations CPU spécifiques
 [alias]
 # Alias custom
 bench = "bench --features=metrics"
-bindgen-java = "run --features=uniffi/cli --bin uniffi-bindgen -- generate src/matgto_serge.udl --language java --out-dir bindings/java"
-bindgen-js = "run --features=uniffi/cli --bin uniffi-bindgen -- generate src/matgto_serge.udl --language typescript --out-dir bindings/js"
-bindgen-py = "run --features=uniffi/cli --bin uniffi-bindgen -- generate src/matgto_serge.udl --language python --out-dir bindings/python"
+bindgen-java = "run --features=uniffi/cli --bin uniffi-bindgen -- generate src/magneto_serge.udl --language java --out-dir bindings/java"
+bindgen-js = "run --features=uniffi/cli --bin uniffi-bindgen -- generate src/magneto_serge.udl --language typescript --out-dir bindings/js"
+bindgen-py = "run --features=uniffi/cli --bin uniffi-bindgen -- generate src/magneto_serge.udl --language python --out-dir bindings/python"
 
 [target.x86_64-unknown-linux-gnu]
 linker = "clang"
@@ -876,8 +876,8 @@ RUN apk add --no-cache musl-dev
 RUN cargo build --release --target x86_64-unknown-linux-musl
 
 FROM scratch
-COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/matgto /matgto
-ENTRYPOINT ["/matgto"]
+COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/magneto /magneto
+ENTRYPOINT ["/magneto"]
 ```
 
 ### Package Managers
@@ -889,15 +889,15 @@ cargo publish
 
 **Homebrew (macOS) :**
 ```ruby
-# Formula/matgto-serge.rb
+# Formula/magneto-serge.rb
 class MatgtoSerge < Formula
   desc "Multi-language HTTP/WebSocket testing with record/replay"
-  homepage "https://github.com/your-org/matgto-serge"
-  url "https://github.com/your-org/matgto-serge/releases/download/v1.0.0/matgto-serge-1.0.0.tar.gz"
+  homepage "https://github.com/your-org/magneto-serge"
+  url "https://github.com/your-org/magneto-serge/releases/download/v1.0.0/magneto-serge-1.0.0.tar.gz"
   sha256 "..."
 
   def install
-    bin.install "matgto"
+    bin.install "magneto"
   end
 end
 ```
@@ -906,7 +906,7 @@ end
 ```xml
 <!-- pom.xml -->
 <dependency>
-    <groupId>com.matgto</groupId>
+    <groupId>com.magneto</groupId>
     <artifactId>serge</artifactId>
     <version>1.0.0</version>
 </dependency>
@@ -915,7 +915,7 @@ end
 **npm (JavaScript) :**
 ```json
 {
-  "name": "@matgto/serge",
+  "name": "@magneto/serge",
   "version": "1.0.0",
   "main": "index.node",
   "scripts": {
