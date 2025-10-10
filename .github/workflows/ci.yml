@@ -105,27 +105,27 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install UniFFI bindgen
-        run: cargo install uniffi_bindgen --version 0.28.0
-
       - name: Build library
         run: cargo build --release
 
       - name: Generate Python bindings
         run: |
-          uniffi-bindgen generate src/magneto_serge.udl \
+          cargo run --features=uniffi/cli --bin uniffi-bindgen generate \
+            src/magneto_serge.udl \
             --language python \
             --out-dir bindings/python/generated
 
       - name: Generate Kotlin bindings
         run: |
-          uniffi-bindgen generate src/magneto_serge.udl \
+          cargo run --features=uniffi/cli --bin uniffi-bindgen generate \
+            src/magneto_serge.udl \
             --language kotlin \
             --out-dir bindings/kotlin/generated
 
       - name: Generate Swift bindings
         run: |
-          uniffi-bindgen generate src/magneto_serge.udl \
+          cargo run --features=uniffi/cli --bin uniffi-bindgen generate \
+            src/magneto_serge.udl \
             --language swift \
             --out-dir bindings/swift/generated
 
