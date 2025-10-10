@@ -7,7 +7,7 @@
 
     <groupId>io.github.magneto</groupId>
     <artifactId>magneto-serge</artifactId>
-    <version>0.4.0</version>
+    <version>0.0.1</version>
     <packaging>jar</packaging>
 
     <name>magneto-serge</name>

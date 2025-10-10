@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.4.0] - 2025-10-10
+## [0.0.1] - 2025-10-10
 
 ### Added
 - Complete CLI with 8 commands (`magneto record`, `replay`, `auto`, `list`, `inspect`, `delete`, `init`, `version`)
@@ -33,9 +33,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - **BREAKING**: Renamed `MatgtoProxy` to `MagnetoProxy` (309 occurrences across 35 files)
-- **BREAKING**: Renamed CLI binary from `matgto` to `magneto`
-- **BREAKING**: Renamed cassette directory from `.matgto` to `.magneto`
-- **BREAKING**: Renamed CA certificate from `matgto-ca.pem` to `magneto-ca.pem`
+- Renamed CLI binary from `matgto` to `magneto`
+- Renamed cassette directory from `.matgto` to `.magneto`
+- Renamed CA certificate from `matgto-ca.pem` to `magneto-ca.pem`
 - Improved error handling with dual API pattern (internal `Result<T>` + public `bool`)
 - Updated all workflows to use `magneto` instead of `matgto`
 - Reorganized README to highlight PHP, JavaScript, and Java first
@@ -51,7 +51,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Security Audit job from CI (was causing failures)
 
-## [0.3.0] - 2025-10-08
+## Future Versions
+
+### [0.3.0] - Planned
 
 ### Added
 - Multi-language bindings support via UniFFI 0.28
@@ -66,9 +68,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgraded UniFFI from 0.25 to 0.28
 - Fixed 54 compilation errors related to UniFFI integration
 
-## [0.2.0] - 2025-10-05
+### [0.2.0] - Planned
 
-### Added
+Added
 - WebSocket proxy support
 - WebSocket record/replay functionality
 - Bidirectional message forwarding
@@ -81,9 +83,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced cassette format to support both HTTP and WebSocket interactions
 - Improved matching algorithm for WebSocket messages
 
-## [0.1.0] - 2025-10-01
+### [0.1.0] - Planned
 
-### Added
+Added
 - Initial release
 - HTTP/HTTPS proxy with MITM support
 - TLS certificate generation (CA + per-domain)
@@ -98,8 +100,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unit and integration tests
 - Basic documentation
 
-[Unreleased]: https://github.com/taciclei/magneto-serge/compare/v0.4.0...HEAD
-[0.4.0]: https://github.com/taciclei/magneto-serge/compare/v0.3.0...v0.4.0
-[0.3.0]: https://github.com/taciclei/magneto-serge/compare/v0.2.0...v0.3.0
-[0.2.0]: https://github.com/taciclei/magneto-serge/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/taciclei/magneto-serge/releases/tag/v0.1.0
+[Unreleased]: https://github.com/taciclei/magneto-serge/compare/v0.0.1...HEAD
+[0.0.1]: https://github.com/taciclei/magneto-serge/releases/tag/v0.0.1

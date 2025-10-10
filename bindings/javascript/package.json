@@ -1,6 +1,6 @@
 {
   "name": "@magneto/serge",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Magnéto-Serge - Multi-language HTTP/WebSocket testing library with record/replay",
   "main": "index.js",
   "types": "index.d.ts",

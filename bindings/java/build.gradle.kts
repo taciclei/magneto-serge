@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "io.github.magneto"
-version = "0.4.0"
+version = "0.0.1"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_11
