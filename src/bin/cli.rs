@@ -305,7 +305,7 @@ fn run_proxy(
             .map_err(|e| format!("Failed to create proxy: {}", e))?;
 
         proxy.set_port(port);
-        proxy.set_mode(mode.clone());
+        proxy.set_mode(mode);
 
         match mode {
             ProxyMode::Record => {
@@ -329,10 +329,8 @@ fn run_proxy(
         println!();
         println!("{} Shutting down...", "⏹".yellow());
 
-        if matches!(mode, ProxyMode::Record) {
-            if !proxy.stop_recording() {
-                return Err("Failed to stop recording".into());
-            }
+        if matches!(mode, ProxyMode::Record) && !proxy.stop_recording() {
+            return Err("Failed to stop recording".into());
         }
 
         proxy.shutdown();

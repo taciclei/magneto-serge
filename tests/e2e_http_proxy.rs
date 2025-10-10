@@ -32,7 +32,7 @@ async fn test_e2e_record_and_replay_simple_get() {
         .with_env_filter("magneto_serge=debug")
         .try_init();
 
-    let (mut proxy, cassette_dir, cert_dir) = create_test_proxy();
+    let (mut proxy, cassette_dir, _cert_dir) = create_test_proxy();
 
     // ========== PHASE 1: RECORD ==========
     tracing::info!("Starting record phase...");
@@ -51,10 +51,10 @@ async fn test_e2e_record_and_replay_simple_get() {
     tracing::info!("Recording complete");
 
     // ========== PHASE 2: VERIFY CASSETTE ==========
-    let cassette_path = cassette_dir.path().join("httpbin-test.json");
+    let _cassette_path = cassette_dir.path().join("httpbin-test.json");
 
     // In a real implementation, cassette should exist here
-    // assert!(cassette_path.exists(), "Cassette file should exist");
+    // assert!(_cassette_path.exists(), "Cassette file should exist");
 
     // ========== PHASE 3: REPLAY ==========
     tracing::info!("Starting replay phase...");
@@ -99,6 +99,7 @@ async fn test_e2e_auto_mode() {
 }
 
 #[tokio::test]
+#[ignore] // Requires network access to httpbin.org
 async fn test_http_forwarder_direct() {
     // Test the HTTP forwarder directly without proxy
     use magneto_serge::cassette::HttpRequest;
@@ -114,20 +115,18 @@ async fn test_http_forwarder_direct() {
     };
 
     // This test requires network access
-    #[cfg(not(feature = "offline-tests"))]
-    {
-        let response = forwarder.forward(&request).await;
+    let response = forwarder.forward(&request).await;
 
-        if let Ok(resp) = response {
-            assert_eq!(resp.status, 200);
-            tracing::info!("Direct forwarder test passed: status={}", resp.status);
-        } else {
-            tracing::warn!("Network request failed (expected in offline environments)");
-        }
+    if let Ok(resp) = response {
+        assert_eq!(resp.status, 200);
+        tracing::info!("Direct forwarder test passed: status={}", resp.status);
+    } else {
+        tracing::warn!("Network request failed (expected in offline environments)");
     }
 }
 
 #[tokio::test]
+#[ignore] // Requires network access to httpbin.org
 async fn test_http_forwarder_post() {
     use magneto_serge::cassette::HttpRequest;
     use magneto_serge::proxy::HttpForwarder;
@@ -144,22 +143,19 @@ async fn test_http_forwarder_post() {
         body: Some(b"{\"test\":\"data\",\"value\":42}".to_vec()),
     };
 
-    #[cfg(not(feature = "offline-tests"))]
-    {
-        let response = forwarder.forward(&request).await;
+    let response = forwarder.forward(&request).await;
 
-        if let Ok(resp) = response {
-            assert_eq!(resp.status, 200);
+    if let Ok(resp) = response {
+        assert_eq!(resp.status, 200);
 
-            // Verify response contains our posted data
-            if let Some(body) = &resp.body {
-                let body_str = String::from_utf8_lossy(body);
-                assert!(body_str.contains("test"));
-                assert!(body_str.contains("data"));
-            }
-
-            tracing::info!("POST forwarder test passed");
+        // Verify response contains our posted data
+        if let Some(body) = &resp.body {
+            let body_str = String::from_utf8_lossy(body);
+            assert!(body_str.contains("test"));
+            assert!(body_str.contains("data"));
         }
+
+        tracing::info!("POST forwarder test passed");
     }
 }
 
