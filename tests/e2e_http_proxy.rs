@@ -280,8 +280,7 @@ async fn test_full_record_replay_cycle() {
             .expect("Should get interaction");
 
         // Verify response
-        if let magneto_serge::cassette::InteractionKind::Http { response, .. } = &interaction.kind
-        {
+        if let magneto_serge::cassette::InteractionKind::Http { response, .. } = &interaction.kind {
             assert_eq!(response.status, 200);
             assert!(response.body.is_some());
 
@@ -387,8 +386,9 @@ async fn test_record_with_post_body() {
     let interaction_idx = player.find_interaction(&replay_signature).unwrap();
     let interaction = player.get_interaction(interaction_idx).unwrap();
 
-    let replayed_response = if let magneto_serge::cassette::InteractionKind::Http { response, .. } =
-        &interaction.kind
+    let replayed_response = if let magneto_serge::cassette::InteractionKind::Http {
+        response, ..
+    } = &interaction.kind
     {
         response
     } else {
