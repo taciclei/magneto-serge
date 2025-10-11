@@ -184,6 +184,20 @@ matgto-serge est une bibliothèque de test qui enregistre et rejoue automatiquem
   - [ ] Validation séquence messages (mode strict - à implémenter)
   - [ ] Pattern matching contenu (à implémenter)
 
+### 2.5 Simulation Latency WebSocket ✅ (Issue #5)
+- [x] Support `LatencyMode` pour WebSocketPlayer
+  - [x] `LatencyMode::None` - Replay instantané (0ms délai)
+  - [x] `LatencyMode::Recorded` - Utilise timestamps enregistrés
+  - [x] `LatencyMode::Fixed(ms)` - Délai fixe pour tous les messages
+  - [x] `LatencyMode::Scaled(percentage)` - Accélération/ralentissement (ex: 10% = 10x plus rapide)
+- [x] Méthode `calculate_message_delay()` avec timestamps relatifs
+- [x] Builder pattern `.with_latency(mode)`
+- [x] Tests complets (6 tests) incluant cas blockchain
+- [x] Documentation complète dans `docs/LATENCY_SIMULATION.md`
+  - [x] Section WebSocket avec exemples
+  - [x] Cas d'usage blockchain (blocks 6s → instant)
+  - [x] API reference WebSocketPlayer
+
 ### 2.4 Tests Intégration WebSocket ✅
 - [x] Test E2E WebSocket simple → `tests/e2e_websocket.rs`
   - [x] Test recorder basique (3 messages Text + Binary)
@@ -203,6 +217,69 @@ matgto-serge est une bibliothèque de test qui enregistre et rejoue automatiquem
   - [x] test_websocket_reset (rejouer après reset)
 - [ ] Test live avec vrai serveur WebSocket (ignored - nécessite réseau)
 - [ ] Performance benchmark (> 10k msg/s) - à venir
+
+---
+
+## 🐳 PHASE 2.5 : Docker & Containerisation (1 semaine) ✅
+
+**Objectif :** Support Docker complet avec transparent proxy (Issue #6)
+
+### 2.5.1 Images Docker ✅
+- [x] Dockerfile optimisé multi-stage
+  - [x] Builder stage avec Rust toolchain
+  - [x] Runtime stage Debian slim (~150MB)
+  - [x] iptables, curl, net-tools pour transparent proxy
+  - [x] Health check intégré (netstat port 8888)
+- [x] Dockerfile.transparent pour proxy transparent
+  - [x] Configuration iptables automatique
+  - [x] Support `NET_ADMIN` capability
+  - [x] Zero-code-change pour applications legacy
+
+### 2.5.2 Scripts et Orchestration ✅
+- [x] docker-entrypoint.sh (180 lignes)
+  - [x] Configuration iptables HTTP (port 80) et HTTPS (port 443)
+  - [x] Redirection ports personnalisés (REDIRECT_PORTS)
+  - [x] Installation automatique certificat CA
+  - [x] Cleanup gracieux des règles iptables
+  - [x] Variables d'environnement configurables
+- [x] docker-compose.example.yml avec 5 exemples
+  - [x] Explicit proxy (simple)
+  - [x] Transparent proxy (advanced)
+  - [x] Multi-container integration tests
+  - [x] Record mode
+  - [x] Auto mode (development)
+
+### 2.5.3 Documentation Docker ✅
+- [x] `docs/DOCKER.md` - Guide complet (850 lignes)
+  - [x] Quick Start et installation
+  - [x] Architecture transparent proxy avec diagrammes
+  - [x] Configuration environnement
+  - [x] CI/CD integration (GitHub Actions, GitLab CI)
+  - [x] Troubleshooting (HTTPS, iptables, DNS)
+  - [x] Performance et optimisation
+- [x] `examples/docker-vcr/README.md` - Templates (700 lignes)
+  - [x] Guide docker-vcr pour @1000i100's 1vcr project
+  - [x] Templates Python Flask
+  - [x] Templates Node.js microservice
+  - [x] Templates Java Spring Boot
+  - [x] Configuration HTTPS par langage
+  - [x] Comparaison explicit vs transparent proxy
+
+### 2.5.4 Variables d'Environnement ✅
+- [x] `MAGNETO_MODE` - Mode proxy (auto/record/replay/passthrough)
+- [x] `CASSETTE_NAME` - Nom de la cassette
+- [x] `MAGNETO_PORT` - Port du proxy (défaut: 8888)
+- [x] `CASSETTE_DIR` - Répertoire cassettes (défaut: /cassettes)
+- [x] `TRANSPARENT_PROXY` - Activer iptables (défaut: false)
+- [x] `REDIRECT_PORTS` - Ports additionnels (CSV)
+- [x] `RUST_LOG` - Niveau de log
+
+### 2.5.5 Use Cases Docker ✅
+- [x] Applications legacy sans modification code
+- [x] Tests CI/CD avec cassettes
+- [x] Multi-container integration tests
+- [x] Network isolation et découverte
+- [x] Collaboration avec projet 1vcr (framagit.org/1forma-tic/1vcr)
 
 ---
 
@@ -612,17 +689,30 @@ rcgen = "0.11"                  # Génération certificats
 **Statut :**
 - 🟢 Phase 1 complète ✅ (HTTP/HTTPS Proxy) - 100%
 - 🟢 Phase 2 complète ✅ (WebSocket Support) - 100%
+- 🟢 Phase 2.5 complète ✅ (Docker & Containerisation) - 100%
+  - WebSocket Latency Simulation (Issue #5)
+  - Docker Transparent Proxy (Issue #6)
+  - docker-vcr templates et documentation
 - 🟡 Phase 3 en cours 🔄 (Multi-language Bindings) - 50%
   - 🟢 Phase 3.1 complète ✅ (UniFFI Setup)
   - 🟢 Phase 3.4 complète ✅ (JavaScript Bindings via NAPI-RS)
   - ⏸️ Phase 3.2-3.3 bloquées (Python/Kotlin/Swift - UniFFI)
-- ⏳ Phase 4 non commencée (CLI & Production) - 0%
+- 🟡 Phase 4 en cours 🔄 (CLI & Production) - 10%
+  - CLI basique existe déjà
+  - À améliorer et compléter
 
-**Tests actuels :** 68/68 passing ✅
-- 33 tests unitaires Rust
+**Tests actuels :** 79/79 passing ✅
+- 39 tests unitaires Rust (incluant 6 WebSocket latency)
 - 9 tests d'intégration Rust
-- 5 tests WebSocket
+- 14 tests WebSocket (incluant latency modes)
 - 10+ tests API JavaScript
 - 7+ tests HTTP JavaScript
 
 **CI/CD :** ✅ Fonctionnel (GitHub Actions)
+
+**Nouvelles fonctionnalités (2025-10-11) :**
+- ✅ WebSocket instant mode pour tests rapides (LatencyMode::None)
+- ✅ Docker transparent proxy avec iptables
+- ✅ docker-entrypoint.sh pour configuration automatique
+- ✅ 5 exemples docker-compose
+- ✅ 1,550 lignes de documentation Docker ajoutées

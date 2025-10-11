@@ -80,6 +80,33 @@ enum Commands {
     /// Initialize configuration
     Init,
 
+    /// Clean old/unused cassettes
+    Clean {
+        /// Remove cassettes older than N days
+        #[arg(short, long)]
+        older_than: Option<u64>,
+
+        /// Skip confirmation
+        #[arg(short = 'y', long)]
+        yes: bool,
+    },
+
+    /// Validate cassette format
+    Validate {
+        /// Cassette name (optional, validates all if not specified)
+        name: Option<String>,
+    },
+
+    /// Show or modify configuration
+    Config {
+        /// Configuration key to get/set
+        key: Option<String>,
+
+        /// Value to set (requires key)
+        #[arg(short, long)]
+        value: Option<String>,
+    },
+
     /// Show version information
     Version,
 }
@@ -277,6 +304,35 @@ simulate_latency = false
             );
         }
 
+        Commands::Clean { older_than, yes } => {
+            println!("{} {}", "🧹".yellow(), "Clean Cassettes".bold());
+            println!(
+                "  Directory: {}",
+                cli.cassette_dir.display().to_string().dimmed()
+            );
+            println!();
+
+            clean_cassettes(&cli.cassette_dir, older_than, yes)?;
+        }
+
+        Commands::Validate { name } => {
+            println!("{} {}", "✓".green(), "Validate Cassettes".bold());
+            println!(
+                "  Directory: {}",
+                cli.cassette_dir.display().to_string().dimmed()
+            );
+            println!();
+
+            validate_cassettes(&cli.cassette_dir, name.as_deref())?;
+        }
+
+        Commands::Config { key, value } => {
+            println!("{} {}", "⚙️".blue(), "Configuration".bold());
+            println!();
+
+            show_or_modify_config(key.as_deref(), value.as_deref())?;
+        }
+
         Commands::Version => {
             println!("{}", "Magnéto-Serge".bold());
             println!("  Version: {}", env!("CARGO_PKG_VERSION").bright_cyan());
@@ -451,6 +507,298 @@ fn inspect_cassette(cassette_dir: &Path, name: &str) -> Result<(), Box<dyn std::
                 "•".dimmed(),
                 (cassette.interactions.len() - 10).to_string().dimmed()
             );
+        }
+    }
+
+    Ok(())
+}
+
+#[cfg(feature = "cli")]
+fn clean_cassettes(
+    cassette_dir: &Path,
+    older_than: Option<u64>,
+    yes: bool,
+) -> Result<(), Box<dyn std::error::Error>> {
+    use colored::Colorize;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    if !cassette_dir.exists() {
+        println!("  {}", "No cassettes directory found".dimmed());
+        return Ok(());
+    }
+
+    let entries: Vec<_> = fs::read_dir(cassette_dir)?
+        .filter_map(|e| e.ok())
+        .filter(|e| {
+            e.path()
+                .extension()
+                .and_then(|s| s.to_str())
+                .map(|s| s == "json" || s == "msgpack")
+                .unwrap_or(false)
+        })
+        .collect();
+
+    if entries.is_empty() {
+        println!("  {}", "No cassettes found".dimmed());
+        return Ok(());
+    }
+
+    let mut to_delete = Vec::new();
+
+    if let Some(days) = older_than {
+        let cutoff =
+            SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs() - (days * 24 * 60 * 60);
+
+        for entry in entries {
+            let metadata = entry.metadata()?;
+            if let Ok(modified) = metadata.modified() {
+                let modified_secs = modified.duration_since(UNIX_EPOCH)?.as_secs();
+                if modified_secs < cutoff {
+                    to_delete.push(entry.path());
+                }
+            }
+        }
+    } else {
+        // Without --older-than, show what would be cleaned
+        println!(
+            "  {} Use {} to specify age threshold",
+            "ℹ".blue(),
+            "--older-than <days>".bold()
+        );
+        println!(
+            "  Example: {} removes cassettes older than 30 days",
+            "magneto clean --older-than 30".bright_cyan()
+        );
+        return Ok(());
+    }
+
+    if to_delete.is_empty() {
+        println!("  {} No cassettes to clean", "✓".green());
+        return Ok(());
+    }
+
+    println!(
+        "  Found {} cassettes to delete:",
+        to_delete.len().to_string().yellow()
+    );
+    for path in &to_delete {
+        let name = path.file_stem().and_then(|s| s.to_str()).unwrap_or("?");
+        println!("    {} {}", "•".red(), name);
+    }
+    println!();
+
+    if !yes {
+        println!("Delete {} cassettes? [y/N] ", to_delete.len());
+        let mut input = String::new();
+        std::io::stdin().read_line(&mut input)?;
+        if !input.trim().eq_ignore_ascii_case("y") {
+            println!("{} Cancelled", "✗".yellow());
+            return Ok(());
+        }
+    }
+
+    let mut deleted = 0;
+    for path in to_delete {
+        if fs::remove_file(&path).is_ok() {
+            deleted += 1;
+        }
+    }
+
+    println!(
+        "{} Deleted {} cassettes",
+        "✓".green(),
+        deleted.to_string().bold()
+    );
+    Ok(())
+}
+
+#[cfg(feature = "cli")]
+fn validate_cassettes(
+    cassette_dir: &Path,
+    name: Option<&str>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    use colored::Colorize;
+    use magneto_serge::cassette::Cassette;
+
+    if !cassette_dir.exists() {
+        println!("  {}", "No cassettes directory found".dimmed());
+        return Ok(());
+    }
+
+    let entries: Vec<_> = if let Some(specific_name) = name {
+        // Validate specific cassette
+        let path = cassette_dir.join(format!("{}.json", specific_name));
+        if !path.exists() {
+            println!(
+                "{} Cassette not found: {}",
+                "✗".red(),
+                specific_name.bright_cyan()
+            );
+            return Ok(());
+        }
+        vec![path]
+    } else {
+        // Validate all cassettes
+        fs::read_dir(cassette_dir)?
+            .filter_map(|e| e.ok())
+            .filter(|e| {
+                e.path()
+                    .extension()
+                    .and_then(|s| s.to_str())
+                    .map(|s| s == "json" || s == "msgpack")
+                    .unwrap_or(false)
+            })
+            .map(|e| e.path())
+            .collect()
+    };
+
+    if entries.is_empty() {
+        println!("  {}", "No cassettes found".dimmed());
+        return Ok(());
+    }
+
+    let mut valid = 0;
+    let mut invalid = 0;
+
+    for path in entries {
+        let name = path.file_stem().and_then(|s| s.to_str()).unwrap_or("?");
+
+        match fs::read_to_string(&path) {
+            Ok(content) => match serde_json::from_str::<Cassette>(&content) {
+                Ok(cassette) => {
+                    println!(
+                        "  {} {} ({} interactions)",
+                        "✓".green(),
+                        name.bold(),
+                        cassette.interactions.len().to_string().dimmed()
+                    );
+                    valid += 1;
+                }
+                Err(e) => {
+                    println!(
+                        "  {} {} - {}",
+                        "✗".red(),
+                        name.bold(),
+                        format!("{}", e).dimmed()
+                    );
+                    invalid += 1;
+                }
+            },
+            Err(e) => {
+                println!(
+                    "  {} {} - {}",
+                    "✗".red(),
+                    name.bold(),
+                    format!("{}", e).dimmed()
+                );
+                invalid += 1;
+            }
+        }
+    }
+
+    println!();
+    if invalid == 0 {
+        println!(
+            "{} All {} cassettes are valid",
+            "✓".green(),
+            valid.to_string().bold()
+        );
+    } else {
+        println!(
+            "{} {} valid, {} invalid",
+            "⚠".yellow(),
+            valid.to_string().green(),
+            invalid.to_string().red()
+        );
+    }
+
+    Ok(())
+}
+
+#[cfg(feature = "cli")]
+fn show_or_modify_config(
+    key: Option<&str>,
+    value: Option<&str>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    use colored::Colorize;
+
+    let config_path = Path::new("magneto.toml");
+
+    if !config_path.exists() {
+        println!("{} Configuration file not found", "✗".red());
+        println!("  Run {} to create it", "magneto init".bright_cyan());
+        return Ok(());
+    }
+
+    if key.is_none() && value.is_none() {
+        // Show entire config
+        let content = fs::read_to_string(config_path)?;
+        println!("  File: {}", config_path.display().to_string().dimmed());
+        println!();
+        for line in content.lines() {
+            if line.trim().starts_with('#') {
+                println!("  {}", line.dimmed());
+            } else if line.contains('=') {
+                let parts: Vec<&str> = line.splitn(2, '=').collect();
+                if parts.len() == 2 {
+                    println!(
+                        "  {} = {}",
+                        parts[0].trim().bright_cyan(),
+                        parts[1].trim().yellow()
+                    );
+                } else {
+                    println!("  {}", line);
+                }
+            } else if line.trim().starts_with('[') {
+                println!("  {}", line.bold());
+            } else {
+                println!("  {}", line);
+            }
+        }
+        return Ok(());
+    }
+
+    if let Some(k) = key {
+        let content = fs::read_to_string(config_path)?;
+
+        if let Some(v) = value {
+            // Set value
+            let mut new_content = String::new();
+            let mut found = false;
+
+            for line in content.lines() {
+                if line.trim().starts_with(&format!("{} =", k))
+                    || line.trim().starts_with(&format!("{}=", k))
+                {
+                    new_content.push_str(&format!("{} = {}\n", k, v));
+                    found = true;
+                } else {
+                    new_content.push_str(line);
+                    new_content.push('\n');
+                }
+            }
+
+            if !found {
+                println!("{} Key not found: {}", "✗".red(), k.bright_cyan());
+                return Ok(());
+            }
+
+            fs::write(config_path, new_content)?;
+            println!("{} Set {} = {}", "✓".green(), k.bright_cyan(), v.yellow());
+        } else {
+            // Get value
+            for line in content.lines() {
+                if line.trim().starts_with(&format!("{} =", k))
+                    || line.trim().starts_with(&format!("{}=", k))
+                {
+                    let parts: Vec<&str> = line.splitn(2, '=').collect();
+                    if parts.len() == 2 {
+                        println!("  {} = {}", k.bright_cyan(), parts[1].trim().yellow());
+                        return Ok(());
+                    }
+                }
+            }
+            println!("{} Key not found: {}", "✗".red(), k.bright_cyan());
         }
     }
 
