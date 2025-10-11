@@ -125,7 +125,9 @@ opt-level = 3
 lto = "fat"
 codegen-units = 1
 strip = true
-panic = "abort"
+
+[profile.bench]
+inherits = "release"
 
 [profile.dev]
 opt-level = 1
