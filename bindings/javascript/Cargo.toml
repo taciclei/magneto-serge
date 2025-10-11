@@ -1,0 +1,24 @@
+[package]
+name = "magneto-serge-node"
+version = "0.0.1"
+edition = "2021"
+authors = ["Magnéto-Serge contributors <contact@taciclei.com>"]
+license = "MIT OR Apache-2.0"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# NAPI-RS pour les bindings Node.js
+napi = "2"
+napi-derive = "2"
+
+# Bibliothèque principale
+magneto-serge = { path = "../..", default-features = false }
+
+[build-dependencies]
+napi-build = "2"
+
+[profile.release]
+lto = true
+strip = true

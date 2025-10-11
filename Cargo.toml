@@ -1,9 +1,9 @@
 [package]
 name = "magneto-serge"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2021"
 rust-version = "1.75"
-authors = ["Magnéto-Serge contributors"]
+authors = ["Magnéto-Serge contributors <contact@taciclei.com>"]
 license = "MIT OR Apache-2.0"
 description = "Multi-language HTTP/WebSocket testing library with record/replay capabilities - like VCR for the modern web"
 readme = "README.md"
@@ -24,8 +24,13 @@ crate-type = ["cdylib", "rlib", "staticlib"]
 name = "magneto_serge"
 
 [[bin]]
-name = "matgto"
+name = "magneto"
 path = "src/bin/cli.rs"
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "src/bin/uniffi-bindgen.rs"
+required-features = ["uniffi/cli"]
 
 [dependencies]
 # === Proxy & HTTP ===

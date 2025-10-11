@@ -1,199 +1,296 @@
-/**
- * @matgto/serge - JavaScript/Node.js Bindings
- *
- * Multi-language HTTP/WebSocket testing library with record/replay
- *
- * @module @matgto/serge
- */
+const { existsSync, readFileSync } = require('fs')
+const { join } = require('path')
 
-const ffi = require('ffi-napi');
-const ref = require('ref-napi');
-const path = require('path');
-const os = require('os');
+const { platform, arch } = process
 
-// Déterminer l'extension de la bibliothèque selon l'OS
-const libExtension = os.platform() === 'darwin' ? 'dylib' : 'so';
-const libPath = path.join(__dirname, '..', 'kotlin', `libuniffi_matgto_serge.${libExtension}`);
+let nativeBinding = null
+let localFileExisted = false
+let loadError = null
 
-// Types FFI
-const voidPtr = ref.refType(ref.types.void);
-const charPtr = ref.refType(ref.types.char);
-const uint16 = ref.types.uint16;
-const bool = ref.types.bool;
-
-/**
- * Mode du proxy
- * @enum {number}
- */
-const ProxyMode = {
-    AUTO: 0,
-    RECORD: 1,
-    REPLAY: 2,
-    PASSTHROUGH: 3
-};
-
-/**
- * Classe principale MatgtoProxy
- */
-class MatgtoProxy {
-    /**
-     * Crée une nouvelle instance de proxy
-     * @param {string} cassetteDir - Répertoire des cassettes
-     * @throws {Error} Si la création échoue
-     */
-    constructor(cassetteDir) {
-        if (!cassetteDir || typeof cassetteDir !== 'string') {
-            throw new Error('cassetteDir must be a non-empty string');
-        }
-
-        // Note: Cette implémentation est un wrapper simplifié
-        // En production, il faudrait utiliser les fonctions FFI exactes
-        // générées par UniFFI pour Python/Kotlin
-
-        this._cassetteDir = cassetteDir;
-        this._port = 8888;
-        this._mode = ProxyMode.AUTO;
-        this._isRecording = false;
-        this._currentCassette = null;
-
-        console.log(`✅ MatgtoProxy créé (cassetteDir: ${cassetteDir})`);
-    }
-
-    /**
-     * Configure le port du proxy
-     * @param {number} port - Port d'écoute (1-65535)
-     * @throws {Error} Si le port est invalide
-     */
-    setPort(port) {
-        if (typeof port !== 'number' || port < 1 || port > 65535) {
-            throw new Error('Port must be a number between 1 and 65535');
-        }
-        this._port = port;
-    }
-
-    /**
-     * Configure le mode du proxy
-     * @param {number} mode - Mode de fonctionnement (ProxyMode)
-     */
-    setMode(mode) {
-        if (!Object.values(ProxyMode).includes(mode)) {
-            throw new Error('Invalid proxy mode');
-        }
-        this._mode = mode;
-    }
-
-    /**
-     * Démarre l'enregistrement
-     * @param {string} cassetteName - Nom de la cassette
-     * @returns {boolean} true si démarré avec succès
-     */
-    startRecording(cassetteName) {
-        if (!cassetteName || typeof cassetteName !== 'string') {
-            throw new Error('cassetteName must be a non-empty string');
-        }
-
-        console.log(`🎬 Enregistrement démarré: ${cassetteName}`);
-        this._isRecording = true;
-        this._currentCassette = cassetteName;
-        return true;
-    }
-
-    /**
-     * Arrête l'enregistrement
-     * @returns {boolean} true si arrêté avec succès
-     */
-    stopRecording() {
-        if (!this._isRecording) {
-            console.warn('⚠️  Aucun enregistrement en cours');
-            return false;
-        }
-
-        console.log(`💾 Enregistrement arrêté: ${this._currentCassette}`);
-        this._isRecording = false;
-        this._currentCassette = null;
-        return true;
-    }
-
-    /**
-     * Rejoue une cassette
-     * @param {string} cassetteName - Nom de la cassette à rejouer
-     * @returns {boolean} true si le replay a démarré
-     */
-    replay(cassetteName) {
-        if (!cassetteName || typeof cassetteName !== 'string') {
-            throw new Error('cassetteName must be a non-empty string');
-        }
-
-        console.log(`▶️  Replay démarré: ${cassetteName}`);
-        this._currentCassette = cassetteName;
-        return true;
-    }
-
-    /**
-     * Arrête le proxy
-     */
-    shutdown() {
-        if (this._isRecording) {
-            this.stopRecording();
-        }
-        console.log('🛑 Proxy arrêté');
-    }
-
-    /**
-     * Obtient le port configuré
-     * @returns {number} Port d'écoute
-     */
-    getPort() {
-        return this._port;
-    }
-
-    /**
-     * Obtient le mode actuel
-     * @returns {number} Mode de fonctionnement
-     */
-    getMode() {
-        return this._mode;
-    }
-
-    /**
-     * Représentation textuelle
-     * @returns {string}
-     */
-    toString() {
-        const modeNames = ['AUTO', 'RECORD', 'REPLAY', 'PASSTHROUGH'];
-        return `MatgtoProxy { port: ${this._port}, mode: ${modeNames[this._mode]}, recording: ${this._isRecording} }`;
-    }
-}
-
-/**
- * Factory function pour créer un proxy
- * @param {string} cassetteDir - Répertoire des cassettes
- * @returns {MatgtoProxy|null} Instance de proxy ou null si échec
- */
-function createProxy(cassetteDir) {
+function isMusl() {
+  // For Node 10
+  if (!process.report || typeof process.report.getReport !== 'function') {
     try {
-        return new MatgtoProxy(cassetteDir);
-    } catch (error) {
-        console.error('❌ Erreur création proxy:', error.message);
-        return null;
+      const lddPath = require('child_process').execSync('which ldd').toString().trim()
+      return readFileSync(lddPath, 'utf8').includes('musl')
+    } catch (e) {
+      return true
     }
+  } else {
+    const { glibcVersionRuntime } = process.report.getReport().header
+    return !glibcVersionRuntime
+  }
 }
 
-/**
- * Obtient la version de matgto-serge
- * @returns {string} Version
- */
-function version() {
-    return '0.1.0';
+switch (platform) {
+  case 'android':
+    switch (arch) {
+      case 'arm64':
+        localFileExisted = existsSync(join(__dirname, 'magneto-serge-node.android-arm64.node'))
+        try {
+          if (localFileExisted) {
+            nativeBinding = require('./magneto-serge-node.android-arm64.node')
+          } else {
+            nativeBinding = require('@taciclei/magneto-serge-android-arm64')
+          }
+        } catch (e) {
+          loadError = e
+        }
+        break
+      case 'arm':
+        localFileExisted = existsSync(join(__dirname, 'magneto-serge-node.android-arm-eabi.node'))
+        try {
+          if (localFileExisted) {
+            nativeBinding = require('./magneto-serge-node.android-arm-eabi.node')
+          } else {
+            nativeBinding = require('@taciclei/magneto-serge-android-arm-eabi')
+          }
+        } catch (e) {
+          loadError = e
+        }
+        break
+      default:
+        throw new Error(`Unsupported architecture on Android ${arch}`)
+    }
+    break
+  case 'win32':
+    switch (arch) {
+      case 'x64':
+        localFileExisted = existsSync(
+          join(__dirname, 'magneto-serge-node.win32-x64-msvc.node')
+        )
+        try {
+          if (localFileExisted) {
+            nativeBinding = require('./magneto-serge-node.win32-x64-msvc.node')
+          } else {
+            nativeBinding = require('@taciclei/magneto-serge-win32-x64-msvc')
+          }
+        } catch (e) {
+          loadError = e
+        }
+        break
+      case 'ia32':
+        localFileExisted = existsSync(
+          join(__dirname, 'magneto-serge-node.win32-ia32-msvc.node')
+        )
+        try {
+          if (localFileExisted) {
+            nativeBinding = require('./magneto-serge-node.win32-ia32-msvc.node')
+          } else {
+            nativeBinding = require('@taciclei/magneto-serge-win32-ia32-msvc')
+          }
+        } catch (e) {
+          loadError = e
+        }
+        break
+      case 'arm64':
+        localFileExisted = existsSync(
+          join(__dirname, 'magneto-serge-node.win32-arm64-msvc.node')
+        )
+        try {
+          if (localFileExisted) {
+            nativeBinding = require('./magneto-serge-node.win32-arm64-msvc.node')
+          } else {
+            nativeBinding = require('@taciclei/magneto-serge-win32-arm64-msvc')
+          }
+        } catch (e) {
+          loadError = e
+        }
+        break
+      default:
+        throw new Error(`Unsupported architecture on Windows: ${arch}`)
+    }
+    break
+  case 'darwin':
+    localFileExisted = existsSync(join(__dirname, 'magneto-serge-node.darwin-universal.node'))
+    try {
+      if (localFileExisted) {
+        nativeBinding = require('./magneto-serge-node.darwin-universal.node')
+      } else {
+        nativeBinding = require('@taciclei/magneto-serge-darwin-universal')
+      }
+      break
+    } catch {}
+    switch (arch) {
+      case 'x64':
+        localFileExisted = existsSync(join(__dirname, 'magneto-serge-node.darwin-x64.node'))
+        try {
+          if (localFileExisted) {
+            nativeBinding = require('./magneto-serge-node.darwin-x64.node')
+          } else {
+            nativeBinding = require('@taciclei/magneto-serge-darwin-x64')
+          }
+        } catch (e) {
+          loadError = e
+        }
+        break
+      case 'arm64':
+        localFileExisted = existsSync(
+          join(__dirname, 'magneto-serge-node.darwin-arm64.node')
+        )
+        try {
+          if (localFileExisted) {
+            nativeBinding = require('./magneto-serge-node.darwin-arm64.node')
+          } else {
+            nativeBinding = require('@taciclei/magneto-serge-darwin-arm64')
+          }
+        } catch (e) {
+          loadError = e
+        }
+        break
+      default:
+        throw new Error(`Unsupported architecture on macOS: ${arch}`)
+    }
+    break
+  case 'freebsd':
+    if (arch !== 'x64') {
+      throw new Error(`Unsupported architecture on FreeBSD: ${arch}`)
+    }
+    localFileExisted = existsSync(join(__dirname, 'magneto-serge-node.freebsd-x64.node'))
+    try {
+      if (localFileExisted) {
+        nativeBinding = require('./magneto-serge-node.freebsd-x64.node')
+      } else {
+        nativeBinding = require('@taciclei/magneto-serge-freebsd-x64')
+      }
+    } catch (e) {
+      loadError = e
+    }
+    break
+  case 'linux':
+    switch (arch) {
+      case 'x64':
+        if (isMusl()) {
+          localFileExisted = existsSync(
+            join(__dirname, 'magneto-serge-node.linux-x64-musl.node')
+          )
+          try {
+            if (localFileExisted) {
+              nativeBinding = require('./magneto-serge-node.linux-x64-musl.node')
+            } else {
+              nativeBinding = require('@taciclei/magneto-serge-linux-x64-musl')
+            }
+          } catch (e) {
+            loadError = e
+          }
+        } else {
+          localFileExisted = existsSync(
+            join(__dirname, 'magneto-serge-node.linux-x64-gnu.node')
+          )
+          try {
+            if (localFileExisted) {
+              nativeBinding = require('./magneto-serge-node.linux-x64-gnu.node')
+            } else {
+              nativeBinding = require('@taciclei/magneto-serge-linux-x64-gnu')
+            }
+          } catch (e) {
+            loadError = e
+          }
+        }
+        break
+      case 'arm64':
+        if (isMusl()) {
+          localFileExisted = existsSync(
+            join(__dirname, 'magneto-serge-node.linux-arm64-musl.node')
+          )
+          try {
+            if (localFileExisted) {
+              nativeBinding = require('./magneto-serge-node.linux-arm64-musl.node')
+            } else {
+              nativeBinding = require('@taciclei/magneto-serge-linux-arm64-musl')
+            }
+          } catch (e) {
+            loadError = e
+          }
+        } else {
+          localFileExisted = existsSync(
+            join(__dirname, 'magneto-serge-node.linux-arm64-gnu.node')
+          )
+          try {
+            if (localFileExisted) {
+              nativeBinding = require('./magneto-serge-node.linux-arm64-gnu.node')
+            } else {
+              nativeBinding = require('@taciclei/magneto-serge-linux-arm64-gnu')
+            }
+          } catch (e) {
+            loadError = e
+          }
+        }
+        break
+      case 'arm':
+        localFileExisted = existsSync(
+          join(__dirname, 'magneto-serge-node.linux-arm-gnueabihf.node')
+        )
+        try {
+          if (localFileExisted) {
+            nativeBinding = require('./magneto-serge-node.linux-arm-gnueabihf.node')
+          } else {
+            nativeBinding = require('@taciclei/magneto-serge-linux-arm-gnueabihf')
+          }
+        } catch (e) {
+          loadError = e
+        }
+        break
+      case 'riscv64':
+        if (isMusl()) {
+          localFileExisted = existsSync(
+            join(__dirname, 'magneto-serge-node.linux-riscv64-musl.node')
+          )
+          try {
+            if (localFileExisted) {
+              nativeBinding = require('./magneto-serge-node.linux-riscv64-musl.node')
+            } else {
+              nativeBinding = require('@taciclei/magneto-serge-linux-riscv64-musl')
+            }
+          } catch (e) {
+            loadError = e
+          }
+        } else {
+          localFileExisted = existsSync(
+            join(__dirname, 'magneto-serge-node.linux-riscv64-gnu.node')
+          )
+          try {
+            if (localFileExisted) {
+              nativeBinding = require('./magneto-serge-node.linux-riscv64-gnu.node')
+            } else {
+              nativeBinding = require('@taciclei/magneto-serge-linux-riscv64-gnu')
+            }
+          } catch (e) {
+            loadError = e
+          }
+        }
+        break
+      case 's390x':
+        localFileExisted = existsSync(
+          join(__dirname, 'magneto-serge-node.linux-s390x-gnu.node')
+        )
+        try {
+          if (localFileExisted) {
+            nativeBinding = require('./magneto-serge-node.linux-s390x-gnu.node')
+          } else {
+            nativeBinding = require('@taciclei/magneto-serge-linux-s390x-gnu')
+          }
+        } catch (e) {
+          loadError = e
+        }
+        break
+      default:
+        throw new Error(`Unsupported architecture on Linux: ${arch}`)
+    }
+    break
+  default:
+    throw new Error(`Unsupported OS: ${platform}, architecture: ${arch}`)
 }
 
-// Exports
-module.exports = {
-    MatgtoProxy,
-    createProxy,
-    version,
-    ProxyMode
-};
+if (!nativeBinding) {
+  if (loadError) {
+    throw loadError
+  }
+  throw new Error(`Failed to load native binding`)
+}
 
-// Export TypeScript (pour IDE autocomplete)
-module.exports.default = MatgtoProxy;
+const { MagnetoProxy, ProxyMode, version } = nativeBinding
+
+module.exports.MagnetoProxy = MagnetoProxy
+module.exports.ProxyMode = ProxyMode
+module.exports.version = version

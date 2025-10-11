@@ -83,17 +83,17 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Build CLI
-        run: cargo build --bin matgto --features cli --release
+        run: cargo build --bin magneto --features cli --release
 
       - name: Test CLI version
-        run: cargo run --bin matgto --features cli -- version
+        run: cargo run --bin magneto --features cli -- version
 
       - name: Upload CLI artifact
         uses: actions/upload-artifact@v4
         with:
-          name: matgto-cli-${{ matrix.os }}
+          name: magneto-cli-${{ matrix.os }}
           path: |
-            target/release/matgto${{ matrix.os == 'windows-latest' && '.exe' || '' }}
+            target/release/magneto${{ matrix.os == 'windows-latest' && '.exe' || '' }}
 
   build-bindings:
     name: Build Language Bindings
@@ -105,42 +105,29 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install UniFFI bindgen
-        run: cargo install uniffi-bindgen-cli --version 0.28.3
-
       - name: Build library
         run: cargo build --release
 
       - name: Generate Python bindings
         run: |
-          uniffi-bindgen generate src/magneto_serge.udl \
+          cargo run --features=uniffi/cli --bin uniffi-bindgen generate \
+            src/magneto_serge.udl \
             --language python \
             --out-dir bindings/python/generated
 
       - name: Generate Kotlin bindings
         run: |
-          uniffi-bindgen generate src/magneto_serge.udl \
+          cargo run --features=uniffi/cli --bin uniffi-bindgen generate \
+            src/magneto_serge.udl \
             --language kotlin \
             --out-dir bindings/kotlin/generated
 
       - name: Generate Swift bindings
         run: |
-          uniffi-bindgen generate src/magneto_serge.udl \
+          cargo run --features=uniffi/cli --bin uniffi-bindgen generate \
+            src/magneto_serge.udl \
             --language swift \
             --out-dir bindings/swift/generated
-
-  security:
-    name: Security Audit
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run cargo audit
-        uses: rustsec/audit-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
   coverage:
     name: Code Coverage

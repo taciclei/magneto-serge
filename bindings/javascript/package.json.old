@@ -1,0 +1,60 @@
+{
+  "name": "@taciclei/magneto-serge",
+  "version": "0.0.1",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "description": "Magnéto-Serge - Multi-language HTTP/WebSocket testing library with record/replay",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "test": "jest",
+    "example": "node examples/basic.js",
+    "build": "tsc",
+    "prepublishOnly": "pnpm run build"
+  },
+  "packageManager": "pnpm@8.0.0",
+  "keywords": [
+    "magneto-serge",
+    "testing",
+    "http",
+    "websocket",
+    "proxy",
+    "vcr",
+    "record",
+    "replay",
+    "mock"
+  ],
+  "author": "Magnéto-Serge contributors",
+  "license": "MIT OR Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/taciclei/magneto-serge.git"
+  },
+  "dependencies": {
+    "ffi-napi": "^4.0.3",
+    "ref-napi": "^3.0.3",
+    "ref-struct-di": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/jest": "^29.0.0",
+    "jest": "^29.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "os": [
+    "darwin",
+    "linux"
+  ],
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "lib/**/*.dylib",
+    "lib/**/*.so",
+    "README.md",
+    "LICENSE"
+  ]
+}

@@ -8,9 +8,9 @@
  * 3. Verify requests are served from cassette
  */
 
-require_once __DIR__ . '/MatgtoProxy.php';
+require_once __DIR__ . '/MagnetoProxy.php';
 
-use MatgtoSerge\MatgtoProxy;
+use MatgtoSerge\MagnetoProxy;
 use MatgtoSerge\ProxyMode;
 
 echo "▶️  matgto-serge PHP Example - Replay\n";
@@ -19,7 +19,7 @@ echo str_repeat("=", 50) . "\n\n";
 try {
     // Create proxy instance in replay mode
     echo "1️⃣ Creating proxy in REPLAY mode...\n";
-    $proxy = new MatgtoProxy("./cassettes");
+    $proxy = new MagnetoProxy("./cassettes");
     $proxy->withPort(8888)
           ->withMode(ProxyMode::Replay);
     echo "   ✅ Proxy created on port " . $proxy->getPort() . "\n";

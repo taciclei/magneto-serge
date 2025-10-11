@@ -1,15 +1,29 @@
 {
-  "name": "@magneto/serge",
-  "version": "0.1.0",
-  "description": "Magnéto-Serge - Multi-language HTTP/WebSocket testing library with record/replay",
+  "name": "@taciclei/magneto-serge",
+  "version": "0.0.1",
+  "description": "Magnéto-Serge - Multi-language HTTP/WebSocket testing library with record/replay (Node.js bindings)",
   "main": "index.js",
   "types": "index.d.ts",
-  "scripts": {
-    "test": "jest",
-    "example": "node examples/basic.js",
-    "build": "tsc",
-    "prepublishOnly": "npm run build"
+  "napi": {
+    "binaryName": "magneto-serge-node",
+    "targets": [
+      "x86_64-apple-darwin",
+      "aarch64-apple-darwin",
+      "x86_64-pc-windows-msvc"
+    ]
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "scripts": {
+    "artifacts": "napi artifacts",
+    "build": "napi build --platform --release",
+    "build:debug": "napi build --platform",
+    "prepublishOnly": "napi prepublish -t npm",
+    "test": "jest",
+    "example": "node examples/basic.js"
+  },
+  "packageManager": "pnpm@8.0.0",
   "keywords": [
     "magneto-serge",
     "testing",
@@ -19,37 +33,28 @@
     "vcr",
     "record",
     "replay",
-    "mock"
+    "mock",
+    "napi-rs"
   ],
-  "author": "Magnéto-Serge contributors",
+  "author": "Magnéto-Serge contributors <contact@taciclei.com>",
   "license": "MIT OR Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/taciclei/magneto-serge.git"
   },
-  "dependencies": {
-    "ffi-napi": "^4.0.3",
-    "ref-napi": "^3.0.3",
-    "ref-struct-di": "^1.1.1"
-  },
   "devDependencies": {
+    "@napi-rs/cli": "^2.18.0",
     "@types/node": "^20.0.0",
     "@types/jest": "^29.0.0",
-    "jest": "^29.0.0",
-    "typescript": "^5.0.0"
+    "jest": "^29.0.0"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">= 10"
   },
-  "os": [
-    "darwin",
-    "linux"
-  ],
   "files": [
     "index.js",
     "index.d.ts",
-    "lib/**/*.dylib",
-    "lib/**/*.so",
+    "*.node",
     "README.md",
     "LICENSE"
   ]

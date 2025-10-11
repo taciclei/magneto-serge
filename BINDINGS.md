@@ -144,9 +144,9 @@ dependencies {
 ```java
 import io.github.matgto.serge.*;
 
-MatgtoProxy proxy = new MatgtoProxy("./cassettes");
+MagnetoProxy proxy = new MagnetoProxy("./cassettes");
 proxy.setPort(8888);
-proxy.setMode(MatgtoProxy.Mode.RECORD);
+proxy.setMode(MagnetoProxy.Mode.RECORD);
 
 if (proxy.startRecording("test")) {
     // Vos requêtes HTTP...
@@ -164,7 +164,7 @@ proxy.shutdown();
 ### Fichiers
 ```
 bindings/java/
-├── MatgtoProxy.java         # Wrapper Java principal
+├── MagnetoProxy.java         # Wrapper Java principal
 ├── Example.java             # Exemples d'utilisation
 ├── MatgtoTest.java          # Tests JUnit 5
 ├── build.gradle             # Configuration Gradle
@@ -178,12 +178,12 @@ bindings/java/
 └────────┬────────┘
          │
 ┌────────▼────────┐
-│  MatgtoProxy    │ ← Wrapper Java
+│  MagnetoProxy    │ ← Wrapper Java
 │  (Java)         │
 └────────┬────────┘
          │
 ┌────────▼────────┐
-│  MatgtoProxy    │ ← Bindings Kotlin/UniFFI
+│  MagnetoProxy    │ ← Bindings Kotlin/UniFFI
 │  (Kotlin)       │
 └────────┬────────┘
          │
@@ -204,9 +204,9 @@ npm install @matgto/serge
 
 ### Utilisation
 ```javascript
-const { MatgtoProxy, ProxyMode } = require('@matgto/serge');
+const { MagnetoProxy, ProxyMode } = require('@matgto/serge');
 
-const proxy = new MatgtoProxy('./cassettes');
+const proxy = new MagnetoProxy('./cassettes');
 proxy.setPort(8888);
 proxy.setMode(ProxyMode.RECORD);
 
@@ -220,9 +220,9 @@ proxy.shutdown();
 
 ### TypeScript Support
 ```typescript
-import { MatgtoProxy, ProxyMode } from '@matgto/serge';
+import { MagnetoProxy, ProxyMode } from '@matgto/serge';
 
-const proxy: MatgtoProxy = new MatgtoProxy('./cassettes');
+const proxy: MagnetoProxy = new MagnetoProxy('./cassettes');
 ```
 
 ### Statut
@@ -256,11 +256,11 @@ bindings/javascript/
 
 Tous les bindings exposent la même API :
 
-### Classe principale : `MatgtoProxy`
+### Classe principale : `MagnetoProxy`
 
 | Méthode | Description | Retour |
 |---------|-------------|--------|
-| `new(cassetteDir)` | Crée une instance | `MatgtoProxy` |
+| `new(cassetteDir)` | Crée une instance | `MagnetoProxy` |
 | `setPort(port)` | Configure le port | `void` |
 | `setMode(mode)` | Configure le mode | `void` |
 | `startRecording(name)` | Démarre l'enregistrement | `boolean` |
@@ -474,14 +474,14 @@ proxy.startRecording(cassetteName: "test")
 
 ### Java
 ```java
-MatgtoProxy proxy = new MatgtoProxy("./cassettes");
-proxy.setMode(MatgtoProxy.Mode.RECORD);
+MagnetoProxy proxy = new MagnetoProxy("./cassettes");
+proxy.setMode(MagnetoProxy.Mode.RECORD);
 proxy.startRecording("test");
 ```
 
 ### JavaScript
 ```javascript
-const proxy = new MatgtoProxy('./cassettes');
+const proxy = new MagnetoProxy('./cassettes');
 proxy.setMode(ProxyMode.RECORD);
 proxy.startRecording('test');
 ```

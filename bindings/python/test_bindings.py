@@ -24,7 +24,7 @@ def test_create_proxy():
     """Test 2: Créer une instance de proxy"""
     print("\nTest 2: Création d'un proxy...")
     try:
-        from matgto_serge import create_proxy, MatgtoProxy
+        from matgto_serge import create_proxy, MagnetoProxy
 
         # Créer un proxy
         proxy = create_proxy("./test_cassettes")

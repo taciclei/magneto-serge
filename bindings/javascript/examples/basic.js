@@ -2,7 +2,7 @@
  * Exemple basique d'utilisation de matgto-serge en JavaScript
  */
 
-const { MatgtoProxy, createProxy, version, ProxyMode } = require('../index');
+const { MagnetoProxy, createProxy, version, ProxyMode } = require('../index');
 
 console.log('='.repeat(60));
 console.log('🧪 Exemple matgto-serge JavaScript');

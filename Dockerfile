@@ -28,7 +28,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the binary from builder
-COPY --from=builder /app/target/release/matgto /usr/local/bin/matgto
+COPY --from=builder /app/target/release/magneto /usr/local/bin/magneto
 
 # Create cassette directory
 RUN mkdir -p /app/cassettes

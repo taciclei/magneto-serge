@@ -1,5 +1,5 @@
 /**
- * @matgto/serge - TypeScript Definitions
+ * @magneto/serge - TypeScript Definitions
  *
  * Multi-language HTTP/WebSocket testing library with record/replay
  */
@@ -21,7 +21,7 @@ export enum ProxyMode {
 /**
  * Classe principale du proxy matgto-serge
  */
-export class MatgtoProxy {
+export class MagnetoProxy {
     /**
      * Crée une nouvelle instance de proxy
      * @param cassetteDir Répertoire où stocker les cassettes
@@ -88,9 +88,9 @@ export class MatgtoProxy {
 /**
  * Factory function pour créer un proxy
  * @param cassetteDir Répertoire des cassettes
- * @returns Instance de MatgtoProxy ou null si échec
+ * @returns Instance de MagnetoProxy ou null si échec
  */
-export function createProxy(cassetteDir: string): MatgtoProxy | null;
+export function createProxy(cassetteDir: string): MagnetoProxy | null;
 
 /**
  * Obtient la version de matgto-serge
@@ -98,4 +98,4 @@ export function createProxy(cassetteDir: string): MatgtoProxy | null;
  */
 export function version(): string;
 
-export default MatgtoProxy;
+export default MagnetoProxy;

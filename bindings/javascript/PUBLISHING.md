@@ -1,4 +1,4 @@
-# 📦 Publishing @matgto/serge to NPM
+# 📦 Publishing @magneto/serge to NPM
 
 ## Prerequisites
 
@@ -11,7 +11,7 @@ npm login
 
 ### 2. Package Scope
 ```bash
-# Request access to @matgto scope (if needed)
+# Request access to @magneto scope (if needed)
 # Or use your own scope: @your-username/serge
 ```
 
@@ -37,7 +37,7 @@ npm run build
 Ensure `package.json` is complete:
 ```json
 {
-  "name": "@matgto/serge",
+  "name": "@magneto/serge",
   "version": "0.1.0",
   "description": "Multi-language HTTP/WebSocket testing library with record/replay",
   "main": "index.js",
@@ -122,11 +122,11 @@ npm publish --access restricted
 ### 5. Verify Publication
 
 Check package page:
-- https://www.npmjs.com/package/@matgto/serge
+- https://www.npmjs.com/package/@magneto/serge
 
 Test installation:
 ```bash
-npm install @matgto/serge
+npm install @magneto/serge
 ```
 
 ## Version Management
@@ -154,10 +154,10 @@ npm version prerelease --preid=beta
 npm publish --tag beta
 
 # Install beta version
-npm install @matgto/serge@beta
+npm install @magneto/serge@beta
 
 # Promote beta to latest
-npm dist-tag add @matgto/serge@0.2.0-beta.1 latest
+npm dist-tag add @magneto/serge@0.2.0-beta.1 latest
 ```
 
 ## Automation with GitHub Actions
@@ -257,8 +257,8 @@ npm pack --dry-run
 ### 4. Add Badges to README
 
 ```markdown
-[![npm version](https://img.shields.io/npm/v/@matgto/serge.svg)](https://www.npmjs.com/package/@matgto/serge)
-[![npm downloads](https://img.shields.io/npm/dm/@matgto/serge.svg)](https://www.npmjs.com/package/@matgto/serge)
+[![npm version](https://img.shields.io/npm/v/@magneto/serge.svg)](https://www.npmjs.com/package/@magneto/serge)
+[![npm downloads](https://img.shields.io/npm/dm/@magneto/serge.svg)](https://www.npmjs.com/package/@magneto/serge)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE)
 ```
 
@@ -296,10 +296,10 @@ npm publish --otp=123456
 
 ```bash
 # Unpublish specific version (within 72 hours)
-npm unpublish @matgto/serge@0.1.0
+npm unpublish @magneto/serge@0.1.0
 
 # Deprecate instead (recommended)
-npm deprecate @matgto/serge@0.1.0 "Please upgrade to 0.2.0"
+npm deprecate @magneto/serge@0.1.0 "Please upgrade to 0.2.0"
 ```
 
 ## Resources
@@ -318,7 +318,7 @@ npm deprecate @matgto/serge@0.1.0 "Please upgrade to 0.2.0"
 - [ ] Login to NPM (`npm login`)
 - [ ] Publish (`npm publish --access public`)
 - [ ] Verify on npmjs.com
-- [ ] Test installation (`npm install @matgto/serge`)
+- [ ] Test installation (`npm install @magneto/serge`)
 - [ ] Create GitHub release
 - [ ] Update documentation
 

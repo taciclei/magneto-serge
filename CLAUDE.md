@@ -75,14 +75,14 @@ cargo build --all-features
 
 matgto-serge uses a **layered proxy architecture**:
 
-1. **Public API Layer** (`MatgtoProxy`) - Simple API exposed via UniFFI to all target languages
+1. **Public API Layer** (`MagnetoProxy`) - Simple API exposed via UniFFI to all target languages
 2. **Core Proxy Layer** - HTTP/HTTPS interceptor (Hudsucker) + WebSocket interceptor (tokio-tungstenite)
 3. **Record/Replay Engine** - `Recorder` captures interactions, `Player` matches and replays them
 4. **Cassette Storage** - JSON/MessagePack files on disk
 
 ### Key Components
 
-- **MatgtoProxy**: Main entry point with builder pattern (`new()`, `with_port()`, `with_mode()`)
+- **MagnetoProxy**: Main entry point with builder pattern (`new()`, `with_port()`, `with_mode()`)
 - **ProxyMode**: `Auto` (record if cassette missing, else replay), `Record`, `Replay`, `Passthrough`
 - **HttpHandler**: Intercepts HTTP/HTTPS via Hudsucker MITM proxy with auto-generated TLS certificates
 - **WebSocketInterceptor**: Bidirectional message capture with direction tracking (sent/received)
@@ -215,7 +215,7 @@ Current status: **Planning** (0/4 phases complete)
 
 The proxy generates a self-signed CA certificate on first run. Users must install it in their OS trust store:
 
-- **macOS**: `security add-trusted-cert -d -r trustRoot -k ~/Library/Keychains/login.keychain matgto-ca.pem`
+- **macOS**: `security add-trusted-cert -d -r trustRoot -k ~/Library/Keychains/login.keychain magneto-ca.pem`
 - **Linux**: Copy to `/usr/local/share/ca-certificates/` and run `update-ca-certificates`
 - **Windows**: Import via certmgr.msc
 
@@ -245,10 +245,10 @@ Always filter credentials from cassettes:
 
 ## Configuration
 
-Default configuration (when `matgto.toml` exists):
+Default configuration (when `magneto.toml` exists):
 
 ```toml
-[matgto]
+[magneto]
 cassette_dir = "./cassettes"
 proxy_port = 8888
 mode = "auto"  # auto | record | replay | passthrough
@@ -265,10 +265,10 @@ format = "json"  # json | msgpack
 ```
 
 Environment variables override config:
-- `MATGTO_MODE`: Set proxy mode
-- `MATGTO_CASSETTE_DIR`: Cassette directory path
-- `MATGTO_PROXY_PORT`: Proxy port
-- `RUST_LOG`: Logging level (e.g., `matgto_serge=debug`)
+- `MAGNETO_MODE`: Set proxy mode
+- `MAGNETO_CASSETTE_DIR`: Cassette directory path
+- `MAGNETO_PROXY_PORT`: Proxy port
+- `RUST_LOG`: Logging level (e.g., `magneto_serge=debug`)
 
 ---
 

@@ -27,7 +27,7 @@ Ce document contient des exemples complets d'utilisation de matgto-serge dans di
 ```gradle
 // build.gradle
 dependencies {
-    testImplementation 'com.matgto:serge:1.0.0'
+    testImplementation 'com.magneto:serge:1.0.0'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
@@ -38,20 +38,20 @@ dependencies {
 ```java
 package com.example.tests;
 
-import com.matgto.serge.MatgtoProxy;
-import com.matgto.serge.ProxyMode;
+import com.magneto.serge.MagnetoProxy;
+import com.magneto.serge.ProxyMode;
 import org.junit.jupiter.api.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 
 class UserApiTest {
-    private static MatgtoProxy proxy;
+    private static MagnetoProxy proxy;
     private RestTemplate restTemplate;
 
     @BeforeAll
     static void setupProxy() {
-        proxy = new MatgtoProxy("./cassettes")
+        proxy = new MagnetoProxy("./cassettes")
             .withPort(8888)
             .withMode(ProxyMode.AUTO);
     }
@@ -97,20 +97,20 @@ class UserApiTest {
 
 ```java
 // MatgtoExtension.java
-package com.matgto.serge.junit;
+package com.magneto.serge.junit;
 
-import com.matgto.serge.MatgtoProxy;
+import com.magneto.serge.MagnetoProxy;
 import org.junit.jupiter.api.extension.*;
 
 public class MatgtoExtension implements BeforeAllCallback, AfterAllCallback, BeforeEachCallback, AfterEachCallback {
     private static final ExtensionContext.Namespace NAMESPACE =
         ExtensionContext.Namespace.create(MatgtoExtension.class);
 
-    private static MatgtoProxy proxy;
+    private static MagnetoProxy proxy;
 
     @Override
     public void beforeAll(ExtensionContext context) {
-        proxy = new MatgtoProxy("./cassettes")
+        proxy = new MagnetoProxy("./cassettes")
             .withPort(8888)
             .withMode(ProxyMode.AUTO);
 
@@ -178,7 +178,7 @@ class UserApiTest {
 ```java
 package com.example.tests;
 
-import com.matgto.serge.MatgtoProxy;
+import com.magneto.serge.MagnetoProxy;
 import org.junit.jupiter.api.*;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
@@ -189,11 +189,11 @@ import java.util.concurrent.*;
 
 @ExtendWith(MatgtoExtension.class)
 class WebSocketTest {
-    private static MatgtoProxy proxy;
+    private static MagnetoProxy proxy;
 
     @BeforeAll
     static void setup() {
-        proxy = new MatgtoProxy("./cassettes").withPort(8888);
+        proxy = new MagnetoProxy("./cassettes").withPort(8888);
     }
 
     @Test
@@ -233,23 +233,23 @@ class WebSocketTest {
 ### Installation
 
 ```bash
-npm install --save-dev @matgto/serge
+npm install --save-dev @magneto/serge
 # ou
-yarn add --dev @matgto/serge
+yarn add --dev @magneto/serge
 ```
 
 ### Exemple 1 : Tests avec Jest
 
 ```javascript
 // users.test.js
-const { MatgtoProxy } = require('@matgto/serge');
+const { MagnetoProxy } = require('@magneto/serge');
 const axios = require('axios');
 
 describe('User API Tests', () => {
   let proxy;
 
   beforeAll(() => {
-    proxy = new MatgtoProxy('./cassettes');
+    proxy = new MagnetoProxy('./cassettes');
     proxy.withPort(8888);
   });
 
@@ -302,13 +302,13 @@ describe('User API Tests', () => {
 
 ```javascript
 // jest-matgto-plugin.js
-const { MatgtoProxy } = require('@matgto/serge');
+const { MagnetoProxy } = require('@magneto/serge');
 
 let proxy;
 
 module.exports = {
   async setup() {
-    proxy = new MatgtoProxy('./cassettes');
+    proxy = new MagnetoProxy('./cassettes');
     proxy.withPort(8888);
     global.__MATGTO_PROXY__ = proxy;
   },
@@ -350,14 +350,14 @@ test('fetch users', withCassette('get-users', async () => {
 
 ```javascript
 // websocket.test.js
-const { MatgtoProxy } = require('@matgto/serge');
+const { MagnetoProxy } = require('@magneto/serge');
 const WebSocket = require('ws');
 
 describe('WebSocket Tests', () => {
   let proxy;
 
   beforeAll(() => {
-    proxy = new MatgtoProxy('./cassettes').withPort(8888);
+    proxy = new MagnetoProxy('./cassettes').withPort(8888);
   });
 
   afterAll(() => proxy.shutdown());
@@ -397,14 +397,14 @@ describe('WebSocket Tests', () => {
 ```typescript
 // users.test.ts
 import { describe, test, expect, beforeAll, afterAll } from 'vitest';
-import { MatgtoProxy, ProxyMode } from '@matgto/serge';
+import { MagnetoProxy, ProxyMode } from '@magneto/serge';
 import axios from 'axios';
 
 describe('User API with TypeScript', () => {
-  let proxy: MatgtoProxy;
+  let proxy: MagnetoProxy;
 
   beforeAll(() => {
-    proxy = new MatgtoProxy('./cassettes')
+    proxy = new MagnetoProxy('./cassettes')
       .withPort(8888)
       .withMode(ProxyMode.Auto);
   });
@@ -460,12 +460,12 @@ poetry add --group dev matgto-serge
 # test_users.py
 import pytest
 import requests
-from matgto_serge import MatgtoProxy, ProxyMode
+from matgto_serge import MagnetoProxy, ProxyMode
 
 @pytest.fixture(scope="module")
 def matgto_proxy():
-    """Fixture pytest pour MatgtoProxy"""
-    proxy = MatgtoProxy(cassette_dir="./cassettes")
+    """Fixture pytest pour MagnetoProxy"""
+    proxy = MagnetoProxy(cassette_dir="./cassettes")
     proxy.with_port(8888)
     proxy.with_mode(ProxyMode.AUTO)
 
@@ -521,7 +521,7 @@ def test_create_user(matgto_proxy, proxied_session):
 ```python
 # conftest.py
 import pytest
-from matgto_serge import MatgtoProxy, ProxyMode
+from matgto_serge import MagnetoProxy, ProxyMode
 
 def pytest_configure(config):
     """Enregistrer marker custom"""
@@ -532,7 +532,7 @@ def pytest_configure(config):
 @pytest.fixture(scope="session")
 def matgto_proxy():
     """Proxy global pour toute la session"""
-    proxy = MatgtoProxy("./cassettes")
+    proxy = MagnetoProxy("./cassettes")
     proxy.with_port(8888).with_mode(ProxyMode.AUTO)
     yield proxy
     proxy.shutdown()
@@ -583,7 +583,7 @@ def test_create_user():
 import pytest
 import asyncio
 import websockets
-from matgto_serge import MatgtoProxy
+from matgto_serge import MagnetoProxy
 
 @pytest.fixture(scope="module")
 def event_loop():
@@ -620,7 +620,7 @@ async def test_websocket_messages():
 # test_fastapi.py
 import pytest
 import httpx
-from matgto_serge import MatgtoProxy
+from matgto_serge import MagnetoProxy
 
 @pytest.fixture
 def http_client():
@@ -759,7 +759,7 @@ end
 ```kotlin
 // build.gradle.kts (app module)
 dependencies {
-    testImplementation("com.matgto:serge:1.0.0")
+    testImplementation("com.magneto:serge:1.0.0")
     testImplementation("junit:junit:4.13.2")
     testImplementation("com.squareup.okhttp3:okhttp:4.12.0")
 }
@@ -771,8 +771,8 @@ dependencies {
 // UserApiTest.kt
 package com.example.app
 
-import com.matgto.serge.MatgtoProxy
-import com.matgto.serge.ProxyMode
+import com.magneto.serge.MagnetoProxy
+import com.magneto.serge.ProxyMode
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.junit.After
@@ -784,12 +784,12 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class UserApiTest {
-    private lateinit var proxy: MatgtoProxy
+    private lateinit var proxy: MagnetoProxy
     private lateinit var httpClient: OkHttpClient
 
     @Before
     fun setup() {
-        proxy = MatgtoProxy("./cassettes")
+        proxy = MagnetoProxy("./cassettes")
             .withPort(8888)
             .withMode(ProxyMode.AUTO)
 
@@ -829,7 +829,7 @@ class UserApiTest {
 ### Installation
 
 ```bash
-npm install --save-dev @matgto/serge @testing-library/react vitest
+npm install --save-dev @magneto/serge @testing-library/react vitest
 ```
 
 ### Exemple : Tests composants React avec API
@@ -838,14 +838,14 @@ npm install --save-dev @matgto/serge @testing-library/react vitest
 // UserList.test.tsx
 import { describe, test, expect, beforeAll, afterAll } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import { MatgtoProxy } from '@matgto/serge';
+import { MagnetoProxy } from '@magneto/serge';
 import UserList from './UserList';
 
 describe('UserList Component', () => {
-  let proxy: MatgtoProxy;
+  let proxy: MagnetoProxy;
 
   beforeAll(() => {
-    proxy = new MatgtoProxy('./cassettes').withPort(8888);
+    proxy = new MagnetoProxy('./cassettes').withPort(8888);
 
     // Configurer fetch global pour utiliser le proxy
     global.fetch = new Proxy(global.fetch, {
@@ -982,7 +982,7 @@ export MATGTO_INSECURE=true
 
 ```rust
 // Rust (configuration avancée)
-use matgto_serge::{MatgtoProxy, Config, MatchingStrategy};
+use matgto_serge::{MagnetoProxy, Config, MatchingStrategy};
 
 let config = Config::builder()
     .cassette_dir("./cassettes")
@@ -997,7 +997,7 @@ let config = Config::builder()
     .compression(true)
     .build()?;
 
-let proxy = MatgtoProxy::with_config(config)?;
+let proxy = MagnetoProxy::with_config(config)?;
 ```
 
 ---
@@ -1038,7 +1038,7 @@ jobs:
 ```javascript
 // Enregistrer seulement si CI=true
 const mode = process.env.CI ? 'replay' : 'auto';
-const proxy = new MatgtoProxy('./cassettes').withMode(mode);
+const proxy = new MagnetoProxy('./cassettes').withMode(mode);
 
 // En local : enregistre nouvelles cassettes
 // En CI : replay strict (erreur si cassette manquante)
@@ -1073,12 +1073,12 @@ project/
 
 | Langage | Package | Framework | Status |
 |---------|---------|-----------|--------|
-| **Java** | `com.matgto:serge` | JUnit 5, Spring Boot | ✅ Stable |
-| **JavaScript** | `@matgto/serge` | Jest, Vitest, Mocha | ✅ Stable |
+| **Java** | `com.magneto:serge` | JUnit 5, Spring Boot | ✅ Stable |
+| **JavaScript** | `@magneto/serge` | Jest, Vitest, Mocha | ✅ Stable |
 | **Python** | `matgto-serge` | pytest, unittest | ✅ Stable |
 | **Ruby** | `matgto-serge` | RSpec, Minitest | ✅ Stable |
-| **Kotlin** | `com.matgto:serge` | JUnit, Android Test | ✅ Stable |
-| **TypeScript** | `@matgto/serge` | Vitest, Jest | ✅ Stable |
+| **Kotlin** | `com.magneto:serge` | JUnit, Android Test | ✅ Stable |
+| **TypeScript** | `@magneto/serge` | Vitest, Jest | ✅ Stable |
 | **Go** | `github.com/matgto/serge-go` | testing, testify | 🟡 Community |
 | **C#** | `MatgtoSerge.NET` | xUnit, NUnit | 🟡 Community |
 

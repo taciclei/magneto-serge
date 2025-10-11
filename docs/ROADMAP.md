@@ -25,7 +25,7 @@ matgto-serge est une bibliothèque de test qui enregistre et rejoue automatiquem
 **Objectif :** Créer le moteur de proxy HTTP avec record/replay basique
 
 ### 1.1 Setup Projet Rust ✅
-- [x] Initialiser projet Cargo `cargo new matgto-serge --lib`
+- [x] Initialiser projet Cargo `cargo new magneto-serge --lib`
 - [x] Configurer workspace Cargo.toml
 - [ ] Setup CI/CD (GitHub Actions)
   - [ ] Rust clippy + rustfmt
@@ -51,7 +51,7 @@ matgto-serge est une bibliothèque de test qui enregistre et rejoue automatiquem
 ### 1.2 Proxy HTTP/HTTPS Basique ✅
 - [x] Intégrer Hudsucker pour proxy MITM
   - [x] Configurer dépendance `hudsucker = "0.20"`
-  - [x] Créer struct `MatgtoProxy`
+  - [x] Créer struct `MagnetoProxy`
   - [x] Implémenter démarrage/arrêt proxy (structure de base)
   - [x] Configurer port d'écoute (défaut: 8888)
 - [x] Module HTTP Handler créé
@@ -69,7 +69,7 @@ matgto-serge est une bibliothèque de test qui enregistre et rejoue automatiquem
 - [x] Support HTTPS (MITM avec certificat auto-signé)
   - [x] Générer certificat racine avec `rcgen` → Module `tls/certificate.rs`
   - [x] Instructions installation certificat trust store OS (macOS/Linux/Windows)
-  - [x] Persistance certificats sur disque (.matgto/certs/)
+  - [x] Persistance certificats sur disque (.magneto/certs/)
   - [ ] Validation SSL/TLS fonctionnelle (intégration Hudsucker à venir)
 
 ### 1.3 Enregistrement Cassette (Record Mode) ✅
@@ -97,7 +97,7 @@ matgto-serge est une bibliothèque de test qui enregistre et rejoue automatiquem
   }
   ```
 - [x] Implémenter `Recorder` struct
-  - [x] Méthode `start_recording(cassette_name)` (via MatgtoProxy)
+  - [x] Méthode `start_recording(cassette_name)` (via MagnetoProxy)
   - [x] Méthode `record_interaction(request, response)` → `record_http()`
   - [x] Méthode `stop_recording()` → sauvegarde cassette via `save()`
 - [x] Sérialisation avec `serde_json`
@@ -212,7 +212,7 @@ matgto-serge est une bibliothèque de test qui enregistre et rejoue automatiquem
   - [x] `crate-type = ["cdylib", "rlib", "staticlib"]` pour exports
 - [x] Créer fichier UDL `src/matgto_serge.udl`
   - [x] Définir namespace matgto_serge
-  - [x] Définir interface MatgtoProxy avec méthodes
+  - [x] Définir interface MagnetoProxy avec méthodes
   - [x] Définir dictionaries pour HttpRequest/Response
   - [x] Définir interfaces pour WebSocket
   - [x] Définir enums ProxyMode, Direction, MessagePayload
@@ -260,20 +260,20 @@ matgto-serge est une bibliothèque de test qui enregistre et rejoue automatiquem
 
 ### 3.3 Bindings Java
 - [ ] Créer wrapper Java depuis Kotlin
-  - [ ] Package `com.matgto.serge`
+  - [ ] Package `com.magneto.serge`
   - [ ] Classes Java natives
   - [ ] JNI bindings via Kotlin
 - [ ] Créer wrapper Gradle
   ```gradle
   dependencies {
-      implementation 'com.matgto:serge:1.0.0'
+      implementation 'com.magneto:serge:1.0.0'
   }
   ```
 - [ ] Exemple intégration JUnit 5
   ```java
   @Test
   public void testWithMatgto() {
-      MatgtoProxy proxy = MatgtoProxy.newProxy("./cassettes");
+      MagnetoProxy proxy = MagnetoProxy.newProxy("./cassettes");
       proxy.startRecording("api-test");
 
       // Votre code de test HTTP/WebSocket
@@ -289,14 +289,14 @@ matgto-serge est une bibliothèque de test qui enregistre et rejoue automatiquem
 
 ### 3.4 Bindings JavaScript/TypeScript
 - [ ] Générer code JavaScript avec N-API
-  - [ ] Package NPM `@matgto/serge`
+  - [ ] Package NPM `@magneto/serge`
   - [ ] TypeScript definitions (.d.ts)
 - [ ] Support Node.js
   ```javascript
-  const { MatgtoProxy } = require('@matgto/serge');
+  const { MagnetoProxy } = require('@magneto/serge');
 
-  test('API with matgto', async () => {
-    const proxy = new MatgtoProxy('./cassettes');
+  test('API with magneto', async () => {
+    const proxy = new MagnetoProxy('./cassettes');
     proxy.startRecording('api-test');
 
     const response = await fetch('https://api.example.com');
@@ -322,10 +322,10 @@ matgto-serge est une bibliothèque de test qui enregistre et rejoue automatiquem
   - [ ] Type hints (PEP 484)
 - [ ] Exemple intégration pytest
   ```python
-  from matgto_serge import MatgtoProxy
+  from matgto_serge import MagnetoProxy
 
   def test_api_with_matgto():
-      proxy = MatgtoProxy(cassette_dir="./cassettes")
+      proxy = MagnetoProxy(cassette_dir="./cassettes")
       proxy.start_recording("api-test")
 
       response = requests.get("https://api.example.com")
@@ -363,22 +363,22 @@ matgto-serge est une bibliothèque de test qui enregistre et rejoue automatiquem
 ### 4.1 Interface Ligne de Commande
 - [ ] Créer binary CLI avec `clap`
   ```bash
-  matgto-serge record my-test
-  matgto-serge replay my-test
-  matgto-serge list
-  matgto-serge clean
+  magneto record my-test
+  magneto replay my-test
+  magneto list
+  magneto clean
   ```
 - [ ] Commandes principales
-  - [ ] `init` - Créer config matgto.toml
+  - [ ] `init` - Créer config magneto.toml
   - [ ] `record <name>` - Démarrer enregistrement
   - [ ] `replay <name>` - Rejouer cassette
   - [ ] `list` - Lister cassettes disponibles
   - [ ] `clean` - Supprimer cassettes obsolètes
   - [ ] `validate` - Vérifier cassettes valides
   - [ ] `config` - Afficher/modifier configuration
-- [ ] Fichier configuration `matgto.toml`
+- [ ] Fichier configuration `magneto.toml`
   ```toml
-  [matgto]
+  [magneto]
   cassette_dir = "./cassettes"
   proxy_port = 8888
   mode = "auto"  # auto, record, replay
@@ -403,23 +403,23 @@ matgto-serge est une bibliothèque de test qui enregistre et rejoue automatiquem
   ```
 - [ ] Jest/Vitest Plugin (JavaScript)
   ```javascript
-  import { matgtoPlugin } from '@matgto/serge';
+  import { magnetoPlugin } from '@magneto/serge';
 
   export default defineConfig({
-    plugins: [matgtoPlugin()]
+    plugins: [magnetoPlugin()]
   });
   ```
 - [ ] pytest Plugin (Python)
   ```python
-  @pytest.mark.matgto(cassette="api-test")
+  @pytest.mark.magneto(cassette="api-test")
   def test_api():
       pass
   ```
 - [ ] RSpec Integration (Ruby)
   ```ruby
   RSpec.configure do |config|
-    config.around(:each, :matgto) do |example|
-      Matgto.use_cassette(example.metadata[:matgto])
+    config.around(:each, :magneto) do |example|
+      Magneto.use_cassette(example.metadata[:magneto])
     end
   end
   ```
@@ -492,7 +492,7 @@ matgto-serge est une bibliothèque de test qui enregistre et rejoue automatiquem
   - [ ] Windows (x64)
 - [ ] Docker image
   ```bash
-  docker run matgto/serge record my-test
+  docker run magneto/serge record my-test
   ```
 - [ ] Communication
   - [ ] Blog post annonce

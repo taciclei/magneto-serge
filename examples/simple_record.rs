@@ -1,6 +1,6 @@
 //! Simple example demonstrating record mode
 
-use magneto_serge::{CertificateAuthority, MatgtoProxy, ProxyMode};
+use magneto_serge::{CertificateAuthority, MagnetoProxy, ProxyMode};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize tracing
@@ -12,12 +12,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create Certificate Authority
     println!("1️⃣  Initializing Certificate Authority...");
-    let ca = CertificateAuthority::new("./.matgto/certs")?;
+    let ca = CertificateAuthority::new("./.magneto/certs")?;
     ca.print_install_instructions();
 
     // Create proxy
     println!("\n2️⃣  Creating proxy...");
-    let mut proxy = MatgtoProxy::new("./cassettes")?
+    let proxy = MagnetoProxy::new_internal("./cassettes")?
         .with_port(8888)
         .with_mode(ProxyMode::Record);
 
@@ -25,7 +25,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Start recording
     println!("\n3️⃣  Starting recording...");
-    proxy.start_recording("example-api-call")?;
+    proxy.start_recording_internal("example-api-call".to_string())?;
     println!("   ✓ Recording to cassette: example-api-call.json");
 
     println!("\n📡 Proxy is now ready!");
@@ -47,11 +47,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Stop recording
     println!("\n4️⃣  Stopping recording...");
-    proxy.stop_recording()?;
+    proxy.stop_recording_internal()?;
     println!("   ✓ Cassette saved to ./cassettes/example-api-call.json");
 
     // Shutdown
-    proxy.shutdown()?;
+    proxy.shutdown_internal()?;
     println!("\n✅ Example completed!");
 
     Ok(())

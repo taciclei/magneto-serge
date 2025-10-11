@@ -34,7 +34,7 @@ else
 fi
 
 echo "📚 Bibliothèque: $LIB_FILE"
-echo "📝 UDL: src/matgto_serge.udl"
+echo "📝 UDL: src/magneto_serge.udl"
 echo ""
 
 # Créer les répertoires de sortie
@@ -59,7 +59,7 @@ try:
     result = subprocess.run([
         "python3", "-m", "uniffi_bindgen",
         "generate",
-        "src/matgto_serge.udl",
+        "src/magneto_serge.udl",
         "--language", "$lang",
         "--out-dir", "$out_dir"
     ], capture_output=True, text=True)
@@ -70,7 +70,7 @@ try:
         result = subprocess.run([
             "cargo", "run", "--release", "--bin", "uniffi-bindgen", "--",
             "generate",
-            "src/matgto_serge.udl",
+            "src/magneto_serge.udl",
             "--language", "$lang",
             "--out-dir", "$out_dir"
         ], capture_output=True, text=True)
@@ -110,7 +110,7 @@ use std::path::PathBuf;
 
 fn main() {
     let crate_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let udl_file = crate_dir.join("src/matgto_serge.udl");
+    let udl_file = crate_dir.join("src/magneto_serge.udl");
 
     let languages = ["python", "kotlin", "swift"];
 

@@ -6,7 +6,6 @@ use crate::error::{MatgtoError, Result};
 use hyper::{Body, Client, Request, Uri};
 use hyper_rustls::HttpsConnectorBuilder;
 use std::collections::HashMap;
-use std::convert::TryFrom;
 
 /// HTTP client for forwarding proxied requests
 pub struct HttpForwarder {

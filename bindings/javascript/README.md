@@ -1,23 +1,30 @@
-# 🟨 @matgto/serge - JavaScript/Node.js Bindings
+# 🟨 @magneto/serge - JavaScript/Node.js Bindings
 
 Bindings JavaScript/Node.js pour **matgto-serge** - Enregistrez et rejouez vos requêtes HTTP/WebSocket pour des tests déterministes.
 
-[![npm version](https://img.shields.io/npm/v/@matgto/serge.svg)](https://www.npmjs.com/package/@matgto/serge)
+[![npm version](https://img.shields.io/npm/v/@magneto/serge.svg)](https://www.npmjs.com/package/@magneto/serge)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE)
 
 ## 📦 Installation
 
 ```bash
-npm install @matgto/serge
+# npm
+npm install @magneto/serge
+
+# pnpm (recommandé)
+pnpm add @magneto/serge
+
+# yarn
+yarn add @magneto/serge
 ```
 
 ## 🚀 Utilisation Rapide
 
 ```javascript
-const { MatgtoProxy, ProxyMode } = require('@matgto/serge');
+const { MagnetoProxy, ProxyMode } = require('@magneto/serge');
 
 // Créer un proxy
-const proxy = new MatgtoProxy('./cassettes');
+const proxy = new MagnetoProxy('./cassettes');
 
 // Configurer
 proxy.setPort(8888);
@@ -37,9 +44,9 @@ proxy.shutdown();
 ## 🎯 TypeScript Support
 
 ```typescript
-import { MatgtoProxy, ProxyMode, createProxy } from '@matgto/serge';
+import { MagnetoProxy, ProxyMode, createProxy } from '@magneto/serge';
 
-const proxy: MatgtoProxy = createProxy('./cassettes')!;
+const proxy: MagnetoProxy = createProxy('./cassettes')!;
 
 proxy.setPort(8888);
 proxy.setMode(ProxyMode.RECORD);
@@ -53,14 +60,14 @@ if (proxy.startRecording('typescript_test')) {
 ## 🧪 Intégration Jest
 
 ```javascript
-const { MatgtoProxy, ProxyMode } = require('@matgto/serge');
+const { MagnetoProxy, ProxyMode } = require('@magneto/serge');
 const axios = require('axios');
 
 describe('API Tests', () => {
     let proxy;
 
     beforeEach(() => {
-        proxy = new MatgtoProxy('./cassettes');
+        proxy = new MagnetoProxy('./cassettes');
         proxy.setPort(8888);
     });
 
@@ -106,11 +113,11 @@ describe('API Tests', () => {
 
 ## 📖 API
 
-### MatgtoProxy
+### MagnetoProxy
 
 **Constructeur:**
 ```javascript
-new MatgtoProxy(cassetteDir: string)
+new MagnetoProxy(cassetteDir: string)
 createProxy(cassetteDir: string) // Factory function
 ```
 
@@ -258,7 +265,7 @@ Format d'une cassette:
 ```javascript
 const request = require('supertest');
 const express = require('express');
-const { MatgtoProxy, ProxyMode } = require('@matgto/serge');
+const { MagnetoProxy, ProxyMode } = require('@magneto/serge');
 
 const app = express();
 
@@ -274,7 +281,7 @@ describe('Express API', () => {
     let proxy;
 
     beforeAll(() => {
-        proxy = new MatgtoProxy('./cassettes');
+        proxy = new MagnetoProxy('./cassettes');
         proxy.setPort(8888);
     });
 
@@ -301,13 +308,13 @@ describe('Express API', () => {
 
 ```javascript
 const { test, expect } = require('@playwright/test');
-const { MatgtoProxy, ProxyMode } = require('@matgto/serge');
+const { MagnetoProxy, ProxyMode } = require('@magneto/serge');
 
 test.describe('E2E Tests', () => {
     let proxy;
 
     test.beforeAll(async () => {
-        proxy = new MatgtoProxy('./cassettes');
+        proxy = new MagnetoProxy('./cassettes');
         proxy.setPort(8888);
         proxy.setMode(ProxyMode.RECORD);
     });
@@ -334,66 +341,72 @@ test.describe('E2E Tests', () => {
 });
 ```
 
-## 📚 Scripts NPM
+## 📚 Scripts Package Manager
 
 ```json
 {
   "scripts": {
     "test": "jest",
-    "test:record": "MATGTO_MODE=record jest",
-    "test:replay": "MATGTO_MODE=replay jest"
+    "test:record": "MAGNETO_MODE=record jest",
+    "test:replay": "MAGNETO_MODE=replay jest"
   }
 }
 ```
 
 Utilisation:
 ```bash
-# Enregistrer les cassettes
+# Avec pnpm (recommandé)
+pnpm test:record     # Enregistrer les cassettes
+pnpm test:replay     # Rejouer depuis les cassettes
+pnpm test            # Mode auto (défaut)
+
+# Avec npm
 npm run test:record
-
-# Rejouer depuis les cassettes
 npm run test:replay
-
-# Mode auto (défaut)
 npm test
+
+# Avec yarn
+yarn test:record
+yarn test:replay
+yarn test
 ```
 
 ## ⚙️ Variables d'Environnement
 
 ```bash
 # Mode du proxy
-export MATGTO_MODE=record    # ou replay, auto, passthrough
+export MAGNETO_MODE=record    # ou replay, auto, passthrough
 
 # Port du proxy
-export MATGTO_PORT=8888
+export MAGNETO_PORT=8888
 
 # Répertoire des cassettes
-export MATGTO_CASSETTE_DIR=./cassettes
+export MAGNETO_CASSETTE_DIR=./cassettes
 ```
 
 Usage dans le code:
 ```javascript
-const mode = process.env.MATGTO_MODE || 'auto';
-const port = parseInt(process.env.MATGTO_PORT || '8888');
-const dir = process.env.MATGTO_CASSETTE_DIR || './cassettes';
+const mode = process.env.MAGNETO_MODE || 'auto';
+const port = parseInt(process.env.MAGNETO_PORT || '8888');
+const dir = process.env.MAGNETO_CASSETTE_DIR || './cassettes';
 
-const proxy = new MatgtoProxy(dir);
+const proxy = new MagnetoProxy(dir);
 proxy.setPort(port);
 proxy.setMode(ProxyMode[mode.toUpperCase()]);
 ```
 
 ## 🐛 Troubleshooting
 
-### Module not found: libuniffi_matgto_serge
+### Module not found: libuniffi_magneto_serge
 
 Si vous voyez cette erreur, assurez-vous que la bibliothèque native est présente:
 
 ```bash
 # macOS
-cp ../../target/release/libmatgto_serge.dylib lib/libuniffi_matgto_serge.dylib
+cp ../../target/release/libmagneto_serge.dylib lib/libuniffi_magneto_serge.dylib
 
 # Linux
-cp ../../target/release/libmatgto_serge.so lib/libuniffi_matgto_serge.so
+cp ../../target/release/libmagneto_serge.so lib/libuniffi_magneto_serge.so
 ```
 
 ### Proxy not intercepting requests
@@ -413,6 +426,6 @@ matgto-serge contributors
 
 ## 🔗 Liens
 
-- [Documentation](https://github.com/your-org/matgto-serge)
-- [NPM Package](https://www.npmjs.com/package/@matgto/serge)
-- [Issues](https://github.com/your-org/matgto-serge/issues)
+- [Documentation](https://github.com/taciclei/magneto-serge)
+- [NPM Package](https://www.npmjs.com/package/@magneto/serge)
+- [Issues](https://github.com/taciclei/magneto-serge/issues)

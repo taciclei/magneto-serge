@@ -4,7 +4,7 @@
 
 ### 1. Sonatype Account
 - Create account at https://s01.oss.sonatype.org/
-- Request access to `io.github.matgto` group
+- Request access to `io.github.magneto` group
 
 ### 2. GPG Key
 ```bash
@@ -74,7 +74,7 @@ mvn clean deploy -P release
 1. Go to https://s01.oss.sonatype.org/
 2. Login with Sonatype credentials
 3. Navigate to "Staging Repositories"
-4. Find `io.github.matgto-serge-xxx` repository
+4. Find `io.github.magneto-serge-xxx` repository
 5. Click "Close" button
 6. Wait for validation (5-10 minutes)
 7. Click "Release" button
@@ -82,8 +82,8 @@ mvn clean deploy -P release
 ### 4. Verify Publication
 
 After ~2 hours, the package will be available:
-- https://central.sonatype.com/artifact/io.github.matgto/serge
-- https://mvnrepository.com/artifact/io.github.matgto/serge
+- https://central.sonatype.com/artifact/io.github.magneto/serge
+- https://mvnrepository.com/artifact/io.github.magneto/serge
 
 ## Gradle Alternative
 
@@ -96,7 +96,7 @@ plugins {
     id 'signing'
 }
 
-group = 'io.github.matgto'
+group = 'io.github.magneto'
 version = '0.1.0'
 
 publishing {

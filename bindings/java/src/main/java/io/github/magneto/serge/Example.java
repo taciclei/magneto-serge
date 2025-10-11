@@ -1,7 +1,7 @@
-package io.github.matgto.serge.examples;
+package io.github.magneto.serge.examples;
 
-import io.github.matgto.serge.MatgtoProxy;
-import io.github.matgto.serge.MatgtoProxy.Mode;
+import io.github.magneto.serge.MagnetoProxy;
+import io.github.magneto.serge.MagnetoProxy.Mode;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -41,7 +41,7 @@ public class Example {
         System.out.println("-".repeat(60));
 
         // Créer un proxy
-        MatgtoProxy proxy = MatgtoProxy.create("./cassettes");
+        MagnetoProxy proxy = MagnetoProxy.create("./cassettes");
 
         if (proxy == null) {
             System.err.println("❌ Impossible de créer le proxy");
@@ -59,7 +59,7 @@ public class Example {
         System.out.println("  Mode configuré: " + proxy.getMode());
 
         // Afficher la version
-        System.out.println("  Version: " + MatgtoProxy.getVersion());
+        System.out.println("  Version: " + MagnetoProxy.getVersion());
 
         // Shutdown
         proxy.shutdown();
@@ -74,7 +74,7 @@ public class Example {
         System.out.println("-".repeat(60));
 
         // Créer un proxy
-        MatgtoProxy proxy = new MatgtoProxy("./cassettes");
+        MagnetoProxy proxy = new MagnetoProxy("./cassettes");
 
         // Configuration
         proxy.setPort(8888);

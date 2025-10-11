@@ -2,17 +2,16 @@
 //!
 //! These tests verify the complete WebSocket record/replay cycle.
 
-use matgto_serge::{
+use magneto_serge::{
     cassette::{CloseFrame, Direction, MessagePayload, WebSocketMessage},
     WebSocketInterceptor, WebSocketPlayer, WebSocketRecorder,
 };
-use std::path::Path;
 use tempfile::TempDir;
 
 #[tokio::test]
 async fn test_websocket_recorder_basic() {
     let _ = tracing_subscriber::fmt()
-        .with_env_filter("matgto_serge=debug")
+        .with_env_filter("magneto_serge=debug")
         .try_init();
 
     let cassette_dir = TempDir::new().expect("Failed to create temp dir");
@@ -73,7 +72,7 @@ async fn test_websocket_recorder_basic() {
 #[tokio::test]
 async fn test_websocket_player_basic() {
     let _ = tracing_subscriber::fmt()
-        .with_env_filter("matgto_serge=debug")
+        .with_env_filter("magneto_serge=debug")
         .try_init();
 
     let cassette_dir = TempDir::new().unwrap();
@@ -141,7 +140,7 @@ async fn test_websocket_player_basic() {
 #[tokio::test]
 async fn test_websocket_full_cycle() {
     let _ = tracing_subscriber::fmt()
-        .with_env_filter("matgto_serge=debug")
+        .with_env_filter("magneto_serge=debug")
         .try_init();
 
     let cassette_dir = TempDir::new().unwrap();
@@ -274,7 +273,7 @@ async fn test_websocket_full_cycle() {
         tracing::info!("Cassette size: {} bytes", json.len());
 
         // Parse and verify
-        let cassette: matgto_serge::Cassette = serde_json::from_str(&json).unwrap();
+        let cassette: magneto_serge::Cassette = serde_json::from_str(&json).unwrap();
         assert_eq!(cassette.name, cassette_name);
         assert_eq!(cassette.version, "1.0");
         assert_eq!(cassette.interactions.len(), 3);
@@ -381,7 +380,7 @@ async fn test_websocket_reset() {
 #[ignore] // Requires real WebSocket server
 async fn test_websocket_interceptor_live() {
     let _ = tracing_subscriber::fmt()
-        .with_env_filter("matgto_serge=debug")
+        .with_env_filter("magneto_serge=debug")
         .try_init();
 
     tracing::info!("🔌 Testing live WebSocket interceptor");
@@ -393,32 +392,29 @@ async fn test_websocket_interceptor_live() {
     // Start intercepting
     let result = interceptor.start().await;
 
-    #[cfg(not(feature = "offline-tests"))]
-    {
-        if let Ok(()) = result {
-            tracing::info!("✅ Connected to WebSocket server");
-            assert!(interceptor.is_active().await);
+    if let Ok(()) = result {
+        tracing::info!("✅ Connected to WebSocket server");
+        assert!(interceptor.is_active().await);
 
-            // Send test message
-            let test_msg = WebSocketMessage {
-                direction: Direction::Sent,
-                timestamp_ms: chrono::Utc::now().timestamp_millis() as u64,
-                payload: MessagePayload::Text {
-                    data: "Hello WebSocket!".to_string(),
-                },
-            };
+        // Send test message
+        let test_msg = WebSocketMessage {
+            direction: Direction::Sent,
+            timestamp_ms: chrono::Utc::now().timestamp_millis() as u64,
+            payload: MessagePayload::Text {
+                data: "Hello WebSocket!".to_string(),
+            },
+        };
 
-            interceptor.send(test_msg).await.ok();
+        interceptor.send(test_msg).await.ok();
 
-            // Wait for response
-            tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+        // Wait for response
+        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
 
-            let messages = interceptor.messages().await;
-            tracing::info!("Captured {} messages", messages.len());
+        let messages = interceptor.messages().await;
+        tracing::info!("Captured {} messages", messages.len());
 
-            interceptor.close().await.ok();
-        } else {
-            tracing::warn!("Network request failed (expected in offline environments)");
-        }
+        interceptor.close().await.ok();
+    } else {
+        tracing::warn!("Network request failed (expected in offline environments)");
     }
 }

@@ -5,12 +5,10 @@
 
 use crate::cassette::{Direction, MessagePayload, WebSocketMessage};
 use crate::error::{MatgtoError, Result};
-use futures::{SinkExt, StreamExt};
+use futures::StreamExt;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use tokio_tungstenite::{
-    connect_async, tungstenite::protocol::Message, MaybeTlsStream, WebSocketStream,
-};
+use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 use tracing::{debug, error, info, warn};
 
 /// WebSocket interceptor that captures bidirectional messages
@@ -54,7 +52,7 @@ impl WebSocketInterceptor {
         *self.active.lock().await = true;
 
         // Split stream into sink and stream
-        let (mut write, mut read) = ws_stream.split();
+        let (_write, mut read) = ws_stream.split();
 
         // Handle incoming messages from server
         let messages_clone = self.messages.clone();

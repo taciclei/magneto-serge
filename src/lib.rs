@@ -1,9 +1,12 @@
-//! # matgto-serge
+//! # magneto-serge
 //!
 //! Multi-language HTTP/WebSocket proxy library for testing with record/replay capabilities.
 //!
 //! This library provides a MITM proxy that intercepts HTTP/HTTPS and WebSocket traffic,
 //! records interactions into "cassettes", and can replay them deterministically.
+
+// Allow clippy warnings from UniFFI generated code
+#![allow(clippy::empty_line_after_doc_comments)]
 
 pub mod cassette;
 pub mod error;
@@ -14,7 +17,7 @@ pub mod tls;
 pub mod websocket;
 
 pub use error::{MatgtoError, Result};
-pub use proxy::{MatgtoProxy, ProxyMode};
+pub use proxy::{MagnetoProxy, ProxyMode};
 pub use tls::CertificateAuthority;
 pub use websocket::{WebSocketInterceptor, WebSocketPlayer, WebSocketRecorder};
 
@@ -22,13 +25,13 @@ pub use websocket::{WebSocketInterceptor, WebSocketPlayer, WebSocketRecorder};
 pub use cassette::{Cassette, HttpRequest, HttpResponse, Interaction, WebSocketMessage};
 
 // UniFFI factory function
-/// Create a new MatgtoProxy instance (returns None on error)
+/// Create a new MagnetoProxy instance (returns None on error)
 ///
 /// This is a convenience function for language bindings
-pub fn create_proxy(cassette_dir: String) -> Option<std::sync::Arc<MatgtoProxy>> {
-    use proxy::MatgtoProxy;
+pub fn create_proxy(cassette_dir: String) -> Option<std::sync::Arc<MagnetoProxy>> {
+    use proxy::MagnetoProxy;
     let path: &std::path::Path = cassette_dir.as_ref();
-    MatgtoProxy::new_internal(path)
+    MagnetoProxy::new_internal(path)
         .ok()
         .map(std::sync::Arc::new)
 }
@@ -39,15 +42,13 @@ pub fn version() -> String {
 }
 
 // Include UniFFI scaffolding
-uniffi::include_scaffolding!("matgto_serge");
+uniffi::include_scaffolding!("magneto_serge");
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_library_loads() {
-        // Basic smoke test
-        assert!(true);
+        // Basic smoke test - verify version is set
+        assert!(!crate::version().is_empty());
     }
 }

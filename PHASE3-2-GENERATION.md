@@ -369,7 +369,7 @@ bindings/
 │   └── ExampleBasic.swift          # Example (to create)
 │
 └── php/
-    ├── MatgtoProxy.php             # ✅ Custom FFI wrapper
+    ├── MagnetoProxy.php             # ✅ Custom FFI wrapper
     ├── composer.json               # ✅ Packagist config
     ├── example_basic.php           # ✅ Already created
     ├── example_replay.php          # ✅ Already created
@@ -386,7 +386,7 @@ After generation, verify:
 ### Python
 - [ ] `python/matgto_serge.py` exists and is ~500-1000 lines
 - [ ] Contains `create_proxy()` function
-- [ ] Contains `MatgtoProxy` class with all methods
+- [ ] Contains `MagnetoProxy` class with all methods
 - [ ] Contains `ProxyMode` enum with Auto/Record/Replay/Passthrough
 - [ ] `example_basic.py` runs without errors
 - [ ] Can create proxy and start recording
@@ -394,7 +394,7 @@ After generation, verify:
 ### Kotlin
 - [ ] `kotlin/uniffi/matgto_serge/matgto_serge.kt` exists
 - [ ] Contains `createProxy()` function
-- [ ] Contains `MatgtoProxy` interface
+- [ ] Contains `MagnetoProxy` interface
 - [ ] Contains `ProxyMode` enum
 - [ ] Can compile with Gradle
 - [ ] JNA dependency works
@@ -402,13 +402,13 @@ After generation, verify:
 ### Swift
 - [ ] `swift/MatgtoSerge.swift` exists
 - [ ] Contains `createProxy()` function
-- [ ] Contains `MatgtoProxy` protocol
+- [ ] Contains `MagnetoProxy` protocol
 - [ ] Contains `ProxyMode` enum
 - [ ] Can compile with Swift Package Manager
 - [ ] Example runs on macOS
 
 ### PHP
-- [x] `php/MatgtoProxy.php` works with FFI
+- [x] `php/MagnetoProxy.php` works with FFI
 - [x] All 3 examples run successfully
 - [x] Composer integration works
 - [x] PHPUnit integration verified

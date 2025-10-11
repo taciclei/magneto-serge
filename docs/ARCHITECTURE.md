@@ -31,7 +31,7 @@ matgto-serge est une bibliothèque de test construite sur une architecture proxy
                          │ UniFFI Bindings
 ┌────────────────────────▼────────────────────────────────────┐
 │                   matgto-serge Public API                    │
-│  MatgtoProxy::new() / start_recording() / replay()          │
+│  MagnetoProxy::new() / start_recording() / replay()          │
 └────────────────────────┬────────────────────────────────────┘
                          │
 ┌────────────────────────▼────────────────────────────────────┐
@@ -65,12 +65,12 @@ matgto-serge est une bibliothèque de test construite sur une architecture proxy
 
 ## 🧩 Composants Détaillés
 
-### 1. MatgtoProxy (API Publique)
+### 1. MagnetoProxy (API Publique)
 
 **Responsabilité :** Interface principale exposée aux développeurs
 
 ```rust
-pub struct MatgtoProxy {
+pub struct MagnetoProxy {
     cassette_dir: PathBuf,
     proxy_port: u16,
     mode: ProxyMode,
@@ -85,7 +85,7 @@ pub enum ProxyMode {
     Passthrough, // Proxy transparent sans record/replay
 }
 
-impl MatgtoProxy {
+impl MagnetoProxy {
     /// Créer nouvelle instance avec répertoire cassettes
     pub fn new(cassette_dir: impl Into<PathBuf>) -> Result<Self>;
 
@@ -110,7 +110,7 @@ impl MatgtoProxy {
 ```
 
 **Design Patterns :**
-- **Builder Pattern** : `MatgtoProxy::new().with_port().with_mode()`
+- **Builder Pattern** : `MagnetoProxy::new().with_port().with_mode()`
 - **RAII** : Shutdown automatique au drop
 - **Result<T, E>** : Gestion erreurs explicite sans exceptions
 
@@ -628,7 +628,7 @@ msgpack = ["rmp-serde"]
 ```
 // matgto_serge.udl
 namespace matgto_serge {
-    MatgtoProxy new_proxy(string cassette_dir);
+    MagnetoProxy new_proxy(string cassette_dir);
 };
 
 enum ProxyMode {
@@ -638,14 +638,14 @@ enum ProxyMode {
     "Passthrough",
 };
 
-interface MatgtoProxy {
+interface MagnetoProxy {
     constructor(string cassette_dir);
 
     [Self=ByArc]
-    MatgtoProxy with_port(u16 port);
+    MagnetoProxy with_port(u16 port);
 
     [Self=ByArc]
-    MatgtoProxy with_mode(ProxyMode mode);
+    MagnetoProxy with_mode(ProxyMode mode);
 
     [Throws=MatgtoError]
     void start_recording(string cassette_name);
@@ -672,28 +672,28 @@ enum MatgtoError {
 
 **Java :**
 ```java
-// uniffi/matgto_serge/MatgtoProxy.java (généré)
-package com.matgto.serge;
+// uniffi/matgto_serge/MagnetoProxy.java (généré)
+package com.magneto.serge;
 
-public class MatgtoProxy implements AutoCloseable {
+public class MagnetoProxy implements AutoCloseable {
     private long handle;
 
-    public MatgtoProxy(String cassetteDir) {
-        this.handle = _UniFFILib.INSTANCE.matgto_serge_MatgtoProxy_new(cassetteDir);
+    public MagnetoProxy(String cassetteDir) {
+        this.handle = _UniFFILib.INSTANCE.matgto_serge_MagnetoProxy_new(cassetteDir);
     }
 
-    public MatgtoProxy withPort(short port) {
-        long newHandle = _UniFFILib.INSTANCE.matgto_serge_MatgtoProxy_with_port(this.handle, port);
-        return new MatgtoProxy(newHandle);
+    public MagnetoProxy withPort(short port) {
+        long newHandle = _UniFFILib.INSTANCE.matgto_serge_MagnetoProxy_with_port(this.handle, port);
+        return new MagnetoProxy(newHandle);
     }
 
     public void startRecording(String cassetteName) throws MatgtoException {
-        _UniFFILib.INSTANCE.matgto_serge_MatgtoProxy_start_recording(this.handle, cassetteName);
+        _UniFFILib.INSTANCE.matgto_serge_MagnetoProxy_start_recording(this.handle, cassetteName);
     }
 
     @Override
     public void close() {
-        _UniFFILib.INSTANCE.matgto_serge_MatgtoProxy_destroy(this.handle);
+        _UniFFILib.INSTANCE.matgto_serge_MagnetoProxy_destroy(this.handle);
     }
 }
 ```
@@ -703,26 +703,26 @@ public class MatgtoProxy implements AutoCloseable {
 // uniffi/matgto_serge.js (généré)
 const nativeBinding = require('./native/matgto_serge.node');
 
-class MatgtoProxy {
+class MagnetoProxy {
     constructor(cassetteDir) {
-        this._handle = nativeBinding.MatgtoProxy_new(cassetteDir);
+        this._handle = nativeBinding.MagnetoProxy_new(cassetteDir);
     }
 
     withPort(port) {
-        const newHandle = nativeBinding.MatgtoProxy_with_port(this._handle, port);
-        return MatgtoProxy._fromHandle(newHandle);
+        const newHandle = nativeBinding.MagnetoProxy_with_port(this._handle, port);
+        return MagnetoProxy._fromHandle(newHandle);
     }
 
     startRecording(cassetteName) {
-        nativeBinding.MatgtoProxy_start_recording(this._handle, cassetteName);
+        nativeBinding.MagnetoProxy_start_recording(this._handle, cassetteName);
     }
 
     [Symbol.dispose]() {
-        nativeBinding.MatgtoProxy_destroy(this._handle);
+        nativeBinding.MagnetoProxy_destroy(this._handle);
     }
 }
 
-module.exports = { MatgtoProxy };
+module.exports = { MagnetoProxy };
 ```
 
 **Python :**
@@ -730,24 +730,24 @@ module.exports = { MatgtoProxy };
 # uniffi/matgto_serge.py (généré)
 from ._matgto_serge import ffi, lib
 
-class MatgtoProxy:
+class MagnetoProxy:
     def __init__(self, cassette_dir: str):
-        self._handle = lib.matgto_serge_MatgtoProxy_new(
+        self._handle = lib.matgto_serge_MagnetoProxy_new(
             cassette_dir.encode('utf-8')
         )
 
-    def with_port(self, port: int) -> 'MatgtoProxy':
-        new_handle = lib.matgto_serge_MatgtoProxy_with_port(self._handle, port)
-        return MatgtoProxy._from_handle(new_handle)
+    def with_port(self, port: int) -> 'MagnetoProxy':
+        new_handle = lib.matgto_serge_MagnetoProxy_with_port(self._handle, port)
+        return MagnetoProxy._from_handle(new_handle)
 
     def start_recording(self, cassette_name: str) -> None:
-        lib.matgto_serge_MatgtoProxy_start_recording(
+        lib.matgto_serge_MagnetoProxy_start_recording(
             self._handle,
             cassette_name.encode('utf-8')
         )
 
     def __del__(self):
-        lib.matgto_serge_MatgtoProxy_destroy(self._handle)
+        lib.matgto_serge_MagnetoProxy_destroy(self._handle)
 ```
 
 ---
@@ -825,9 +825,9 @@ class MatgtoProxy:
 use rcgen::{CertificateParams, DistinguishedName};
 
 pub fn generate_ca_certificate() -> Result<(Certificate, PrivateKey)> {
-    let mut params = CertificateParams::new(vec!["matgto-serge-ca".to_string()]);
+    let mut params = CertificateParams::new(vec!["magneto-serge-ca".to_string()]);
     params.distinguished_name = DistinguishedName::new();
-    params.distinguished_name.push(CN, "matgto-serge Certificate Authority");
+    params.distinguished_name.push(CN, "magneto-serge Certificate Authority");
     params.is_ca = IsCa::Ca(BasicConstraints::Unconstrained);
 
     let cert = Certificate::from_params(params)?;
@@ -851,7 +851,7 @@ fn install_certificate_macos(cert_path: &Path) -> Result<()> {
 
 #[cfg(target_os = "linux")]
 fn install_certificate_linux(cert_path: &Path) -> Result<()> {
-    fs::copy(cert_path, "/usr/local/share/ca-certificates/matgto-serge.crt")?;
+    fs::copy(cert_path, "/usr/local/share/ca-certificates/magneto-serge.crt")?;
     Command::new("update-ca-certificates").status()?;
     Ok(())
 }
@@ -973,7 +973,7 @@ proptest! {
 ### Mode Record
 
 ```
-1. Client → matgto-serge proxy (port 8888)
+1. Client → magneto-serge proxy (port 8888)
 2. Proxy intercepte requête HTTP
 3. Recorder.store_request(req)
 4. Proxy forward → serveur réel
@@ -987,7 +987,7 @@ proptest! {
 ### Mode Replay
 
 ```
-1. Client → matgto-serge proxy (port 8888)
+1. Client → magneto-serge proxy (port 8888)
 2. Proxy intercepte requête HTTP
 3. Player.match_request(req) → lookup cassette
 4. Si match trouvé :

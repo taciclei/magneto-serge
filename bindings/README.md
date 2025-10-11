@@ -89,11 +89,11 @@ proxy.stop_recording()
 
 ```php
 <?php
-use MatgtoSerge\MatgtoProxy;
+use MatgtoSerge\MagnetoProxy;
 use MatgtoSerge\ProxyMode;
 
 // Create proxy in record mode
-$proxy = new MatgtoProxy("./cassettes");
+$proxy = new MagnetoProxy("./cassettes");
 $proxy->withPort(8888)
       ->withMode(ProxyMode::Record);
 
@@ -181,8 +181,8 @@ Usage:
 <?php
 require 'vendor/autoload.php';
 
-use MatgtoSerge\MatgtoProxy;
-$proxy = new MatgtoProxy('./cassettes');
+use MatgtoSerge\MagnetoProxy;
+$proxy = new MagnetoProxy('./cassettes');
 ```
 
 ### Kotlin/Java (Maven)

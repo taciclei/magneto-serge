@@ -1,19 +1,19 @@
-package io.github.matgto.serge;
+package io.github.magneto.serge;
 
-import uniffi.matgto_serge.ProxyMode;
+import uniffi.magneto_serge.ProxyMode;
 
 /**
- * Java wrapper pour matgto-serge
+ * Java wrapper pour magneto-serge
  *
  * Cette classe wraps les bindings Kotlin générés par UniFFI
  * pour une utilisation native depuis Java.
  *
- * @author matgto-serge contributors
- * @version 0.1.0
+ * @author magneto-serge contributors
+ * @version 0.4.0
  */
-public class MatgtoProxy {
+public class MagnetoProxy {
 
-    private final uniffi.matgto_serge.MatgtoProxy kotlinProxy;
+    private final uniffi.magneto_serge.MagnetoProxy kotlinProxy;
 
     /**
      * Mode du proxy
@@ -45,18 +45,18 @@ public class MatgtoProxy {
     }
 
     /**
-     * Crée un nouveau proxy MatgtoProxy
+     * Crée un nouveau proxy MagnetoProxy
      *
      * @param cassetteDir Répertoire des cassettes
      * @throws IllegalStateException si la création échoue
      */
-    public MatgtoProxy(String cassetteDir) {
-        uniffi.matgto_serge.MatgtoProxy proxy =
-            uniffi.matgto_serge.MatgtoSergeKt.createProxy(cassetteDir);
+    public MagnetoProxy(String cassetteDir) {
+        uniffi.magneto_serge.MagnetoProxy proxy =
+            uniffi.magneto_serge.MagnetoSergeKt.createProxy(cassetteDir);
 
         if (proxy == null) {
             throw new IllegalStateException(
-                "Failed to create MatgtoProxy with cassetteDir: " + cassetteDir
+                "Failed to create MagnetoProxy with cassetteDir: " + cassetteDir
             );
         }
 
@@ -139,23 +139,23 @@ public class MatgtoProxy {
     }
 
     /**
-     * Obtient la version de matgto-serge
+     * Obtient la version de magneto-serge
      *
-     * @return Version (ex: "0.1.0")
+     * @return Version (ex: "0.4.0")
      */
     public static String getVersion() {
-        return uniffi.matgto_serge.MatgtoSergeKt.version();
+        return uniffi.magneto_serge.MagnetoSergeKt.version();
     }
 
     /**
      * Factory method pour créer un proxy
      *
      * @param cassetteDir Répertoire des cassettes
-     * @return Instance de MatgtoProxy ou null si échec
+     * @return Instance de MagnetoProxy ou null si échec
      */
-    public static MatgtoProxy create(String cassetteDir) {
+    public static MagnetoProxy create(String cassetteDir) {
         try {
-            return new MatgtoProxy(cassetteDir);
+            return new MagnetoProxy(cassetteDir);
         } catch (IllegalStateException e) {
             return null;
         }
@@ -163,7 +163,7 @@ public class MatgtoProxy {
 
     @Override
     public String toString() {
-        return "MatgtoProxy{" +
+        return "MagnetoProxy{" +
                "port=" + getPort() +
                ", mode=" + getMode() +
                ", version=" + getVersion() +
