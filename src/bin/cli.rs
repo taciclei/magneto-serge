@@ -426,6 +426,15 @@ fn inspect_cassette(cassette_dir: &Path, name: &str) -> Result<(), Box<dyn std::
                         request.url.dimmed()
                     );
                 }
+                InteractionKind::HttpError { request, error } => {
+                    println!(
+                        "    {}. {} {} {}",
+                        (i + 1).to_string().dimmed(),
+                        request.method.bright_red(),
+                        request.url.dimmed(),
+                        format!("(Error: {:?})", error).red()
+                    );
+                }
                 InteractionKind::WebSocket { .. } => {
                     println!(
                         "    {}. {}",

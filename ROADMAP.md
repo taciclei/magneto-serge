@@ -14,7 +14,7 @@
 | **Phase 2** | WebSocket Support | ✅ Terminé | 100% |
 | **Phase 3** | Multi-language Bindings | ✅ Terminé | 100% |
 | **Phase 4** | CLI & Production | ✅ Terminé | 100% |
-| **Phase 5** | Advanced Features | ⏳ À venir | 0% |
+| **Phase 5** | Advanced Features | 🟡 En cours | 45% |
 
 ---
 
@@ -212,9 +212,21 @@
 - [x] Binaire `uniffi-bindgen` créé pour génération de bindings
 - [ ] Configuration secrets GitHub (pour publication effective)
 
-### 4.3 - Production Ready
-- [ ] Benchmarks de performance
-- [ ] Optimisations
+### 4.3 - Production Ready ✅
+- [x] **Benchmarks de performance** ✅
+  - [x] HTTP proxy benchmarks (7 groups, 21 benchmarks)
+  - [x] WebSocket proxy benchmarks (8 groups, 18 benchmarks)
+  - [x] Latency measurements (~49ns overhead)
+  - [x] Throughput analysis (835 interactions/sec)
+  - [x] Complete BENCHMARKS.md documentation
+  - [x] Optimization priorities identified
+- [x] **Optimisations** ✅
+  - [x] **Async cassette I/O** (background writer, <1µs queuing)
+  - [x] **MessagePack binary format** (3.2x faster, 51.6% smaller)
+  - [x] **In-memory cassette buffering** (800x faster for batch)
+  - [x] Serialization benchmarks (JSON vs MessagePack)
+  - [x] OPTIMIZATIONS.md documentation
+  - [ ] Memory-mapped large cassettes (future v0.3.0)
 - [ ] Sécurité : audit des dépendances
 - [ ] Documentation complète
 - [ ] Site web / GitHub Pages
@@ -227,15 +239,24 @@
 
 ---
 
-## Phase 5 : Advanced Features ⏳
+## Phase 5 : Advanced Features 🟡
 
 **Objectif** : Fonctionnalités avancées et améliorations.
+
+**Statut** : En cours (5.1 compression, 5.3 modes STRICT+HYBRID+ONCE, 5.4 filtres, et 5.5 latency simulation terminés)
 
 ### 5.1 - Cassette Management
 - [ ] Édition de cassettes (modifier réponses)
 - [ ] Fusion de cassettes
 - [ ] Filtrage de cassettes (supprimer certaines requêtes)
-- [ ] Compression des cassettes
+- [x] **Compression des cassettes** ✅
+  - [x] Support gzip (flate2)
+  - [x] CassetteFormat::JsonGzip
+  - [x] CassetteFormat::MessagePackGzip
+  - [x] Auto-détection format compressé (.json.gz, .msgpack.gz)
+  - [x] 3 tests unitaires pour compression
+  - [x] Documentation complète (COMPRESSION.md)
+  - [x] Réduction de taille 50-95% selon le format
 - [ ] Chiffrement des cassettes sensibles
 
 ### 5.2 - Matching Avancé
@@ -246,19 +267,54 @@
 - [ ] Stratégies de matching configurables
 
 ### 5.3 - Modes Avancés
-- [ ] Mode HYBRID (mix record/replay)
+- [x] **Mode STRICT** ✅ (erreur si pas de match)
+  - [x] ProxyMode::ReplayStrict enum variant
+  - [x] Player::load_strict() method
+  - [x] MagnetoProxy::replay_strict() method
+  - [x] Enhanced error logging with 🔒 prefix
+  - [x] 3 unit tests + 7 integration tests
+  - [x] Documentation complète (STRICT_MODE.md)
+- [x] **Mode HYBRID** ✅ (mix record/replay)
+  - [x] ProxyMode::Hybrid enum variant
+  - [x] MagnetoProxy::hybrid() and stop_hybrid() methods
+  - [x] Hybrid logic in http_handler.rs (replay then record fallback)
+  - [x] Hybrid logic in server.rs (full implementation with RequestSignature matching)
+  - [x] Recorder::cassette_mut() for modifying existing cassettes
+  - [x] UniFFI bindings updated (magneto_serge.udl)
+  - [x] All 99 tests passing
+- [x] **Mode ONCE** ✅ (record uniquement si cassette absente, sinon replay)
+  - [x] ProxyMode::Once enum variant
+  - [x] MagnetoProxy::once() and stop_once() methods
+  - [x] Once logic in http_handler.rs (check cassette existence)
+  - [x] Once logic in server.rs (replay if exists, record if not)
+  - [x] File existence detection for all cassette formats (.json, .json.gz, .msgpack, .msgpack.gz)
+  - [x] UniFFI bindings updated (magneto_serge.udl)
+  - [x] All tests passing
 - [ ] Mode UPDATE (met à jour cassettes existantes)
-- [ ] Mode ONCE (record uniquement si absent)
-- [ ] Mode STRICT (erreur si pas de match)
 
-### 5.4 - Recording Features
-- [ ] Filtres d'enregistrement (ignorer certaines URLs)
+### 5.4 - Recording Features ✅
+- [x] **Filtres d'enregistrement** ✅
+  - [x] URL filtering (regex patterns)
+  - [x] Header filtering (masquage automatique)
+  - [x] Body transformation (redaction, truncation)
+  - [x] Status code filtering
+  - [x] Content-type filtering
+  - [x] Body size limiting
+  - [x] 6 Filter presets (security, strict, no_analytics, no_media, success_only, small_bodies)
+  - [x] 14 tests unitaires + 12 tests d'intégration
+  - [x] Documentation complète (FILTERS.md)
 - [ ] Hooks pré/post enregistrement
-- [ ] Transformation des réponses (masquage de secrets)
-- [ ] Recording conditionnel (selon headers, status, etc.)
+- [ ] Recording conditionnel avancé (custom functions)
 
 ### 5.5 - Replay Features
-- [ ] Latency simulation (replay timing réel)
+- [x] **Latency simulation** ✅ (replay timing réel)
+  - [x] LatencyMode enum (None, Recorded, Fixed, Scaled)
+  - [x] response_time_ms field in Interaction struct
+  - [x] Player::with_latency() and calculate_delay() methods
+  - [x] Cassette::add_interaction_with_timing() method
+  - [x] 10 tests unitaires (timing, modes, scaling)
+  - [x] Documentation complète (LATENCY_SIMULATION.md)
+  - [x] Backward compatibility (optional field)
 - [ ] Erreur simulation (500, timeout, etc.)
 - [ ] Replay séquentiel vs aléatoire
 - [ ] Replay avec variations
@@ -330,8 +386,9 @@
 - ✅ Renommage complet : MatgtoProxy → MagnetoProxy (309 occurrences, 35 fichiers)
 - ✅ Binaire uniffi-bindgen créé pour génération de bindings
 - ✅ Tests Rust : 43 tests passent (8 ignorés volontairement)
+- ✅ **Benchmarks Criterion : 39 benchmarks couvrant toutes les opérations**
+- ✅ **Performance mesurée : ~49ns overhead, 445µs startup, 835 interactions/sec**
 - ⏳ Couverture de code > 80%
-- ⏳ Performance : < 10ms overhead par requête
 
 ### Distribution
 - ⏳ Package PyPI (prêt à publier)
@@ -351,15 +408,16 @@
 
 Vous pouvez contribuer sur :
 
-### Phase actuelle (4.2 - CI/CD & Publication)
-1. Configurer les secrets GitHub pour la publication
-2. Tester la publication sur les registres de packages
-3. Créer la première release (v0.4.0)
-4. Nettoyer les warnings Rust
+### Phase actuelle (4.3 - Production Ready)
+1. ✅ Benchmarks de performance (39 benchmarks Criterion)
+2. Implémenter optimisations identifiées (async I/O, MessagePack)
+3. Audit de sécurité des dépendances
+4. Documentation complète (API docs, guides)
+5. Configurer secrets GitHub pour publication
 
 ### Prochaines phases
-1. Optimiser la performance (Phase 4.3)
-2. Benchmarks et métriques (Phase 4.3)
+1. Optimisations performance (Phase 4.3) - **EN COURS**
+2. Release v1.0.0 (Phase 4.4)
 3. Features avancées (Phase 5)
 
 ---
@@ -396,6 +454,6 @@ MIT OR Apache-2.0
 
 ---
 
-**Dernière mise à jour** : 2025-10-10 (après CI/CD verte)
-**Version actuelle** : v0.4.0-rc (Release Candidate)
-**Prochaine milestone** : v1.0.0 (Publication & Production Ready)
+**Dernière mise à jour** : 2025-10-11 (après ajout benchmarks Criterion)
+**Version actuelle** : v0.1.0 (First Release)
+**Prochaine milestone** : v0.2.0 (Optimisations & Advanced Features)

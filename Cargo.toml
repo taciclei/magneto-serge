@@ -1,6 +1,6 @@
 [package]
 name = "magneto-serge"
-version = "0.0.1"
+version = "0.1.0"
 edition = "2021"
 rust-version = "1.75"
 authors = ["Magnéto-Serge contributors <contact@taciclei.com>"]
@@ -62,6 +62,9 @@ serde = { version = "1.0", features = ["derive", "rc"] }
 serde_json = { version = "1.0", features = ["preserve_order"] }
 rmp-serde = { version = "1.1", optional = true }
 
+# === Compression ===
+flate2 = { version = "1.0", optional = true }
+
 # === TLS & Certificates ===
 rcgen = { version = "0.11", features = ["pem"] }
 rustls = { version = "0.21", features = ["dangerous_configuration"] }
@@ -113,9 +116,10 @@ wiremock = "0.5"
 httptest = "0.15"
 
 [features]
-default = ["cli", "msgpack"]
+default = ["cli", "msgpack", "compression"]
 cli = ["clap", "colored", "indicatif"]
 msgpack = ["rmp-serde"]
+compression = ["flate2"]
 
 [build-dependencies]
 uniffi = { version = "0.28", features = ["build"] }
@@ -125,7 +129,9 @@ opt-level = 3
 lto = "fat"
 codegen-units = 1
 strip = true
-panic = "abort"
+
+[profile.bench]
+inherits = "release"
 
 [profile.dev]
 opt-level = 1
@@ -136,4 +142,8 @@ harness = false
 
 [[bench]]
 name = "websocket_proxy"
+harness = false
+
+[[bench]]
+name = "serialization_optim"
 harness = false

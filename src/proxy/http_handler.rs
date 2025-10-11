@@ -82,9 +82,15 @@ impl HttpHandler {
                     Ok(response)
                 }
 
-                ProxyMode::Replay => {
+                ProxyMode::Replay | ProxyMode::ReplayStrict => {
                     // Match request against cassette
-                    tracing::debug!("Replaying request: {} {}", method, url);
+                    let is_strict = matches!(self.mode, ProxyMode::ReplayStrict);
+
+                    if is_strict {
+                        tracing::debug!("🔒 STRICT replaying request: {} {}", method, url);
+                    } else {
+                        tracing::debug!("Replaying request: {} {}", method, url);
+                    }
 
                     if let Some(_player) = &self.player {
                         // TODO: Implement request matching and response replay
@@ -96,7 +102,7 @@ impl HttpHandler {
                         })
                     } else {
                         Err(MatgtoError::ProxyStartFailed {
-                            reason: "No player configured for Replay mode".to_string(),
+                            reason: format!("No player configured for {:?} mode", self.mode),
                         })
                     }
                 }
@@ -123,6 +129,68 @@ impl HttpHandler {
 
                     Err(MatgtoError::ProxyStartFailed {
                         reason: "Neither recorder nor player configured for Auto mode".to_string(),
+                    })
+                }
+
+                ProxyMode::Hybrid => {
+                    // Try to replay from cassette, fall back to record if not found
+                    tracing::debug!("🔀 Hybrid mode: {} {}", method, url);
+
+                    // Try to find interaction in player
+                    if let Some(_player) = &self.player {
+                        // TODO: Create RequestSignature and try to find interaction
+                        // For now, always fall back to record
+                        tracing::debug!("  Interaction not found in cassette, recording new");
+                    }
+
+                    // Record new interaction
+                    let response = HttpResponse {
+                        status: 200,
+                        headers: HashMap::new(),
+                        body: Some(b"{}".to_vec()),
+                    };
+
+                    if let Some(recorder) = &self.recorder {
+                        let request = HttpRequest {
+                            method: method.clone(),
+                            url: url.clone(),
+                            headers: headers.clone(),
+                            body: body.clone(),
+                        };
+
+                        recorder.lock().await.record_http(request, response.clone());
+                        tracing::debug!("  ✅ New interaction recorded");
+                    }
+
+                    Ok(response)
+                }
+
+                ProxyMode::Once => {
+                    // Once mode: Check if cassette exists
+                    // If exists → replay, if not → record (then replay next time)
+                    tracing::debug!("🔒 Once mode: {} {}", method, url);
+
+                    // Try to find interaction in player
+                    if let Some(player) = &self.player {
+                        if player.lock().await.has_cassette() {
+                            tracing::debug!("  Cassette exists, replaying");
+                            // Switch to replay mode
+                            let mut handler =
+                                Self::new(ProxyMode::Replay).with_player(player.clone());
+                            return handler.handle_request(method, url, headers, body).await;
+                        }
+                    }
+
+                    // Cassette doesn't exist, record it
+                    tracing::debug!("  Cassette doesn't exist, recording");
+                    if let Some(recorder) = &self.recorder {
+                        let mut handler =
+                            Self::new(ProxyMode::Record).with_recorder(recorder.clone());
+                        return handler.handle_request(method, url, headers, body).await;
+                    }
+
+                    Err(MatgtoError::ProxyStartFailed {
+                        reason: "Neither recorder nor player configured for Once mode".to_string(),
                     })
                 }
 

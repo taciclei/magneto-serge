@@ -61,6 +61,7 @@ impl WebSocketRecorder {
             // Create interaction
             let interaction = Interaction {
                 recorded_at: Utc::now(),
+                response_time_ms: None, // WebSocket sessions don't have a single response time
                 kind: InteractionKind::WebSocket {
                     url,
                     messages: self.current_messages.drain(..).collect(),

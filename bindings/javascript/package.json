@@ -1,6 +1,6 @@
 {
   "name": "@taciclei/magneto-serge",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Magnéto-Serge - Multi-language HTTP/WebSocket testing library with record/replay (Node.js bindings)",
   "main": "index.js",
   "types": "index.d.ts",

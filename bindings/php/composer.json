@@ -1,27 +1,48 @@
 {
-    "name": "magneto/serge",
-    "description": "PHP bindings for matgto-serge - HTTP/WebSocket testing library with record/replay",
+    "name": "taciclei/magneto-serge",
+    "description": "Magnéto-Serge - Multi-language HTTP/WebSocket testing library with record/replay capabilities (PHP FFI bindings)",
     "type": "library",
-    "keywords": ["testing", "http", "websocket", "proxy", "vcr", "mock", "record", "replay"],
-    "homepage": "https://github.com/your-org/matgto-serge",
+    "version": "0.1.0",
+    "keywords": [
+        "testing",
+        "http",
+        "https",
+        "websocket",
+        "proxy",
+        "vcr",
+        "mock",
+        "record",
+        "replay",
+        "mitm",
+        "ffi",
+        "rust"
+    ],
+    "homepage": "https://github.com/taciclei/magneto-serge",
     "license": ["MIT", "Apache-2.0"],
     "authors": [
         {
-            "name": "matgto-serge contributors",
-            "homepage": "https://github.com/your-org/matgto-serge/contributors"
+            "name": "Magnéto-Serge contributors",
+            "email": "contact@taciclei.com",
+            "homepage": "https://github.com/taciclei/magneto-serge/contributors"
         }
     ],
+    "support": {
+        "issues": "https://github.com/taciclei/magneto-serge/issues",
+        "source": "https://github.com/taciclei/magneto-serge",
+        "docs": "https://github.com/taciclei/magneto-serge/blob/main/bindings/php/README.md"
+    },
     "require": {
         "php": ">=8.1",
         "ext-ffi": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.0",
-        "phpstan/phpstan": "^1.10"
+        "phpstan/phpstan": "^1.10",
+        "guzzlehttp/guzzle": "^7.8"
     },
     "autoload": {
         "psr-4": {
-            "MatgtoSerge\\": "src/"
+            "Taciclei\\MagnetoSerge\\": "src/"
         },
         "files": [
             "MagnetoProxy.php"
@@ -29,17 +50,28 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "MatgtoSerge\\Tests\\": "tests/"
+            "Taciclei\\MagnetoSerge\\Tests\\": "tests/"
         }
     },
     "scripts": {
         "test": "phpunit",
-        "analyse": "phpstan analyse src tests --level=max"
+        "analyse": "phpstan analyse src tests --level=max",
+        "check": [
+            "@analyse",
+            "@test"
+        ]
     },
     "config": {
         "sort-packages": true,
-        "preferred-install": "dist"
+        "preferred-install": "dist",
+        "optimize-autoloader": true
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev",
+            "dev-develop": "0.2.x-dev"
+        }
+    }
 }

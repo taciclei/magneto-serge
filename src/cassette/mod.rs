@@ -1,8 +1,13 @@
 //! Cassette format definitions and types
 
+pub mod storage;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+
+// Re-export storage types
+pub use storage::{detect_format, AsyncCassetteStorage, BufferedCassetteWriter, CassetteFormat};
 
 /// A cassette containing recorded HTTP/WebSocket interactions
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -29,6 +34,40 @@ pub struct Interaction {
 
     /// When this interaction was recorded
     pub recorded_at: DateTime<Utc>,
+
+    /// Response time in milliseconds (for latency simulation)
+    /// None if not recorded or unknown
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub response_time_ms: Option<u64>,
+}
+
+/// Network error types
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(tag = "error_type")]
+pub enum NetworkError {
+    /// DNS resolution failed
+    DnsResolutionFailed { message: String },
+
+    /// Connection refused by server
+    ConnectionRefused { message: String },
+
+    /// Connection timed out
+    Timeout { message: String, timeout_ms: u64 },
+
+    /// TLS/SSL error
+    TlsError { message: String },
+
+    /// Connection reset by peer
+    ConnectionReset { message: String },
+
+    /// Too many redirects
+    TooManyRedirects {
+        message: String,
+        redirect_count: usize,
+    },
+
+    /// Other network error
+    Other { message: String },
 }
 
 /// Type of interaction
@@ -39,6 +78,12 @@ pub enum InteractionKind {
     Http {
         request: HttpRequest,
         response: HttpResponse,
+    },
+
+    /// HTTP request that resulted in an error (timeout, DNS failure, connection refused, etc.)
+    HttpError {
+        request: HttpRequest,
+        error: NetworkError,
     },
 
     /// WebSocket connection with messages
@@ -145,6 +190,78 @@ impl Cassette {
         self.interactions.push(Interaction {
             kind,
             recorded_at: Utc::now(),
+            response_time_ms: None,
         });
+    }
+
+    /// Add an interaction with response time
+    pub fn add_interaction_with_timing(&mut self, kind: InteractionKind, response_time_ms: u64) {
+        self.interactions.push(Interaction {
+            kind,
+            recorded_at: Utc::now(),
+            response_time_ms: Some(response_time_ms),
+        });
+    }
+
+    /// Add a network error interaction
+    pub fn add_error(&mut self, request: HttpRequest, error: NetworkError) {
+        self.interactions.push(Interaction {
+            kind: InteractionKind::HttpError { request, error },
+            recorded_at: Utc::now(),
+            response_time_ms: None,
+        });
+    }
+}
+
+impl NetworkError {
+    /// Create a DNS resolution error
+    pub fn dns_failed(message: impl Into<String>) -> Self {
+        Self::DnsResolutionFailed {
+            message: message.into(),
+        }
+    }
+
+    /// Create a connection refused error
+    pub fn connection_refused(message: impl Into<String>) -> Self {
+        Self::ConnectionRefused {
+            message: message.into(),
+        }
+    }
+
+    /// Create a timeout error
+    pub fn timeout(message: impl Into<String>, timeout_ms: u64) -> Self {
+        Self::Timeout {
+            message: message.into(),
+            timeout_ms,
+        }
+    }
+
+    /// Create a TLS error
+    pub fn tls_error(message: impl Into<String>) -> Self {
+        Self::TlsError {
+            message: message.into(),
+        }
+    }
+
+    /// Create a connection reset error
+    pub fn connection_reset(message: impl Into<String>) -> Self {
+        Self::ConnectionReset {
+            message: message.into(),
+        }
+    }
+
+    /// Create a too many redirects error
+    pub fn too_many_redirects(message: impl Into<String>, redirect_count: usize) -> Self {
+        Self::TooManyRedirects {
+            message: message.into(),
+            redirect_count,
+        }
+    }
+
+    /// Create a generic network error
+    pub fn other(message: impl Into<String>) -> Self {
+        Self::Other {
+            message: message.into(),
+        }
     }
 }
