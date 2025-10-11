@@ -11,8 +11,10 @@ This project is made possible by the following contributors:
 - **phpjit** - Core Developer
   - Email: contact@taciclei.com
 
-- **Citoyen** - Contributor
+- **1000i100** (Millicent Billette) - Contributor
+  - GitHub: [@1000i100](https://github.com/1000i100)
   - Email: citoyen@1000i100.fr
+  - Contributions: Issue reporting and feature suggestions (#3, #5, #6)
 
 ## How to Contribute
 
