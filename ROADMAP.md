@@ -14,7 +14,7 @@
 | **Phase 2** | WebSocket Support | ✅ Terminé | 100% |
 | **Phase 3** | Multi-language Bindings | ✅ Terminé | 100% |
 | **Phase 4** | CLI & Production | ✅ Terminé | 100% |
-| **Phase 5** | Advanced Features | ⏳ À venir | 0% |
+| **Phase 5** | Advanced Features | 🟡 En cours | 15% |
 
 ---
 
@@ -239,9 +239,11 @@
 
 ---
 
-## Phase 5 : Advanced Features ⏳
+## Phase 5 : Advanced Features 🟡
 
 **Objectif** : Fonctionnalités avancées et améliorations.
+
+**Statut** : En cours (5.4 partiellement terminé)
 
 ### 5.1 - Cassette Management
 - [ ] Édition de cassettes (modifier réponses)
@@ -263,11 +265,19 @@
 - [ ] Mode ONCE (record uniquement si absent)
 - [ ] Mode STRICT (erreur si pas de match)
 
-### 5.4 - Recording Features
-- [ ] Filtres d'enregistrement (ignorer certaines URLs)
+### 5.4 - Recording Features ✅
+- [x] **Filtres d'enregistrement** ✅
+  - [x] URL filtering (regex patterns)
+  - [x] Header filtering (masquage automatique)
+  - [x] Body transformation (redaction, truncation)
+  - [x] Status code filtering
+  - [x] Content-type filtering
+  - [x] Body size limiting
+  - [x] 6 Filter presets (security, strict, no_analytics, no_media, success_only, small_bodies)
+  - [x] 14 tests unitaires + 12 tests d'intégration
+  - [x] Documentation complète (FILTERS.md)
 - [ ] Hooks pré/post enregistrement
-- [ ] Transformation des réponses (masquage de secrets)
-- [ ] Recording conditionnel (selon headers, status, etc.)
+- [ ] Recording conditionnel avancé (custom functions)
 
 ### 5.5 - Replay Features
 - [ ] Latency simulation (replay timing réel)

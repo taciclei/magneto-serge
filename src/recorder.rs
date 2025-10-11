@@ -2,6 +2,7 @@
 
 use crate::cassette::{Cassette, HttpRequest, HttpResponse, InteractionKind};
 use crate::error::Result;
+use crate::filters::RecordingFilters;
 use std::fs::File;
 use std::path::Path;
 
@@ -13,6 +14,9 @@ pub struct Recorder {
 
     /// The cassette being built
     cassette: Cassette,
+
+    /// Recording filters
+    filters: Option<RecordingFilters>,
 }
 
 impl Recorder {
@@ -23,13 +27,59 @@ impl Recorder {
         Self {
             cassette_name,
             cassette,
+            filters: None,
         }
+    }
+
+    /// Create a new recorder with filters
+    pub fn new_with_filters(cassette_name: String, filters: RecordingFilters) -> Self {
+        let cassette = Cassette::new(cassette_name.clone());
+
+        Self {
+            cassette_name,
+            cassette,
+            filters: Some(filters),
+        }
+    }
+
+    /// Set recording filters
+    pub fn set_filters(&mut self, filters: RecordingFilters) {
+        self.filters = Some(filters);
+    }
+
+    /// Get current filters
+    pub fn filters(&self) -> Option<&RecordingFilters> {
+        self.filters.as_ref()
     }
 
     /// Record an HTTP interaction
     pub fn record_http(&mut self, request: HttpRequest, response: HttpResponse) {
-        let interaction = InteractionKind::Http { request, response };
-        self.cassette.add_interaction(interaction);
+        // Apply filters if configured
+        if let Some(filters) = &self.filters {
+            // Check if interaction should be recorded
+            if !filters.should_record(&request, &response) {
+                tracing::debug!(
+                    "Skipping recording for {} {} (filtered)",
+                    request.method,
+                    request.url
+                );
+                return;
+            }
+
+            // Apply transformations
+            let filtered_request = filters.apply_to_request(request);
+            let filtered_response = filters.apply_to_response(response);
+
+            let interaction = InteractionKind::Http {
+                request: filtered_request,
+                response: filtered_response,
+            };
+            self.cassette.add_interaction(interaction);
+        } else {
+            // No filters, record as-is
+            let interaction = InteractionKind::Http { request, response };
+            self.cassette.add_interaction(interaction);
+        }
     }
 
     /// Save the cassette to disk

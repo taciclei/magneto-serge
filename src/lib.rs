@@ -10,6 +10,7 @@
 
 pub mod cassette;
 pub mod error;
+pub mod filters;
 pub mod player;
 pub mod proxy;
 pub mod recorder;
@@ -17,6 +18,7 @@ pub mod tls;
 pub mod websocket;
 
 pub use error::{MatgtoError, Result};
+pub use filters::{FilterPresets, RecordingFilters};
 pub use proxy::{MagnetoProxy, ProxyMode};
 pub use tls::CertificateAuthority;
 pub use websocket::{WebSocketInterceptor, WebSocketPlayer, WebSocketRecorder};
