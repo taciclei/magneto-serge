@@ -11,6 +11,413 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
+## Git Workflow (GitFlow)
+
+This project follows **GitFlow** branching strategy for organized development and releases.
+
+### Branch Structure
+
+```
+main (production)
+  └── develop (integration)
+       ├── feature/* (new features)
+       ├── bugfix/* (bug fixes)
+       ├── hotfix/* (urgent production fixes)
+       └── release/* (release preparation)
+```
+
+### Main Branches
+
+#### `main` (Production Branch)
+- **Purpose**: Production-ready code
+- **Protected**: Yes (require PR + reviews)
+- **Merged from**: `release/*` and `hotfix/*` only
+- **Tagged**: All releases (v0.1.0, v0.2.0, etc.)
+- **Auto-deploys**: To crates.io, npm, Private Packagist
+
+#### `develop` (Integration Branch)
+- **Purpose**: Integration branch for features
+- **Protected**: Yes (require PR)
+- **Merged from**: `feature/*`, `bugfix/*`, `release/*`
+- **Always ahead of**: `main` (except after hotfix)
+
+### Supporting Branches
+
+#### `feature/*` (New Features)
+- **Naming**: `feature/name-of-feature`
+- **Branch from**: `develop`
+- **Merge into**: `develop`
+- **Lifespan**: Until feature is complete
+- **Delete after**: Merge
+
+**Examples:**
+- `feature/cli-tool`
+- `feature/python-bindings`
+- `feature/websocket-replay-timing`
+
+**Workflow:**
+```bash
+# Create feature branch
+git checkout develop
+git pull origin develop
+git checkout -b feature/my-feature
+
+# Work on feature
+git add .
+git commit -m "feat: implement my feature"
+git push origin feature/my-feature
+
+# Create PR to develop
+gh pr create --base develop --head feature/my-feature
+```
+
+#### `bugfix/*` (Bug Fixes)
+- **Naming**: `bugfix/issue-description`
+- **Branch from**: `develop`
+- **Merge into**: `develop`
+- **Lifespan**: Until bug is fixed
+- **Delete after**: Merge
+
+**Examples:**
+- `bugfix/cassette-save-error`
+- `bugfix/websocket-reconnect`
+
+**Workflow:**
+```bash
+# Create bugfix branch
+git checkout develop
+git checkout -b bugfix/fix-description
+
+# Fix bug
+git add .
+git commit -m "fix: resolve issue with X"
+git push origin bugfix/fix-description
+
+# Create PR to develop
+gh pr create --base develop --head bugfix/fix-description
+```
+
+#### `release/*` (Release Preparation)
+- **Naming**: `release/vX.Y.Z`
+- **Branch from**: `develop`
+- **Merge into**: `main` AND `develop`
+- **Purpose**: Bump versions, update docs, final testing
+- **No new features**: Only bug fixes and release prep
+
+**Workflow:**
+```bash
+# Create release branch
+git checkout develop
+git checkout -b release/v0.2.0
+
+# Update versions
+sed -i '' 's/version = "0.1.0"/version = "0.2.0"/' Cargo.toml
+sed -i '' 's/"version": "0.1.0"/"version": "0.2.0"/' bindings/*/package.json
+sed -i '' 's/"version": "0.1.0"/"version": "0.2.0"/' bindings/*/composer.json
+
+# Update CHANGELOG
+# Edit CHANGELOG.md with v0.2.0 changes
+
+# Commit release prep
+git add .
+git commit -m "chore: prepare release v0.2.0"
+git push origin release/v0.2.0
+
+# Create PR to main
+gh pr create --base main --head release/v0.2.0 --title "Release v0.2.0"
+
+# After merge to main:
+# 1. Tag the release
+git checkout main
+git pull origin main
+git tag -a v0.2.0 -m "Release v0.2.0"
+git push origin v0.2.0
+
+# 2. Merge back to develop
+git checkout develop
+git merge main
+git push origin develop
+```
+
+#### `hotfix/*` (Urgent Production Fixes)
+- **Naming**: `hotfix/vX.Y.Z`
+- **Branch from**: `main`
+- **Merge into**: `main` AND `develop`
+- **Purpose**: Critical bug fixes in production
+- **Fast-track**: Skip develop, go directly to main
+
+**Workflow:**
+```bash
+# Create hotfix branch from main
+git checkout main
+git pull origin main
+git checkout -b hotfix/v0.1.1
+
+# Fix critical bug
+git add .
+git commit -m "fix: critical security issue in X"
+
+# Update version (patch bump)
+sed -i '' 's/version = "0.1.0"/version = "0.1.1"/' Cargo.toml
+
+# Push and PR to main
+git push origin hotfix/v0.1.1
+gh pr create --base main --head hotfix/v0.1.1 --title "Hotfix v0.1.1"
+
+# After merge:
+git checkout main
+git tag -a v0.1.1 -m "Hotfix v0.1.1"
+git push origin v0.1.1
+
+# Merge back to develop
+git checkout develop
+git merge main
+git push origin develop
+```
+
+---
+
+### Commit Message Convention
+
+Follow **Conventional Commits** specification:
+
+**Format:**
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+**Types:**
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code style (formatting, no logic change)
+- `refactor`: Code refactoring
+- `perf`: Performance improvement
+- `test`: Add/update tests
+- `chore`: Build process, dependencies, tools
+- `ci`: CI/CD changes
+
+**Scopes (optional):**
+- `core`: Rust core library
+- `js`: JavaScript bindings
+- `php`: PHP bindings
+- `python`: Python bindings
+- `cli`: CLI tool
+- `websocket`: WebSocket features
+- `http`: HTTP proxy features
+- `docs`: Documentation
+
+**Examples:**
+```bash
+feat(websocket): add replay timing preservation
+fix(core): resolve cassette save race condition
+docs(readme): update installation instructions
+chore(deps): bump tokio to 1.47
+ci(actions): add multi-platform builds
+test(integration): add WebSocket E2E tests
+```
+
+**Breaking changes:**
+```bash
+feat(core)!: change ProxyMode enum values
+
+BREAKING CHANGE: ProxyMode enum now uses different values
+```
+
+---
+
+### Pull Request Workflow
+
+#### Creating a PR
+
+```bash
+# Push your branch
+git push origin feature/my-feature
+
+# Create PR via gh CLI
+gh pr create \
+  --base develop \
+  --head feature/my-feature \
+  --title "feat(scope): description" \
+  --body "## Changes
+- Added X
+- Fixed Y
+
+## Testing
+- [ ] Unit tests added
+- [ ] Integration tests pass
+- [ ] Documentation updated"
+```
+
+#### PR Review Checklist
+
+Before approving:
+- [ ] All CI checks pass (tests, clippy, fmt)
+- [ ] Code follows project conventions
+- [ ] Tests added for new features
+- [ ] Documentation updated
+- [ ] No merge conflicts
+- [ ] Commit messages follow convention
+
+#### Merging Strategy
+
+- **Squash and merge**: For feature/* and bugfix/*
+- **Merge commit**: For release/* and hotfix/*
+- **No fast-forward**: Always create merge commit for traceability
+
+---
+
+### Release Workflow
+
+#### Version Numbering (SemVer)
+
+`MAJOR.MINOR.PATCH` (e.g., 0.1.0)
+
+- **MAJOR**: Breaking changes (1.0.0, 2.0.0)
+- **MINOR**: New features, backward compatible (0.1.0 → 0.2.0)
+- **PATCH**: Bug fixes, backward compatible (0.1.0 → 0.1.1)
+
+**Current version:** 0.1.0
+
+#### Release Checklist
+
+Before creating a release branch:
+- [ ] All features merged to develop
+- [ ] All tests passing on develop
+- [ ] CI/CD green
+- [ ] Documentation reviewed
+- [ ] CHANGELOG prepared
+
+Release branch tasks:
+- [ ] Bump versions in Cargo.toml, package.json, composer.json
+- [ ] Update CHANGELOG.md
+- [ ] Update README if needed
+- [ ] Final testing
+- [ ] Create PR to main
+- [ ] Get approvals
+- [ ] Merge to main
+- [ ] Tag release
+- [ ] Merge back to develop
+- [ ] Publish packages (crates.io, npm, Packagist)
+
+---
+
+### Branch Protection Rules
+
+#### `main` Branch
+- ✅ Require pull request before merging
+- ✅ Require 1 approval
+- ✅ Require status checks (CI, tests, clippy, fmt)
+- ✅ Require conversation resolution
+- ✅ Do not allow bypassing
+- ✅ Require linear history
+- ✅ Require signed commits (optional)
+
+#### `develop` Branch
+- ✅ Require pull request before merging
+- ✅ Require status checks (CI, tests)
+- ✅ Allow force push (for rebasing)
+- ⚠️ Approvals recommended but not required
+
+#### Feature Branches
+- No protection needed
+- Delete after merge
+
+---
+
+### Common Scenarios
+
+#### Starting New Feature
+
+```bash
+git checkout develop
+git pull origin develop
+git checkout -b feature/my-feature
+# Work...
+git push origin feature/my-feature
+gh pr create --base develop
+```
+
+#### Fixing a Bug
+
+```bash
+git checkout develop
+git checkout -b bugfix/issue-description
+# Fix...
+git push origin bugfix/issue-description
+gh pr create --base develop
+```
+
+#### Preparing Release
+
+```bash
+git checkout develop
+git checkout -b release/v0.2.0
+# Update versions, CHANGELOG
+git push origin release/v0.2.0
+gh pr create --base main --title "Release v0.2.0"
+# After merge: tag and merge back to develop
+```
+
+#### Emergency Hotfix
+
+```bash
+git checkout main
+git checkout -b hotfix/v0.1.1
+# Fix critical bug
+git push origin hotfix/v0.1.1
+gh pr create --base main --title "Hotfix v0.1.1"
+# After merge: tag and merge back to develop
+```
+
+---
+
+### GitFlow Commands Reference
+
+```bash
+# View current branch
+git branch --show-current
+
+# List all branches
+git branch -a
+
+# Create and switch to new branch
+git checkout -b feature/name
+
+# Update current branch from origin
+git pull origin $(git branch --show-current)
+
+# Push current branch
+git push origin $(git branch --show-current)
+
+# Delete local branch
+git branch -d feature/name
+
+# Delete remote branch
+git push origin --delete feature/name
+
+# View branch protection status
+gh repo view --json branchProtectionRules
+
+# Create PR
+gh pr create --base develop --head feature/name
+
+# List PRs
+gh pr list
+
+# View PR status
+gh pr view 123
+
+# Merge PR (via web UI recommended)
+gh pr merge 123 --squash
+```
+
+---
+
 ## Build and Development Commands
 
 ### Rust Core
