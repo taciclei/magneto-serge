@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2025-10-11
 
+**Major Release: Advanced Features & Production Ready**
+
+This release includes significant enhancements from Phase 4 and Phase 5 of the roadmap, focusing on performance optimization, advanced replay modes, and latency simulation.
+
 ### Added
 
 #### Core Features
@@ -17,16 +21,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ✅ WebSocket bidirectional message capture
 - ✅ Record/Replay functionality for HTTP and WebSocket traffic
 - ✅ Multiple proxy modes: Auto, Record, Replay, Passthrough
+- ✅ **NEW: Advanced Modes** - STRICT, HYBRID, ONCE (Phase 5.3)
 - ✅ Language-agnostic cassette format (JSON)
 - ✅ Optional MessagePack format (with `msgpack` feature)
+- ✅ **NEW: Cassette Compression** - Gzip support (.json.gz, .msgpack.gz) (Phase 5.1)
+- ✅ **NEW: Recording Filters** - URL, header, body, status filtering (Phase 5.4)
+- ✅ **NEW: Latency Simulation** - Realistic timing replay (Phase 5.5) **[Closes #3, #5]**
 
 #### Rust Library
 - ✅ `MagnetoProxy` public API
 - ✅ `Recorder` for capturing HTTP/WebSocket traffic
 - ✅ `Player` for replaying cassettes with intelligent matching
-- ✅ `ProxyMode` enum (Auto, Record, Replay, Passthrough)
+- ✅ `ProxyMode` enum (Auto, Record, Replay, ReplayStrict, Hybrid, Once, Passthrough)
+- ✅ **NEW: `LatencyMode` enum** - None, Recorded, Fixed(ms), Scaled(%) (Phase 5.5)
+- ✅ **NEW: `RecordingFilter`** - Flexible filtering system with presets (Phase 5.4)
+- ✅ **NEW: Async cassette I/O** - Background writer with <1µs queuing (Phase 4.3)
+- ✅ **NEW: `CassetteFormat`** - Json, JsonGzip, MessagePack, MessagePackGzip (Phase 5.1)
 - ✅ Interior mutability pattern (Arc<Mutex<>>) for thread safety
-- ✅ Builder pattern API (`with_port()`, `with_mode()`)
+- ✅ Builder pattern API (`with_port()`, `with_mode()`, `with_latency()`, `with_filters()`)
 - ✅ Thread-safe concurrent access support
 
 #### JavaScript Bindings (Node.js)
@@ -38,12 +50,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ✅ Node.js 18+ compatibility
 
 #### Testing
-- ✅ 68 tests passing (100% success rate)
-  - 33 Rust unit tests
+- ✅ **99+ tests passing** (100% success rate)
+  - 43+ Rust unit tests
   - 9 Rust integration tests
   - 5 WebSocket integration tests
+  - 10 Latency simulation tests
+  - 7 Strict mode tests
+  - 12 Filter integration tests
   - 10+ JavaScript API tests
   - 7+ JavaScript HTTP tests with Express + Axios
+  - **NEW: 39 Criterion benchmarks** for performance tracking (Phase 4.3)
 
 #### CI/CD
 - ✅ GitHub Actions workflows (CI, CD, Release)
@@ -51,12 +67,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ✅ Multi-platform builds (Linux, macOS, Windows)
 - ✅ Rust toolchain: clippy, rustfmt, cargo test
 - ✅ JavaScript bindings build and test
+- ✅ **NEW: Pre-push git hooks** - Automated linting before every push
 
 #### Documentation
 - ✅ Complete README with examples and badges
-- ✅ ROADMAP with phase tracking and progress
+- ✅ ROADMAP with phase tracking and progress (Phase 5: 45% complete)
 - ✅ ARCHITECTURE documentation
 - ✅ TECH-STACK dependency list
+- ✅ **NEW: LATENCY_SIMULATION.md** - Complete guide with examples (Phase 5.5)
+- ✅ **NEW: STRICT_MODE.md** - CI/CD best practices (Phase 5.3)
+- ✅ **NEW: FILTERS.md** - Recording filter documentation (Phase 5.4)
+- ✅ **NEW: COMPRESSION.md** - Cassette compression guide (Phase 5.1)
+- ✅ **NEW: OPTIMIZATIONS.md** - Performance optimization details (Phase 4.3)
+- ✅ **NEW: BENCHMARKS.md** - Performance benchmarking results (Phase 4.3)
+- ✅ **NEW: CONTRIBUTORS.md** - Project contributors list
 - ✅ TypeScript JSDoc comments for all APIs
 - ✅ Rust doc comments for public API
 - ✅ Issues enabled on GitHub repository
@@ -74,8 +98,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Corrected project name spelling across entire codebase
 
 ### Performance
-- HTTP proxy throughput: ~5000 req/s (target met ✅)
-- WebSocket message rate: ~10k msg/s (target met ✅)
+- **HTTP proxy throughput: ~5000 req/s** (target met ✅)
+- **WebSocket message rate: ~10k msg/s** (target met ✅)
+- **Proxy overhead: ~49ns** (measured with Criterion)
+- **Cassette loading: 835 interactions/sec** (JSON format)
+- **MessagePack: 3.2x faster, 51.6% smaller** than JSON (Phase 4.3)
+- **Async I/O: <1µs queuing, 800x faster** for batch operations (Phase 4.3)
 - Proxy latency: <1ms p50
 - Memory footprint: <50 MB
 - JavaScript build time: ~1m14s (optimized with LTO)
