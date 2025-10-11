@@ -1,6 +1,6 @@
 //! Recording HTTP/WebSocket interactions to cassettes
 
-use crate::cassette::{Cassette, HttpRequest, HttpResponse, InteractionKind};
+use crate::cassette::{Cassette, HttpRequest, HttpResponse, InteractionKind, NetworkError};
 use crate::error::Result;
 use crate::filters::RecordingFilters;
 use std::fs::File;
@@ -80,6 +80,31 @@ impl Recorder {
             let interaction = InteractionKind::Http { request, response };
             self.cassette.add_interaction(interaction);
         }
+    }
+
+    /// Record an HTTP error (timeout, DNS failure, connection refused, etc.)
+    pub fn record_http_error(&mut self, request: HttpRequest, error: NetworkError) {
+        // Log before consuming values
+        tracing::info!(
+            "Recording network error: {} {} - {:?}",
+            request.method,
+            request.url,
+            error
+        );
+
+        // Apply filters to request if configured
+        let filtered_request = if let Some(filters) = &self.filters {
+            filters.apply_to_request(request)
+        } else {
+            request
+        };
+
+        let interaction = InteractionKind::HttpError {
+            request: filtered_request,
+            error,
+        };
+
+        self.cassette.add_interaction(interaction);
     }
 
     /// Save the cassette to disk
@@ -172,5 +197,152 @@ mod tests {
         // Verify file was created
         let cassette_path = dir.path().join("test-save.json");
         assert!(cassette_path.exists());
+    }
+
+    #[test]
+    fn test_record_http_error_timeout() {
+        let mut recorder = Recorder::new("test-error".to_string());
+
+        let request = HttpRequest {
+            method: "GET".to_string(),
+            url: "https://slow-api.example.com/timeout".to_string(),
+            headers: HashMap::new(),
+            body: None,
+        };
+
+        let error = NetworkError::timeout("Connection timed out after 5000ms", 5000);
+
+        recorder.record_http_error(request, error);
+
+        assert_eq!(recorder.cassette().interactions.len(), 1);
+
+        let interaction = &recorder.cassette().interactions[0];
+        match &interaction.kind {
+            InteractionKind::HttpError { request, error } => {
+                assert_eq!(request.method, "GET");
+                assert_eq!(request.url, "https://slow-api.example.com/timeout");
+                match error {
+                    NetworkError::Timeout { timeout_ms, .. } => {
+                        assert_eq!(*timeout_ms, 5000);
+                    }
+                    _ => panic!("Expected Timeout error"),
+                }
+            }
+            _ => panic!("Expected HttpError interaction"),
+        }
+    }
+
+    #[test]
+    fn test_record_http_error_dns() {
+        let mut recorder = Recorder::new("test-dns-error".to_string());
+
+        let request = HttpRequest {
+            method: "GET".to_string(),
+            url: "https://nonexistent.invalid/api".to_string(),
+            headers: HashMap::new(),
+            body: None,
+        };
+
+        let error = NetworkError::dns_failed("Failed to resolve domain");
+
+        recorder.record_http_error(request, error);
+
+        assert_eq!(recorder.cassette().interactions.len(), 1);
+
+        let interaction = &recorder.cassette().interactions[0];
+        match &interaction.kind {
+            InteractionKind::HttpError { error, .. } => {
+                assert!(matches!(error, NetworkError::DnsResolutionFailed { .. }));
+            }
+            _ => panic!("Expected HttpError interaction"),
+        }
+    }
+
+    #[test]
+    fn test_record_http_error_connection_refused() {
+        let mut recorder = Recorder::new("test-connection-refused".to_string());
+
+        let request = HttpRequest {
+            method: "POST".to_string(),
+            url: "http://localhost:9999/api".to_string(),
+            headers: HashMap::new(),
+            body: Some(b"{\"test\":true}".to_vec()),
+        };
+
+        let error = NetworkError::connection_refused("Connection refused on port 9999");
+
+        recorder.record_http_error(request, error);
+
+        assert_eq!(recorder.cassette().interactions.len(), 1);
+
+        let interaction = &recorder.cassette().interactions[0];
+        match &interaction.kind {
+            InteractionKind::HttpError { request, error } => {
+                assert_eq!(request.method, "POST");
+                assert_eq!(request.url, "http://localhost:9999/api");
+                assert!(matches!(error, NetworkError::ConnectionRefused { .. }));
+            }
+            _ => panic!("Expected HttpError interaction"),
+        }
+    }
+
+    #[test]
+    fn test_record_mixed_interactions() {
+        let mut recorder = Recorder::new("test-mixed".to_string());
+
+        // Record successful HTTP
+        let request1 = HttpRequest {
+            method: "GET".to_string(),
+            url: "https://api.example.com/success".to_string(),
+            headers: HashMap::new(),
+            body: None,
+        };
+        let response1 = HttpResponse {
+            status: 200,
+            headers: HashMap::new(),
+            body: Some(b"OK".to_vec()),
+        };
+        recorder.record_http(request1, response1);
+
+        // Record error
+        let request2 = HttpRequest {
+            method: "GET".to_string(),
+            url: "https://api.example.com/timeout".to_string(),
+            headers: HashMap::new(),
+            body: None,
+        };
+        let error = NetworkError::timeout("Request timed out", 3000);
+        recorder.record_http_error(request2, error);
+
+        // Record another success
+        let request3 = HttpRequest {
+            method: "POST".to_string(),
+            url: "https://api.example.com/data".to_string(),
+            headers: HashMap::new(),
+            body: Some(b"{\"data\":1}".to_vec()),
+        };
+        let response3 = HttpResponse {
+            status: 201,
+            headers: HashMap::new(),
+            body: Some(b"{\"id\":123}".to_vec()),
+        };
+        recorder.record_http(request3, response3);
+
+        // Verify we have 3 interactions
+        assert_eq!(recorder.cassette().interactions.len(), 3);
+
+        // Verify order and types
+        assert!(matches!(
+            &recorder.cassette().interactions[0].kind,
+            InteractionKind::Http { .. }
+        ));
+        assert!(matches!(
+            &recorder.cassette().interactions[1].kind,
+            InteractionKind::HttpError { .. }
+        ));
+        assert!(matches!(
+            &recorder.cassette().interactions[2].kind,
+            InteractionKind::Http { .. }
+        ));
     }
 }

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- ✅ **NEW: Error Recording** - Record and replay network errors (timeout, DNS, connection refused, etc.) (Phase 5.6) **[Closes #4]**
+  - NetworkError enum with 7 error types
+  - `Recorder::record_http_error()` method
+  - `Cassette::add_error()` method
+  - HttpError variant in InteractionKind
+  - 8+ error recording tests
+  - Complete ERROR_RECORDING.md documentation
+
 ## [0.1.0] - 2025-10-11
 
 **Major Release: Advanced Features & Production Ready**
