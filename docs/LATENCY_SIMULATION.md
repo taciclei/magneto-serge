@@ -301,9 +301,134 @@ let player = Player::new().with_latency(LatencyMode::Recorded);
 
 ## WebSocket Latency
 
-**Note**: WebSocket interactions do not currently support latency simulation because they represent entire sessions rather than single request/response pairs. Each message within a WebSocket session already has relative timestamps for replay timing.
+✅ **WebSocket latency simulation is fully supported!**
 
-Future versions may support per-message latency simulation.
+WebSocket messages use relative timestamps (timestamp_ms from connection start) for replay timing. All four latency modes work with WebSocket sessions:
+
+### How It Works
+
+WebSocket messages are timestamped relative to the connection start:
+
+```json
+{
+  "type": "WebSocket",
+  "url": "wss://api.example.com/stream",
+  "messages": [
+    {
+      "direction": "Sent",
+      "timestamp_ms": 0,
+      "msg_type": "Text",
+      "data": "Hello"
+    },
+    {
+      "direction": "Received",
+      "timestamp_ms": 6000,
+      "msg_type": "Text",
+      "data": "Block #1"
+    },
+    {
+      "direction": "Received",
+      "timestamp_ms": 12000,
+      "msg_type": "Text",
+      "data": "Block #2"
+    }
+  ]
+}
+```
+
+### LatencyMode::None (Instant Mode)
+
+Perfect for testing blockchain applications or any WebSocket streams where you don't want to wait for timed delays:
+
+```rust
+use magneto_serge::websocket::player::WebSocketPlayer;
+use magneto_serge::player::LatencyMode;
+
+// Create player with instant mode
+let player = WebSocketPlayer::new()
+    .with_latency(LatencyMode::None);
+
+// Messages delivered instantly, no 6-second waits!
+```
+
+**Use case**: Fast test execution, blockchain tests, real-time event processing tests.
+
+### LatencyMode::Recorded (Realistic Timing)
+
+Replays with the exact timing from the recording:
+
+```rust
+let player = WebSocketPlayer::new()
+    .with_latency(LatencyMode::Recorded);
+
+// Message at 0ms: instant
+// Message at 6000ms: waits 6 seconds
+// Message at 12000ms: waits 12 seconds
+```
+
+**Use case**: Testing real-world timing behavior, timeout handling, sequence dependencies.
+
+### LatencyMode::Fixed (Consistent Delays)
+
+All messages delayed by the same amount:
+
+```rust
+let player = WebSocketPlayer::new()
+    .with_latency(LatencyMode::Fixed(100));
+
+// Every message delayed by exactly 100ms
+```
+
+**Use case**: Testing rate limiting, consistent behavior verification.
+
+### LatencyMode::Scaled (Adjust Speed)
+
+Speed up or slow down message timing:
+
+```rust
+// 10x faster (blockchain blocks every 600ms instead of 6s)
+let player = WebSocketPlayer::new()
+    .with_latency(LatencyMode::Scaled(10));
+
+// 2x slower (more time to test processing)
+let player = WebSocketPlayer::new()
+    .with_latency(LatencyMode::Scaled(200));
+```
+
+**Use case**: Fast CI/CD tests, stress testing under slow networks.
+
+### Blockchain Example (Issue #5)
+
+Testing blockchain interactions with 6-second block times:
+
+```rust
+// Without instant mode: Test takes 60+ seconds for 10 blocks
+// With instant mode: Test completes instantly!
+
+let player = WebSocketPlayer::new()
+    .with_latency(LatencyMode::None);
+
+player.load(cassette_dir, "blockchain-test").unwrap();
+let (messages, _) = player.replay_session("wss://blockchain.example.com").unwrap();
+
+// All 10 blocks delivered instantly
+assert_eq!(messages.len(), 10);
+```
+
+### API Reference
+
+```rust
+impl WebSocketPlayer {
+    /// Set latency simulation mode
+    pub fn with_latency(mut self, mode: LatencyMode) -> Self;
+
+    /// Get current latency mode
+    pub fn latency_mode(&self) -> LatencyMode;
+
+    /// Calculate delay for a message based on its timestamp
+    pub fn calculate_message_delay(&self, timestamp_ms: u64, base_timestamp: u64) -> Option<u64>;
+}
+```
 
 ## Troubleshooting
 
