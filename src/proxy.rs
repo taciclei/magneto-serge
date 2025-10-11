@@ -40,6 +40,10 @@ pub enum ProxyMode {
     /// Perfect for evolving APIs where you want to keep old interactions but record new ones
     Hybrid,
 
+    /// Once mode: Record only if cassette doesn't exist, then always replay
+    /// Protects against accidental overwrites - cassette is immutable once created
+    Once,
+
     /// Transparent proxy without record/replay
     Passthrough,
 }
@@ -372,6 +376,99 @@ impl MagnetoProxy {
     /// Stop hybrid mode and save the cassette (UniFFI compatible - returns bool)
     pub fn stop_hybrid(&self) -> bool {
         self.stop_hybrid_internal().is_ok()
+    }
+
+    /// Start once mode: record if cassette doesn't exist, otherwise replay (internal version with Result)
+    /// This mode protects against accidental overwrites - cassette becomes immutable once created
+    /// Perfect for:
+    /// - Production tests: Never overwrite recorded cassettes
+    /// - Safety: Prevent accidental re-recording
+    /// - CI/CD: Ensure cassettes are preserved
+    pub fn once_internal(&self, cassette_name: String) -> Result<()> {
+        let mut state = self.state.lock().unwrap();
+
+        state.current_cassette = Some(cassette_name.clone());
+
+        let cassette_dir = state.cassette_dir.clone();
+
+        // Try to load existing cassette
+        let cassette_exists = cassette_dir.join(format!("{}.json", cassette_name)).exists()
+            || cassette_dir
+                .join(format!("{}.json.gz", cassette_name))
+                .exists()
+            || cassette_dir
+                .join(format!("{}.msgpack", cassette_name))
+                .exists()
+            || cassette_dir
+                .join(format!("{}.msgpack.gz", cassette_name))
+                .exists();
+
+        if cassette_exists {
+            // Cassette exists, switch to replay mode (read-only)
+            tracing::info!("🔒 Once mode: Cassette '{}' exists, using replay (read-only)", cassette_name);
+
+            let player = Player::load(&cassette_dir, &cassette_name)?;
+            let player_arc = Arc::new(Mutex::new(player));
+            state.player = Some(player_arc.clone());
+
+            // Create and start proxy server in once mode (will replay)
+            let server = ProxyServer::new(state.proxy_port, self.ca.clone(), ProxyMode::Once)?
+                .with_player(player_arc);
+
+            // Start server in background
+            let runtime_handle = self.runtime.handle().clone();
+            runtime_handle.spawn(async move {
+                if let Err(e) = server.start().await {
+                    tracing::error!("Proxy server error: {}", e);
+                }
+            });
+        } else {
+            // Cassette doesn't exist, record it
+            tracing::info!("📹 Once mode: Cassette '{}' doesn't exist, recording (first time only)", cassette_name);
+
+            let recorder = Arc::new(Mutex::new(Recorder::new(cassette_name.clone())));
+            state.recorder = Some(recorder.clone());
+
+            // Create and start proxy server in once mode (will record)
+            let server = ProxyServer::new(state.proxy_port, self.ca.clone(), ProxyMode::Once)?
+                .with_recorder(recorder);
+
+            // Start server in background
+            let runtime_handle = self.runtime.handle().clone();
+            runtime_handle.spawn(async move {
+                if let Err(e) = server.start().await {
+                    tracing::error!("Proxy server error: {}", e);
+                }
+            });
+        }
+
+        Ok(())
+    }
+
+    /// Start once mode: record if cassette doesn't exist, otherwise replay (UniFFI compatible - returns bool)
+    pub fn once(&self, cassette_name: String) -> bool {
+        self.once_internal(cassette_name).is_ok()
+    }
+
+    /// Stop once mode and save the cassette if it was recording (internal version with Result)
+    pub fn stop_once_internal(&self) -> Result<()> {
+        // If recording, save the cassette
+        // If replaying, just clean up
+        let state = self.state.lock().unwrap();
+
+        if state.recorder.is_some() {
+            // Was recording, save the cassette
+            drop(state);
+            self.stop_recording_internal()
+        } else {
+            // Was replaying, just clean up
+            Ok(())
+        }
+    }
+
+    /// Stop once mode (UniFFI compatible - returns bool)
+    pub fn stop_once(&self) -> bool {
+        self.stop_once_internal().is_ok()
     }
 
     /// Shutdown the proxy (internal version with Result)

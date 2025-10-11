@@ -165,6 +165,35 @@ impl HttpHandler {
                     Ok(response)
                 }
 
+                ProxyMode::Once => {
+                    // Once mode: Check if cassette exists
+                    // If exists → replay, if not → record (then replay next time)
+                    tracing::debug!("🔒 Once mode: {} {}", method, url);
+
+                    // Try to find interaction in player
+                    if let Some(player) = &self.player {
+                        if player.lock().await.has_cassette() {
+                            tracing::debug!("  Cassette exists, replaying");
+                            // Switch to replay mode
+                            let mut handler =
+                                Self::new(ProxyMode::Replay).with_player(player.clone());
+                            return handler.handle_request(method, url, headers, body).await;
+                        }
+                    }
+
+                    // Cassette doesn't exist, record it
+                    tracing::debug!("  Cassette doesn't exist, recording");
+                    if let Some(recorder) = &self.recorder {
+                        let mut handler =
+                            Self::new(ProxyMode::Record).with_recorder(recorder.clone());
+                        return handler.handle_request(method, url, headers, body).await;
+                    }
+
+                    Err(MatgtoError::ProxyStartFailed {
+                        reason: "Neither recorder nor player configured for Once mode".to_string(),
+                    })
+                }
+
                 ProxyMode::Passthrough => {
                     // Forward request without recording
                     tracing::debug!("Passthrough request: {} {}", method, url);

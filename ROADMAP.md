@@ -14,7 +14,7 @@
 | **Phase 2** | WebSocket Support | ✅ Terminé | 100% |
 | **Phase 3** | Multi-language Bindings | ✅ Terminé | 100% |
 | **Phase 4** | CLI & Production | ✅ Terminé | 100% |
-| **Phase 5** | Advanced Features | 🟡 En cours | 35% |
+| **Phase 5** | Advanced Features | 🟡 En cours | 40% |
 
 ---
 
@@ -243,7 +243,7 @@
 
 **Objectif** : Fonctionnalités avancées et améliorations.
 
-**Statut** : En cours (5.1 compression, 5.3 modes STRICT+HYBRID, et 5.4 filtres terminés)
+**Statut** : En cours (5.1 compression, 5.3 modes STRICT+HYBRID+ONCE, et 5.4 filtres terminés)
 
 ### 5.1 - Cassette Management
 - [ ] Édition de cassettes (modifier réponses)
@@ -282,8 +282,15 @@
   - [x] Recorder::cassette_mut() for modifying existing cassettes
   - [x] UniFFI bindings updated (magneto_serge.udl)
   - [x] All 99 tests passing
+- [x] **Mode ONCE** ✅ (record uniquement si cassette absente, sinon replay)
+  - [x] ProxyMode::Once enum variant
+  - [x] MagnetoProxy::once() and stop_once() methods
+  - [x] Once logic in http_handler.rs (check cassette existence)
+  - [x] Once logic in server.rs (replay if exists, record if not)
+  - [x] File existence detection for all cassette formats (.json, .json.gz, .msgpack, .msgpack.gz)
+  - [x] UniFFI bindings updated (magneto_serge.udl)
+  - [x] All tests passing
 - [ ] Mode UPDATE (met à jour cassettes existantes)
-- [ ] Mode ONCE (record uniquement si absent)
 
 ### 5.4 - Recording Features ✅
 - [x] **Filtres d'enregistrement** ✅
