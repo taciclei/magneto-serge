@@ -139,3 +139,7 @@ harness = false
 [[bench]]
 name = "websocket_proxy"
 harness = false
+
+[[bench]]
+name = "serialization_optim"
+harness = false

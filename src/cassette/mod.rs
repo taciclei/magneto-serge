@@ -1,8 +1,13 @@
 //! Cassette format definitions and types
 
+pub mod storage;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+
+// Re-export storage types
+pub use storage::{AsyncCassetteStorage, BufferedCassetteWriter, CassetteFormat, detect_format};
 
 /// A cassette containing recorded HTTP/WebSocket interactions
 #[derive(Debug, Clone, Serialize, Deserialize)]

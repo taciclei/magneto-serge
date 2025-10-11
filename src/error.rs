@@ -44,9 +44,23 @@ pub enum MatgtoError {
     #[error("WebSocket error: {reason}")]
     WebSocketError { reason: String },
 
-    /// Serialization error
+    /// Serialization error (JSON)
     #[error("Serialization error: {0}")]
     Serialization(#[from] serde_json::Error),
+
+    /// MessagePack decode error
+    #[cfg(feature = "msgpack")]
+    #[error("MessagePack decode error: {0}")]
+    MessagePackDecode(#[from] rmp_serde::decode::Error),
+
+    /// MessagePack encode error
+    #[cfg(feature = "msgpack")]
+    #[error("MessagePack encode error: {0}")]
+    MessagePackEncode(#[from] rmp_serde::encode::Error),
+
+    /// Channel send error
+    #[error("Channel send error")]
+    ChannelSend,
 
     /// TLS/Certificate error
     #[error("TLS error: {0}")]
@@ -55,4 +69,10 @@ pub enum MatgtoError {
     /// Configuration error
     #[error("Configuration error: {0}")]
     Config(String),
+}
+
+impl<T> From<tokio::sync::mpsc::error::SendError<T>> for MatgtoError {
+    fn from(_: tokio::sync::mpsc::error::SendError<T>) -> Self {
+        MatgtoError::ChannelSend
+    }
 }
