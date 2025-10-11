@@ -219,9 +219,15 @@ impl HudsuckerHttpHandler for MatgtoHttpHandler {
                 }
             }
 
-            ProxyMode::Replay => {
+            ProxyMode::Replay | ProxyMode::ReplayStrict => {
                 // In replay mode, we match against cassette and return recorded response
-                tracing::info!("Replay mode: Matching {} {}", req.method(), req.uri());
+                let is_strict = matches!(self.mode, ProxyMode::ReplayStrict);
+
+                if is_strict {
+                    tracing::info!("🔒 STRICT Replay mode: Matching {} {}", req.method(), req.uri());
+                } else {
+                    tracing::info!("Replay mode: Matching {} {}", req.method(), req.uri());
+                }
 
                 // Buffer the request to match against cassette
                 match Self::convert_request(req).await {

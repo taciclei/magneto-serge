@@ -82,9 +82,15 @@ impl HttpHandler {
                     Ok(response)
                 }
 
-                ProxyMode::Replay => {
+                ProxyMode::Replay | ProxyMode::ReplayStrict => {
                     // Match request against cassette
-                    tracing::debug!("Replaying request: {} {}", method, url);
+                    let is_strict = matches!(self.mode, ProxyMode::ReplayStrict);
+
+                    if is_strict {
+                        tracing::debug!("🔒 STRICT replaying request: {} {}", method, url);
+                    } else {
+                        tracing::debug!("Replaying request: {} {}", method, url);
+                    }
 
                     if let Some(_player) = &self.player {
                         // TODO: Implement request matching and response replay
@@ -96,7 +102,7 @@ impl HttpHandler {
                         })
                     } else {
                         Err(MatgtoError::ProxyStartFailed {
-                            reason: "No player configured for Replay mode".to_string(),
+                            reason: format!("No player configured for {:?} mode", self.mode),
                         })
                     }
                 }

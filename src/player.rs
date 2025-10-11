@@ -44,6 +44,9 @@ pub struct Player {
 
     /// Count how many times each interaction has been replayed
     replay_count: HashMap<usize, usize>,
+
+    /// Strict mode: fail fast on missing interactions
+    strict_mode: bool,
 }
 
 impl Player {
@@ -53,11 +56,32 @@ impl Player {
             cassette: None,
             interactions_index: HashMap::new(),
             replay_count: HashMap::new(),
+            strict_mode: false,
+        }
+    }
+
+    /// Create a new player in strict mode
+    pub fn new_strict() -> Self {
+        Self {
+            cassette: None,
+            interactions_index: HashMap::new(),
+            replay_count: HashMap::new(),
+            strict_mode: true,
         }
     }
 
     /// Load a cassette from disk
     pub fn load(cassette_dir: &Path, name: &str) -> Result<Self> {
+        Self::load_with_mode(cassette_dir, name, false)
+    }
+
+    /// Load a cassette from disk in strict mode
+    pub fn load_strict(cassette_dir: &Path, name: &str) -> Result<Self> {
+        Self::load_with_mode(cassette_dir, name, true)
+    }
+
+    /// Load a cassette from disk with specified mode
+    fn load_with_mode(cassette_dir: &Path, name: &str, strict: bool) -> Result<Self> {
         let path = cassette_dir.join(format!("{}.json", name));
 
         if !path.exists() {
@@ -89,16 +113,25 @@ impl Player {
             }
         }
 
-        tracing::info!(
-            "Loaded cassette '{}' with {} interactions",
-            name,
-            cassette.interactions.len()
-        );
+        if strict {
+            tracing::info!(
+                "🔒 Loaded cassette '{}' in STRICT mode with {} interactions",
+                name,
+                cassette.interactions.len()
+            );
+        } else {
+            tracing::info!(
+                "Loaded cassette '{}' with {} interactions",
+                name,
+                cassette.interactions.len()
+            );
+        }
 
         Ok(Self {
             cassette: Some(cassette),
             interactions_index,
             replay_count: HashMap::new(),
+            strict_mode: strict,
         })
     }
 
@@ -115,6 +148,18 @@ impl Player {
     /// Find a matching interaction by request signature
     pub fn find_interaction(&mut self, signature: &RequestSignature) -> Result<usize> {
         let idx = self.interactions_index.get(signature).ok_or_else(|| {
+            if self.strict_mode {
+                tracing::error!(
+                    "🔒 STRICT MODE: No matching interaction found for {} {}",
+                    signature.method,
+                    signature.url
+                );
+                tracing::error!(
+                    "💡 Available interactions in cassette: {}",
+                    self.interactions_index.len()
+                );
+            }
+
             MatgtoError::NoMatchingInteraction {
                 method: signature.method.clone(),
                 url: signature.url.clone(),
@@ -124,7 +169,21 @@ impl Player {
         // Increment replay counter
         *self.replay_count.entry(*idx).or_insert(0) += 1;
 
+        if self.strict_mode {
+            tracing::debug!(
+                "🔒 STRICT MODE: Found interaction #{} for {} {}",
+                idx,
+                signature.method,
+                signature.url
+            );
+        }
+
         Ok(*idx)
+    }
+
+    /// Check if player is in strict mode
+    pub fn is_strict(&self) -> bool {
+        self.strict_mode
     }
 
     /// Get an interaction by index

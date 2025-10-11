@@ -32,6 +32,10 @@ pub enum ProxyMode {
     /// Always replay (errors if cassette doesn't exist)
     Replay,
 
+    /// Strict replay mode: Errors on missing cassette AND missing interactions
+    /// Use this mode in CI/CD to ensure all network calls are captured
+    ReplayStrict,
+
     /// Transparent proxy without record/replay
     Passthrough,
 }
@@ -245,6 +249,43 @@ impl MagnetoProxy {
     /// Replay an existing cassette (UniFFI compatible - returns bool)
     pub fn replay(&self, cassette_name: String) -> bool {
         self.replay_internal(cassette_name).is_ok()
+    }
+
+    /// Replay an existing cassette in STRICT mode (internal version with Result)
+    /// In strict mode, any request not found in the cassette will cause an error
+    pub fn replay_strict_internal(&self, cassette_name: String) -> Result<()> {
+        let mut state = self.state.lock().unwrap();
+
+        state.current_cassette = Some(cassette_name.clone());
+
+        // Load cassette in strict mode
+        let cassette_dir = state.cassette_dir.clone();
+        let player = Player::load_strict(&cassette_dir, &cassette_name)?;
+
+        let player_arc = Arc::new(Mutex::new(player));
+        state.player = Some(player_arc.clone());
+
+        // Create and start proxy server in strict replay mode
+        let server = ProxyServer::new(state.proxy_port, self.ca.clone(), ProxyMode::ReplayStrict)?
+            .with_player(player_arc);
+
+        tracing::info!("🔒 Starting STRICT replay for cassette: {}", cassette_name);
+        tracing::info!("⚠️  Any missing interaction will cause an error");
+
+        // Start server in background
+        let runtime_handle = self.runtime.handle().clone();
+        runtime_handle.spawn(async move {
+            if let Err(e) = server.start().await {
+                tracing::error!("Proxy server error: {}", e);
+            }
+        });
+
+        Ok(())
+    }
+
+    /// Replay an existing cassette in STRICT mode (UniFFI compatible - returns bool)
+    pub fn replay_strict(&self, cassette_name: String) -> bool {
+        self.replay_strict_internal(cassette_name).is_ok()
     }
 
     /// Shutdown the proxy (internal version with Result)
