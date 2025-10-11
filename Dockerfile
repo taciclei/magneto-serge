@@ -1,45 +1,56 @@
-# Build stage
-FROM rust:1.75-slim as builder
+# Dockerfile for Magnéto-Serge
+# Multi-stage build for optimal image size
+
+# Stage 1: Builder
+FROM rust:1.75-bookworm AS builder
 
 WORKDIR /app
 
-# Install dependencies
+# Install build dependencies
 RUN apt-get update && apt-get install -y \
     pkg-config \
     libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy Cargo files
+# Copy manifests
 COPY Cargo.toml Cargo.lock ./
+
+# Copy source code
 COPY src ./src
 COPY build.rs ./
 
-# Build the application
-RUN cargo build --release --features cli --bin matgto
+# Build release binary with CLI features
+RUN cargo build --release --features cli
 
-# Runtime stage
+# Stage 2: Runtime
 FROM debian:bookworm-slim
 
-WORKDIR /app
+WORKDIR /cassettes
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \
     ca-certificates \
+    libssl3 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the binary from builder
+# Copy binary from builder
 COPY --from=builder /app/target/release/magneto /usr/local/bin/magneto
 
-# Create cassette directory
-RUN mkdir -p /app/cassettes
+# Create cassettes directory
+RUN mkdir -p /cassettes
 
 # Set environment variables
-ENV CASSETTE_DIR=/app/cassettes
+ENV CASSETTE_DIR=/cassettes
 ENV RUST_LOG=info
+ENV MAGNETO_PORT=8888
 
 # Expose default proxy port
 EXPOSE 8888
 
+# Health check
+HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=3 \
+    CMD pidof magneto || exit 1
+
 # Set the entrypoint
-ENTRYPOINT ["matgto"]
+ENTRYPOINT ["magneto"]
 CMD ["--help"]

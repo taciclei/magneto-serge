@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # Magneto proxy service
+  magneto:
+    image: ghcr.io/taciclei/magneto-serge:latest
+    command: auto example-test
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./cassettes:/cassettes
+    environment:
+      - RUST_LOG=info
+    healthcheck:
+      test: ["CMD", "pidof", "magneto"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - test-network
+
+  # Example application using the proxy
+  app:
+    image: curlimages/curl:latest
+    depends_on:
+      magneto:
+        condition: service_healthy
+    environment:
+      - HTTP_PROXY=http://magneto:8888
+      - HTTPS_PROXY=http://magneto:8888
+    networks:
+      - test-network
+    command: >
+      sh -c "
+      echo 'Making HTTP request through proxy...';
+      curl -v http://httpbin.org/get;
+      echo '';
+      echo 'Making HTTPS request through proxy...';
+      curl -v https://httpbin.org/get;
+      echo '';
+      echo 'Done!';
+      "
+
+networks:
+  test-network:
+    driver: bridge
