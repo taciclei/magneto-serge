@@ -14,7 +14,7 @@
 | **Phase 2** | WebSocket Support | ✅ Terminé | 100% |
 | **Phase 3** | Multi-language Bindings | ✅ Terminé | 100% |
 | **Phase 4** | CLI & Production | ✅ Terminé | 100% |
-| **Phase 5** | Advanced Features | 🟡 En cours | 15% |
+| **Phase 5** | Advanced Features | 🟡 En cours | 25% |
 
 ---
 
@@ -243,7 +243,7 @@
 
 **Objectif** : Fonctionnalités avancées et améliorations.
 
-**Statut** : En cours (5.4 partiellement terminé)
+**Statut** : En cours (5.3 et 5.4 terminés)
 
 ### 5.1 - Cassette Management
 - [ ] Édition de cassettes (modifier réponses)
@@ -260,10 +260,16 @@
 - [ ] Stratégies de matching configurables
 
 ### 5.3 - Modes Avancés
+- [x] **Mode STRICT** ✅ (erreur si pas de match)
+  - [x] ProxyMode::ReplayStrict enum variant
+  - [x] Player::load_strict() method
+  - [x] MagnetoProxy::replay_strict() method
+  - [x] Enhanced error logging with 🔒 prefix
+  - [x] 3 unit tests + 7 integration tests
+  - [x] Documentation complète (STRICT_MODE.md)
 - [ ] Mode HYBRID (mix record/replay)
 - [ ] Mode UPDATE (met à jour cassettes existantes)
 - [ ] Mode ONCE (record uniquement si absent)
-- [ ] Mode STRICT (erreur si pas de match)
 
 ### 5.4 - Recording Features ✅
 - [x] **Filtres d'enregistrement** ✅

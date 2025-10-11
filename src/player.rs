@@ -207,6 +207,7 @@ impl Default for Player {
 mod tests {
     use super::*;
     use crate::cassette::{HttpRequest, HttpResponse};
+    use crate::error::MatgtoError;
     use crate::recorder::Recorder;
     use std::collections::HashMap;
     use tempfile::tempdir;
@@ -287,5 +288,112 @@ mod tests {
 
         let idx = player.find_interaction(&signature).unwrap();
         assert_eq!(idx, 0);
+    }
+
+    #[test]
+    fn test_player_strict_mode() {
+        // Create and save a test cassette
+        let mut recorder = Recorder::new("test-strict".to_string());
+
+        let request = HttpRequest {
+            method: "GET".to_string(),
+            url: "https://api.example.com/users".to_string(),
+            headers: HashMap::new(),
+            body: None,
+        };
+
+        let response = HttpResponse {
+            status: 200,
+            headers: HashMap::new(),
+            body: Some(b"{\"users\":[]}".to_vec()),
+        };
+
+        recorder.record_http(request, response);
+
+        let dir = tempdir().unwrap();
+        recorder.save(dir.path()).unwrap();
+
+        // Load in strict mode
+        let player = Player::load_strict(dir.path(), "test-strict").unwrap();
+
+        assert!(player.has_cassette());
+        assert!(player.is_strict());
+        assert_eq!(player.cassette().unwrap().interactions.len(), 1);
+    }
+
+    #[test]
+    fn test_strict_mode_missing_interaction() {
+        // Create and save a test cassette with one interaction
+        let mut recorder = Recorder::new("test-strict-missing".to_string());
+
+        let request = HttpRequest {
+            method: "GET".to_string(),
+            url: "https://api.example.com/users".to_string(),
+            headers: HashMap::new(),
+            body: None,
+        };
+
+        let response = HttpResponse {
+            status: 200,
+            headers: HashMap::new(),
+            body: Some(b"{\"users\":[]}".to_vec()),
+        };
+
+        recorder.record_http(request, response);
+
+        let dir = tempdir().unwrap();
+        recorder.save(dir.path()).unwrap();
+
+        // Load in strict mode
+        let mut player = Player::load_strict(dir.path(), "test-strict-missing").unwrap();
+
+        // Try to find a different interaction that doesn't exist
+        let missing_signature = RequestSignature {
+            method: "POST".to_string(),
+            url: "https://api.example.com/posts".to_string(),
+            body_hash: None,
+        };
+
+        let result = player.find_interaction(&missing_signature);
+        assert!(result.is_err());
+
+        // Verify error is NoMatchingInteraction
+        match result {
+            Err(MatgtoError::NoMatchingInteraction { method, url }) => {
+                assert_eq!(method, "POST");
+                assert_eq!(url, "https://api.example.com/posts");
+            }
+            _ => panic!("Expected NoMatchingInteraction error"),
+        }
+    }
+
+    #[test]
+    fn test_non_strict_mode() {
+        // Create and save a test cassette
+        let mut recorder = Recorder::new("test-non-strict".to_string());
+
+        let request = HttpRequest {
+            method: "GET".to_string(),
+            url: "https://api.example.com/users".to_string(),
+            headers: HashMap::new(),
+            body: None,
+        };
+
+        let response = HttpResponse {
+            status: 200,
+            headers: HashMap::new(),
+            body: Some(b"{\"users\":[]}".to_vec()),
+        };
+
+        recorder.record_http(request, response);
+
+        let dir = tempdir().unwrap();
+        recorder.save(dir.path()).unwrap();
+
+        // Load in normal mode (not strict)
+        let player = Player::load(dir.path(), "test-non-strict").unwrap();
+
+        assert!(player.has_cassette());
+        assert!(!player.is_strict());
     }
 }
