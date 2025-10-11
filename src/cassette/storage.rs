@@ -23,6 +23,14 @@ pub enum CassetteFormat {
     /// MessagePack format (binary, smaller files, faster)
     #[cfg(feature = "msgpack")]
     MessagePack,
+
+    /// JSON with gzip compression (smaller files, slower)
+    #[cfg(feature = "compression")]
+    JsonGzip,
+
+    /// MessagePack with gzip compression (smallest files, good balance)
+    #[cfg(all(feature = "msgpack", feature = "compression"))]
+    MessagePackGzip,
 }
 
 /// Message sent to background writer
@@ -117,6 +125,16 @@ impl AsyncCassetteStorage {
             CassetteFormat::MessagePack => {
                 rmp_serde::to_vec(cassette)?
             }
+            #[cfg(feature = "compression")]
+            CassetteFormat::JsonGzip => {
+                let json_data = serde_json::to_vec_pretty(cassette)?;
+                Self::compress_data(&json_data)?
+            }
+            #[cfg(all(feature = "msgpack", feature = "compression"))]
+            CassetteFormat::MessagePackGzip => {
+                let msgpack_data = rmp_serde::to_vec(cassette)?;
+                Self::compress_data(&msgpack_data)?
+            }
         };
 
         // Write atomically (write to temp file, then rename)
@@ -139,9 +157,46 @@ impl AsyncCassetteStorage {
             CassetteFormat::MessagePack => {
                 rmp_serde::from_slice(&data)?
             }
+            #[cfg(feature = "compression")]
+            CassetteFormat::JsonGzip => {
+                let decompressed = Self::decompress_data(&data)?;
+                serde_json::from_slice(&decompressed)?
+            }
+            #[cfg(all(feature = "msgpack", feature = "compression"))]
+            CassetteFormat::MessagePackGzip => {
+                let decompressed = Self::decompress_data(&data)?;
+                rmp_serde::from_slice(&decompressed)?
+            }
         };
 
         Ok(cassette)
+    }
+
+    /// Compress data using gzip
+    #[cfg(feature = "compression")]
+    fn compress_data(data: &[u8]) -> Result<Vec<u8>> {
+        use flate2::write::GzEncoder;
+        use flate2::Compression;
+        use std::io::Write;
+
+        let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
+        encoder.write_all(data)?;
+        let compressed = encoder.finish()?;
+
+        Ok(compressed)
+    }
+
+    /// Decompress gzip data
+    #[cfg(feature = "compression")]
+    fn decompress_data(data: &[u8]) -> Result<Vec<u8>> {
+        use flate2::read::GzDecoder;
+        use std::io::Read;
+
+        let mut decoder = GzDecoder::new(data);
+        let mut decompressed = Vec::new();
+        decoder.read_to_end(&mut decompressed)?;
+
+        Ok(decompressed)
     }
 
     /// Shutdown background writer gracefully
@@ -220,10 +275,30 @@ impl BufferedCassetteWriter {
 
 /// Auto-detect cassette format from file extension
 pub fn detect_format(path: &Path) -> CassetteFormat {
+    let path_str = path.to_string_lossy().to_string();
+
+    // Check for compressed formats first (they have multiple extensions)
+    #[cfg(all(feature = "msgpack", feature = "compression"))]
+    {
+        if path_str.ends_with(".msgpack.gz") || path_str.ends_with(".mp.gz") {
+            return CassetteFormat::MessagePackGzip;
+        }
+    }
+
+    #[cfg(feature = "compression")]
+    {
+        if path_str.ends_with(".json.gz") {
+            return CassetteFormat::JsonGzip;
+        }
+    }
+
+    // Then check for non-compressed formats
     if let Some(ext) = path.extension() {
         match ext.to_str() {
             #[cfg(feature = "msgpack")]
             Some("msgpack") | Some("mp") => CassetteFormat::MessagePack,
+            #[cfg(feature = "compression")]
+            Some("gz") => CassetteFormat::JsonGzip, // Assume .gz without other ext is JSON
             _ => CassetteFormat::Json,
         }
     } else {
@@ -319,5 +394,187 @@ mod tests {
             assert_eq!(detect_format(Path::new("test.msgpack")), CassetteFormat::MessagePack);
             assert_eq!(detect_format(Path::new("test.mp")), CassetteFormat::MessagePack);
         }
+
+        #[cfg(feature = "compression")]
+        {
+            assert_eq!(detect_format(Path::new("test.json.gz")), CassetteFormat::JsonGzip);
+            assert_eq!(detect_format(Path::new("test.gz")), CassetteFormat::JsonGzip);
+        }
+
+        #[cfg(all(feature = "msgpack", feature = "compression"))]
+        {
+            assert_eq!(detect_format(Path::new("test.msgpack.gz")), CassetteFormat::MessagePackGzip);
+            assert_eq!(detect_format(Path::new("test.mp.gz")), CassetteFormat::MessagePackGzip);
+        }
+    }
+
+    #[cfg(feature = "compression")]
+    #[tokio::test]
+    async fn test_json_gzip_compression() {
+        use crate::cassette::{HttpRequest, HttpResponse, InteractionKind};
+        use std::collections::HashMap;
+
+        let storage = AsyncCassetteStorage::new();
+        let mut cassette = Cassette::new("test-json-gzip".to_string());
+
+        // Add some interactions to have meaningful data to compress
+        for i in 0..10 {
+            let request = HttpRequest {
+                method: "GET".to_string(),
+                url: format!("https://api.example.com/test/{}", i),
+                headers: HashMap::new(),
+                body: Some(b"test request body".to_vec()),
+            };
+
+            let response = HttpResponse {
+                status: 200,
+                headers: HashMap::new(),
+                body: Some(b"test response body with some data to compress".to_vec()),
+            };
+
+            cassette.add_interaction(InteractionKind::Http { request, response });
+        }
+
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("test-json.json.gz");
+
+        // Save as compressed JSON
+        storage.save_sync(cassette.clone(), path.clone(), CassetteFormat::JsonGzip)
+            .await
+            .unwrap();
+
+        // Load compressed JSON
+        let loaded = AsyncCassetteStorage::load_async(&path, CassetteFormat::JsonGzip)
+            .await
+            .unwrap();
+
+        assert_eq!(loaded.name, cassette.name);
+        assert_eq!(loaded.interactions.len(), 10);
+
+        // Verify compression roundtrip works correctly
+        let uncompressed_path = dir.path().join("test-json-uncompressed.json");
+        storage.save_sync(cassette, uncompressed_path.clone(), CassetteFormat::Json)
+            .await
+            .unwrap();
+
+        let compressed_size = std::fs::metadata(&path).unwrap().len();
+        let uncompressed_size = std::fs::metadata(&uncompressed_path).unwrap().len();
+
+        println!("Compressed: {} bytes, Uncompressed: {} bytes", compressed_size, uncompressed_size);
+        println!("Compression ratio: {:.1}%", (compressed_size as f64 / uncompressed_size as f64) * 100.0);
+
+        // For small cassettes with some data, compression might not always be better
+        // Just verify the file was created and can be read
+        assert!(path.exists());
+    }
+
+    #[cfg(all(feature = "msgpack", feature = "compression"))]
+    #[tokio::test]
+    async fn test_messagepack_gzip_compression() {
+        use crate::cassette::{HttpRequest, HttpResponse, InteractionKind};
+        use std::collections::HashMap;
+
+        let storage = AsyncCassetteStorage::new();
+        let mut cassette = Cassette::new("test-msgpack-gzip".to_string());
+
+        // Add some interactions
+        for i in 0..10 {
+            let request = HttpRequest {
+                method: "POST".to_string(),
+                url: format!("https://api.example.com/data/{}", i),
+                headers: HashMap::new(),
+                body: Some(b"msgpack test request body".to_vec()),
+            };
+
+            let response = HttpResponse {
+                status: 201,
+                headers: HashMap::new(),
+                body: Some(b"msgpack test response body with data".to_vec()),
+            };
+
+            cassette.add_interaction(InteractionKind::Http { request, response });
+        }
+
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("test-msgpack.msgpack.gz");
+
+        // Save as compressed MessagePack
+        storage.save_sync(cassette.clone(), path.clone(), CassetteFormat::MessagePackGzip)
+            .await
+            .unwrap();
+
+        // Load compressed MessagePack
+        let loaded = AsyncCassetteStorage::load_async(&path, CassetteFormat::MessagePackGzip)
+            .await
+            .unwrap();
+
+        assert_eq!(loaded.name, cassette.name);
+        assert_eq!(loaded.interactions.len(), 10);
+
+        // Verify compression roundtrip works correctly
+        let uncompressed_path = dir.path().join("test-msgpack-uncompressed.msgpack");
+        storage.save_sync(cassette, uncompressed_path.clone(), CassetteFormat::MessagePack)
+            .await
+            .unwrap();
+
+        let compressed_size = std::fs::metadata(&path).unwrap().len();
+        let uncompressed_size = std::fs::metadata(&uncompressed_path).unwrap().len();
+
+        println!("Compressed: {} bytes, Uncompressed: {} bytes", compressed_size, uncompressed_size);
+        println!("Compression ratio: {:.1}%", (compressed_size as f64 / uncompressed_size as f64) * 100.0);
+
+        // Verify the file was created and can be read
+        assert!(path.exists());
+    }
+
+    #[cfg(feature = "compression")]
+    #[tokio::test]
+    async fn test_compression_with_large_data() {
+        use crate::cassette::{HttpRequest, HttpResponse, InteractionKind};
+        use std::collections::HashMap;
+
+        let storage = AsyncCassetteStorage::new();
+        let mut cassette = Cassette::new("test-large".to_string());
+
+        // Add multiple interactions with large bodies
+        for i in 0..100 {
+            let request = HttpRequest {
+                method: "GET".to_string(),
+                url: format!("https://api.example.com/data/{}", i),
+                headers: HashMap::new(),
+                body: Some(vec![b'x'; 1000]), // 1KB of data
+            };
+
+            let response = HttpResponse {
+                status: 200,
+                headers: HashMap::new(),
+                body: Some(vec![b'y'; 5000]), // 5KB of data
+            };
+
+            let kind = InteractionKind::Http { request, response };
+            cassette.add_interaction(kind);
+        }
+
+        let dir = tempdir().unwrap();
+        let json_path = dir.path().join("large-json.json");
+        let json_gz_path = dir.path().join("large-json.json.gz");
+
+        // Save uncompressed and compressed
+        storage.save_sync(cassette.clone(), json_path.clone(), CassetteFormat::Json)
+            .await
+            .unwrap();
+
+        storage.save_sync(cassette, json_gz_path.clone(), CassetteFormat::JsonGzip)
+            .await
+            .unwrap();
+
+        let json_size = std::fs::metadata(&json_path).unwrap().len();
+        let json_gz_size = std::fs::metadata(&json_gz_path).unwrap().len();
+
+        println!("JSON: {} KB, JSON.GZ: {} KB", json_size / 1024, json_gz_size / 1024);
+        println!("Compression ratio: {:.2}%", (json_gz_size as f64 / json_size as f64) * 100.0);
+
+        // Compression should be significant for large repetitive data
+        assert!(json_gz_size < json_size / 2, "Expected at least 50% compression");
     }
 }

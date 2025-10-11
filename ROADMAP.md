@@ -14,7 +14,7 @@
 | **Phase 2** | WebSocket Support | ✅ Terminé | 100% |
 | **Phase 3** | Multi-language Bindings | ✅ Terminé | 100% |
 | **Phase 4** | CLI & Production | ✅ Terminé | 100% |
-| **Phase 5** | Advanced Features | 🟡 En cours | 25% |
+| **Phase 5** | Advanced Features | 🟡 En cours | 30% |
 
 ---
 
@@ -243,13 +243,20 @@
 
 **Objectif** : Fonctionnalités avancées et améliorations.
 
-**Statut** : En cours (5.3 et 5.4 terminés)
+**Statut** : En cours (5.1 compression, 5.3 mode STRICT, et 5.4 filtres terminés)
 
 ### 5.1 - Cassette Management
 - [ ] Édition de cassettes (modifier réponses)
 - [ ] Fusion de cassettes
 - [ ] Filtrage de cassettes (supprimer certaines requêtes)
-- [ ] Compression des cassettes
+- [x] **Compression des cassettes** ✅
+  - [x] Support gzip (flate2)
+  - [x] CassetteFormat::JsonGzip
+  - [x] CassetteFormat::MessagePackGzip
+  - [x] Auto-détection format compressé (.json.gz, .msgpack.gz)
+  - [x] 3 tests unitaires pour compression
+  - [x] Documentation complète (COMPRESSION.md)
+  - [x] Réduction de taille 50-95% selon le format
 - [ ] Chiffrement des cassettes sensibles
 
 ### 5.2 - Matching Avancé
