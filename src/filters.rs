@@ -182,10 +182,8 @@ impl RecordingFilters {
 
         // Check content type (case-insensitive header lookup)
         for (key, value) in &response.headers {
-            if key.to_lowercase() == "content-type" {
-                if self.should_skip_content_type(value) {
-                    return false;
-                }
+            if key.to_lowercase() == "content-type" && self.should_skip_content_type(value) {
+                return false;
             }
         }
 
@@ -209,7 +207,7 @@ impl RecordingFilters {
 
     /// Filter body (truncate if too large, optionally redact)
     pub fn filter_body(&self, body: Option<Vec<u8>>, should_filter: bool) -> Option<Vec<u8>> {
-        body.and_then(|mut data| {
+        body.map(|mut data| {
             // Truncate if too large
             if let Some(max_size) = self.max_body_size {
                 if data.len() > max_size {
@@ -219,10 +217,10 @@ impl RecordingFilters {
 
             // If filtering is enabled, replace with placeholder
             if should_filter {
-                return Some(FILTERED_PLACEHOLDER.as_bytes().to_vec());
+                return FILTERED_PLACEHOLDER.as_bytes().to_vec();
             }
 
-            Some(data)
+            data
         })
     }
 
@@ -320,7 +318,10 @@ mod tests {
     fn create_test_request() -> HttpRequest {
         let mut headers = HashMap::new();
         headers.insert("Content-Type".to_string(), "application/json".to_string());
-        headers.insert("Authorization".to_string(), "Bearer secret-token".to_string());
+        headers.insert(
+            "Authorization".to_string(),
+            "Bearer secret-token".to_string(),
+        );
         headers.insert("X-API-Key".to_string(), "abc123".to_string());
 
         HttpRequest {
@@ -347,7 +348,9 @@ mod tests {
     fn test_default_filters() {
         let filters = RecordingFilters::default();
         assert!(!filters.filter_headers.is_empty());
-        assert!(filters.filter_headers.contains(&"authorization".to_string()));
+        assert!(filters
+            .filter_headers
+            .contains(&"authorization".to_string()));
     }
 
     #[test]
@@ -415,7 +418,10 @@ mod tests {
 
         let filtered = filters.apply_to_request(request);
 
-        assert_eq!(filtered.body, Some(FILTERED_PLACEHOLDER.as_bytes().to_vec()));
+        assert_eq!(
+            filtered.body,
+            Some(FILTERED_PLACEHOLDER.as_bytes().to_vec())
+        );
     }
 
     #[test]
@@ -431,8 +437,7 @@ mod tests {
 
     #[test]
     fn test_skip_content_type() {
-        let filters = RecordingFilters::new()
-            .skip_content_type("image/".to_string());
+        let filters = RecordingFilters::new().skip_content_type("image/".to_string());
 
         assert!(filters.should_skip_content_type("image/png"));
         assert!(filters.should_skip_content_type("image/jpeg"));

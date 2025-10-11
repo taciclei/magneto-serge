@@ -309,31 +309,40 @@ impl MagnetoProxy {
         let cassette_dir = state.cassette_dir.clone();
 
         // Try to load existing cassette, or create new one
-        let (player, recorder) = match Player::load(&cassette_dir, &cassette_name) {
-            Ok(player) => {
-                tracing::info!("📼 Loaded existing cassette '{}' for hybrid mode", cassette_name);
-                tracing::info!("   Existing interactions will be replayed, new ones will be recorded");
+        let (player, recorder) =
+            match Player::load(&cassette_dir, &cassette_name) {
+                Ok(player) => {
+                    tracing::info!(
+                        "📼 Loaded existing cassette '{}' for hybrid mode",
+                        cassette_name
+                    );
+                    tracing::info!(
+                        "   Existing interactions will be replayed, new ones will be recorded"
+                    );
 
-                // Load existing cassette into recorder to append to it
-                let cassette = player.cassette().cloned().ok_or_else(|| {
-                    MatgtoError::CassetteNotFound {
-                        name: cassette_name.clone(),
-                    }
-                })?;
+                    // Load existing cassette into recorder to append to it
+                    let cassette = player.cassette().cloned().ok_or_else(|| {
+                        MatgtoError::CassetteNotFound {
+                            name: cassette_name.clone(),
+                        }
+                    })?;
 
-                let mut recorder = Recorder::new(cassette_name.clone());
-                // Copy existing interactions
-                recorder.cassette_mut().interactions = cassette.interactions.clone();
+                    let mut recorder = Recorder::new(cassette_name.clone());
+                    // Copy existing interactions
+                    recorder.cassette_mut().interactions = cassette.interactions.clone();
 
-                (Some(player), recorder)
-            }
-            Err(_) => {
-                tracing::info!("📹 No existing cassette found, starting fresh in hybrid mode");
-                tracing::info!("   All interactions will be recorded to '{}'", cassette_name);
+                    (Some(player), recorder)
+                }
+                Err(_) => {
+                    tracing::info!("📹 No existing cassette found, starting fresh in hybrid mode");
+                    tracing::info!(
+                        "   All interactions will be recorded to '{}'",
+                        cassette_name
+                    );
 
-                (None, Recorder::new(cassette_name.clone()))
-            }
-        };
+                    (None, Recorder::new(cassette_name.clone()))
+                }
+            };
 
         let recorder_arc = Arc::new(Mutex::new(recorder));
         state.recorder = Some(recorder_arc.clone());
@@ -392,7 +401,9 @@ impl MagnetoProxy {
         let cassette_dir = state.cassette_dir.clone();
 
         // Try to load existing cassette
-        let cassette_exists = cassette_dir.join(format!("{}.json", cassette_name)).exists()
+        let cassette_exists = cassette_dir
+            .join(format!("{}.json", cassette_name))
+            .exists()
             || cassette_dir
                 .join(format!("{}.json.gz", cassette_name))
                 .exists()
@@ -405,7 +416,10 @@ impl MagnetoProxy {
 
         if cassette_exists {
             // Cassette exists, switch to replay mode (read-only)
-            tracing::info!("🔒 Once mode: Cassette '{}' exists, using replay (read-only)", cassette_name);
+            tracing::info!(
+                "🔒 Once mode: Cassette '{}' exists, using replay (read-only)",
+                cassette_name
+            );
 
             let player = Player::load(&cassette_dir, &cassette_name)?;
             let player_arc = Arc::new(Mutex::new(player));
@@ -424,7 +438,10 @@ impl MagnetoProxy {
             });
         } else {
             // Cassette doesn't exist, record it
-            tracing::info!("📹 Once mode: Cassette '{}' doesn't exist, recording (first time only)", cassette_name);
+            tracing::info!(
+                "📹 Once mode: Cassette '{}' doesn't exist, recording (first time only)",
+                cassette_name
+            );
 
             let recorder = Arc::new(Mutex::new(Recorder::new(cassette_name.clone())));
             state.recorder = Some(recorder.clone());

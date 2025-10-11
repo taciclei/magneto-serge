@@ -10,8 +10,7 @@ fn test_proxy_lifecycle() {
     let cassette_dir = temp_dir.path().to_path_buf();
 
     // Test 1: Création du proxy
-    let proxy = MagnetoProxy::new_internal(&cassette_dir)
-        .expect("Failed to create proxy");
+    let proxy = MagnetoProxy::new_internal(&cassette_dir).expect("Failed to create proxy");
 
     assert_eq!(proxy.port(), 8888, "Default port should be 8888");
     assert_eq!(proxy.mode(), ProxyMode::Auto, "Default mode should be Auto");
@@ -48,8 +47,7 @@ fn test_recording_lifecycle() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let cassette_dir = temp_dir.path().to_path_buf();
 
-    let proxy = MagnetoProxy::new_internal(&cassette_dir)
-        .expect("Failed to create proxy");
+    let proxy = MagnetoProxy::new_internal(&cassette_dir).expect("Failed to create proxy");
 
     // Test démarrage enregistrement
     let result = proxy.start_recording_internal("test-recording".to_string());
@@ -72,13 +70,18 @@ fn test_recording_errors() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let cassette_dir = temp_dir.path().to_path_buf();
 
-    let proxy = MagnetoProxy::new_internal(&cassette_dir)
-        .expect("Failed to create proxy");
+    let proxy = MagnetoProxy::new_internal(&cassette_dir).expect("Failed to create proxy");
 
     // Test: Arrêter sans avoir commencé
     let result = proxy.stop_recording_internal();
-    assert!(result.is_err(), "Should fail when stopping without starting");
-    assert!(result.unwrap_err().to_string().contains("No recording in progress"));
+    assert!(
+        result.is_err(),
+        "Should fail when stopping without starting"
+    );
+    assert!(result
+        .unwrap_err()
+        .to_string()
+        .contains("No recording in progress"));
 }
 
 #[test]
@@ -86,13 +89,18 @@ fn test_replay_errors() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let cassette_dir = temp_dir.path().to_path_buf();
 
-    let proxy = MagnetoProxy::new_internal(&cassette_dir)
-        .expect("Failed to create proxy");
+    let proxy = MagnetoProxy::new_internal(&cassette_dir).expect("Failed to create proxy");
 
     // Test: Replay cassette inexistante
     let result = proxy.replay_internal("nonexistent-cassette".to_string());
-    assert!(result.is_err(), "Should fail when replaying nonexistent cassette");
-    assert!(result.unwrap_err().to_string().contains("Cassette not found"));
+    assert!(
+        result.is_err(),
+        "Should fail when replaying nonexistent cassette"
+    );
+    assert!(result
+        .unwrap_err()
+        .to_string()
+        .contains("Cassette not found"));
 }
 
 #[test]
@@ -135,10 +143,8 @@ fn test_concurrent_access() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let cassette_dir = temp_dir.path().to_path_buf();
 
-    let proxy = Arc::new(
-        MagnetoProxy::new_internal(&cassette_dir)
-            .expect("Failed to create proxy")
-    );
+    let proxy =
+        Arc::new(MagnetoProxy::new_internal(&cassette_dir).expect("Failed to create proxy"));
 
     // Créer plusieurs threads qui accèdent au proxy
     let mut handles = vec![];
@@ -174,7 +180,7 @@ fn test_concurrent_access() {
 
     // Le port et le mode final dépendent du dernier thread
     // mais ils devraient être valides
-    assert!(final_port >= 9000 && final_port < 9010);
+    assert!((9000..9010).contains(&final_port));
     assert!(matches!(
         final_mode,
         ProxyMode::Auto | ProxyMode::Record | ProxyMode::Replay | ProxyMode::Passthrough
@@ -186,11 +192,11 @@ fn test_shutdown_cleanup() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let cassette_dir = temp_dir.path().to_path_buf();
 
-    let proxy = MagnetoProxy::new_internal(&cassette_dir)
-        .expect("Failed to create proxy");
+    let proxy = MagnetoProxy::new_internal(&cassette_dir).expect("Failed to create proxy");
 
     // Démarrer un enregistrement
-    proxy.start_recording_internal("shutdown-test".to_string())
+    proxy
+        .start_recording_internal("shutdown-test".to_string())
         .expect("Should start recording");
 
     // Shutdown
@@ -223,10 +229,13 @@ fn test_cassette_directory_creation() {
     assert!(!cassette_dir.exists());
 
     // Créer le proxy devrait créer le répertoire des certificats
-    let _proxy = MagnetoProxy::new_internal(&cassette_dir)
-        .expect("Failed to create proxy");
+    let _proxy = MagnetoProxy::new_internal(&cassette_dir).expect("Failed to create proxy");
 
     // Le répertoire parent pour les certs devrait exister
-    let ca_dir = cassette_dir.parent().unwrap().join(".magneto").join("certs");
+    let ca_dir = cassette_dir
+        .parent()
+        .unwrap()
+        .join(".magneto")
+        .join("certs");
     assert!(ca_dir.exists(), "CA directory should be created");
 }

@@ -1,16 +1,14 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId, Throughput};
+use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use magneto_serge::{MagnetoProxy, ProxyMode};
 use std::time::Duration;
 use tempfile::TempDir;
-use tokio::runtime::Runtime;
 
 /// Helper to create a test proxy instance
 fn create_test_proxy(mode: ProxyMode) -> (MagnetoProxy, TempDir) {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let cassette_dir = temp_dir.path().to_path_buf();
 
-    let proxy = MagnetoProxy::new_internal(&cassette_dir)
-        .expect("Failed to create proxy");
+    let proxy = MagnetoProxy::new_internal(&cassette_dir).expect("Failed to create proxy");
 
     proxy.set_mode(mode);
     proxy.set_port(0); // Use random available port
@@ -36,8 +34,10 @@ fn bench_proxy_creation(c: &mut Criterion) {
         let proxy = MagnetoProxy::new_internal(&cassette_dir).expect("Failed to create proxy");
 
         b.iter(|| {
-            black_box(proxy.set_port(8888));
-            black_box(proxy.set_mode(ProxyMode::Auto));
+            proxy.set_port(8888);
+            black_box(());
+            proxy.set_mode(ProxyMode::Auto);
+            black_box(());
         });
     });
 
@@ -55,8 +55,13 @@ fn bench_recording_lifecycle(c: &mut Criterion) {
         b.iter(|| {
             counter += 1;
             let cassette_name = format!("benchmark-{}", counter);
-            black_box(proxy.start_recording_internal(cassette_name).expect("Failed to start recording"));
-            proxy.stop_recording_internal().expect("Failed to stop recording");
+            proxy
+                .start_recording_internal(cassette_name)
+                .expect("Failed to start recording");
+            black_box(());
+            proxy
+                .stop_recording_internal()
+                .expect("Failed to stop recording");
         });
     });
 
@@ -64,8 +69,13 @@ fn bench_recording_lifecycle(c: &mut Criterion) {
         let (proxy, _temp_dir) = create_test_proxy(ProxyMode::Record);
 
         b.iter(|| {
-            proxy.start_recording_internal("test".to_string()).expect("Failed to start recording");
-            black_box(proxy.stop_recording_internal().expect("Failed to stop recording"));
+            proxy
+                .start_recording_internal("test".to_string())
+                .expect("Failed to start recording");
+            proxy
+                .stop_recording_internal()
+                .expect("Failed to stop recording");
+            black_box(());
         });
     });
 
@@ -84,13 +94,18 @@ fn bench_mode_switching(c: &mut Criterion) {
     ];
 
     for mode in &modes {
-        group.bench_with_input(BenchmarkId::new("switch_to", format!("{:?}", mode)), mode, |b, &mode| {
-            let (proxy, _temp_dir) = create_test_proxy(ProxyMode::Auto);
+        group.bench_with_input(
+            BenchmarkId::new("switch_to", format!("{:?}", mode)),
+            mode,
+            |b, &mode| {
+                let (proxy, _temp_dir) = create_test_proxy(ProxyMode::Auto);
 
-            b.iter(|| {
-                black_box(proxy.set_mode(mode));
-            });
-        });
+                b.iter(|| {
+                    proxy.set_mode(mode);
+                    black_box(());
+                });
+            },
+        );
     }
 
     group.finish();
@@ -108,7 +123,9 @@ fn bench_cassette_operations(c: &mut Criterion) {
             let (proxy, _temp_dir) = create_test_proxy(ProxyMode::Record);
 
             // Create a cassette with 'size' interactions
-            proxy.start_recording_internal("benchmark".to_string()).expect("Failed to start");
+            proxy
+                .start_recording_internal("benchmark".to_string())
+                .expect("Failed to start");
 
             // Simulate multiple interactions
             for _i in 0..size {
@@ -119,7 +136,10 @@ fn bench_cassette_operations(c: &mut Criterion) {
             proxy.stop_recording_internal().expect("Failed to stop");
 
             b.iter(|| {
-                black_box(proxy.replay_internal("benchmark".to_string()).expect("Failed to replay"));
+                proxy
+                    .replay_internal("benchmark".to_string())
+                    .expect("Failed to replay");
+                black_box(());
             });
         });
     }
@@ -209,7 +229,9 @@ fn bench_latency(c: &mut Criterion) {
             counter += 1;
             let cassette_name = format!("latency-{}", counter);
             let start = std::time::Instant::now();
-            proxy.start_recording_internal(cassette_name).expect("Failed to start");
+            proxy
+                .start_recording_internal(cassette_name)
+                .expect("Failed to start");
             proxy.stop_recording_internal().expect("Failed to stop");
             black_box(start.elapsed());
         });

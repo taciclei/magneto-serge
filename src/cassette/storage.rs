@@ -1,18 +1,17 @@
-///! Optimized cassette storage with async I/O and buffering
+//! Optimized cassette storage with async I/O and buffering
 ///
 /// This module provides high-performance cassette storage with:
 /// - Async I/O for non-blocking operations
 /// - In-memory buffering to batch writes
 /// - MessagePack support for binary format
 /// - Background writer task for zero-latency saves
-
 use crate::cassette::Cassette;
 use crate::error::Result;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
+use tokio::fs;
 use tokio::sync::mpsc;
 use tokio::sync::Mutex;
-use tokio::fs;
 
 /// Format for cassette serialization
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -71,17 +70,18 @@ impl AsyncCassetteStorage {
             None
         };
 
-        Self {
-            tx,
-            writer_handle,
-        }
+        Self { tx, writer_handle }
     }
 
     /// Background writer task
     async fn writer_task(mut rx: mpsc::UnboundedReceiver<WriterMessage>) {
         while let Some(msg) = rx.recv().await {
             match msg {
-                WriterMessage::Save { cassette, path, format } => {
+                WriterMessage::Save {
+                    cassette,
+                    path,
+                    format,
+                } => {
                     if let Err(e) = Self::save_cassette_async(&cassette, &path, format).await {
                         eprintln!("Failed to save cassette: {}", e);
                     }
@@ -94,7 +94,12 @@ impl AsyncCassetteStorage {
     }
 
     /// Save cassette asynchronously (non-blocking for caller)
-    pub fn save_async(&self, cassette: Cassette, path: PathBuf, format: CassetteFormat) -> Result<()> {
+    pub fn save_async(
+        &self,
+        cassette: Cassette,
+        path: PathBuf,
+        format: CassetteFormat,
+    ) -> Result<()> {
         self.tx.send(WriterMessage::Save {
             cassette,
             path,
@@ -105,12 +110,21 @@ impl AsyncCassetteStorage {
     }
 
     /// Save cassette and wait for completion
-    pub async fn save_sync(&self, cassette: Cassette, path: PathBuf, format: CassetteFormat) -> Result<()> {
+    pub async fn save_sync(
+        &self,
+        cassette: Cassette,
+        path: PathBuf,
+        format: CassetteFormat,
+    ) -> Result<()> {
         Self::save_cassette_async(&cassette, &path, format).await
     }
 
     /// Internal async save implementation
-    async fn save_cassette_async(cassette: &Cassette, path: &Path, format: CassetteFormat) -> Result<()> {
+    async fn save_cassette_async(
+        cassette: &Cassette,
+        path: &Path,
+        format: CassetteFormat,
+    ) -> Result<()> {
         // Ensure directory exists
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent).await?;
@@ -118,13 +132,9 @@ impl AsyncCassetteStorage {
 
         // Serialize cassette
         let data = match format {
-            CassetteFormat::Json => {
-                serde_json::to_vec_pretty(cassette)?
-            }
+            CassetteFormat::Json => serde_json::to_vec_pretty(cassette)?,
             #[cfg(feature = "msgpack")]
-            CassetteFormat::MessagePack => {
-                rmp_serde::to_vec(cassette)?
-            }
+            CassetteFormat::MessagePack => rmp_serde::to_vec(cassette)?,
             #[cfg(feature = "compression")]
             CassetteFormat::JsonGzip => {
                 let json_data = serde_json::to_vec_pretty(cassette)?;
@@ -150,13 +160,9 @@ impl AsyncCassetteStorage {
         let data = fs::read(path).await?;
 
         let cassette = match format {
-            CassetteFormat::Json => {
-                serde_json::from_slice(&data)?
-            }
+            CassetteFormat::Json => serde_json::from_slice(&data)?,
             #[cfg(feature = "msgpack")]
-            CassetteFormat::MessagePack => {
-                rmp_serde::from_slice(&data)?
-            }
+            CassetteFormat::MessagePack => rmp_serde::from_slice(&data)?,
             #[cfg(feature = "compression")]
             CassetteFormat::JsonGzip => {
                 let decompressed = Self::decompress_data(&data)?;
@@ -236,7 +242,11 @@ pub struct BufferedCassetteWriter {
 
 impl BufferedCassetteWriter {
     /// Create a new buffered writer
-    pub fn new(cassette_name: String, storage: Arc<AsyncCassetteStorage>, format: CassetteFormat) -> Self {
+    pub fn new(
+        cassette_name: String,
+        storage: Arc<AsyncCassetteStorage>,
+        format: CassetteFormat,
+    ) -> Self {
         let cassette = Cassette::new(cassette_name);
 
         Self {
@@ -263,9 +273,8 @@ impl BufferedCassetteWriter {
             // We need to block here briefly to clone
             // In real usage, this would be called from an async context
             tokio::task::block_in_place(|| {
-                tokio::runtime::Handle::current().block_on(async {
-                    self.cassette.lock().await.clone()
-                })
+                tokio::runtime::Handle::current()
+                    .block_on(async { self.cassette.lock().await.clone() })
             })
         };
 
@@ -320,7 +329,8 @@ mod tests {
         let path = dir.path().join("test.json");
 
         // Save
-        storage.save_sync(cassette.clone(), path.clone(), CassetteFormat::Json)
+        storage
+            .save_sync(cassette.clone(), path.clone(), CassetteFormat::Json)
             .await
             .unwrap();
 
@@ -341,7 +351,8 @@ mod tests {
         let path = dir.path().join("test-async.json");
 
         // Save async (non-blocking)
-        storage.save_async(cassette, path.clone(), CassetteFormat::Json)
+        storage
+            .save_async(cassette, path.clone(), CassetteFormat::Json)
             .unwrap();
 
         // Give writer time to complete
@@ -361,7 +372,8 @@ mod tests {
         let path = dir.path().join("test-msgpack.msgpack");
 
         // Save as MessagePack
-        storage.save_sync(cassette.clone(), path.clone(), CassetteFormat::MessagePack)
+        storage
+            .save_sync(cassette.clone(), path.clone(), CassetteFormat::MessagePack)
             .await
             .unwrap();
 
@@ -374,7 +386,8 @@ mod tests {
 
         // Verify file is smaller than JSON would be
         let json_path = dir.path().join("test-msgpack.json");
-        storage.save_sync(cassette, json_path.clone(), CassetteFormat::Json)
+        storage
+            .save_sync(cassette, json_path.clone(), CassetteFormat::Json)
             .await
             .unwrap();
 
@@ -391,20 +404,38 @@ mod tests {
 
         #[cfg(feature = "msgpack")]
         {
-            assert_eq!(detect_format(Path::new("test.msgpack")), CassetteFormat::MessagePack);
-            assert_eq!(detect_format(Path::new("test.mp")), CassetteFormat::MessagePack);
+            assert_eq!(
+                detect_format(Path::new("test.msgpack")),
+                CassetteFormat::MessagePack
+            );
+            assert_eq!(
+                detect_format(Path::new("test.mp")),
+                CassetteFormat::MessagePack
+            );
         }
 
         #[cfg(feature = "compression")]
         {
-            assert_eq!(detect_format(Path::new("test.json.gz")), CassetteFormat::JsonGzip);
-            assert_eq!(detect_format(Path::new("test.gz")), CassetteFormat::JsonGzip);
+            assert_eq!(
+                detect_format(Path::new("test.json.gz")),
+                CassetteFormat::JsonGzip
+            );
+            assert_eq!(
+                detect_format(Path::new("test.gz")),
+                CassetteFormat::JsonGzip
+            );
         }
 
         #[cfg(all(feature = "msgpack", feature = "compression"))]
         {
-            assert_eq!(detect_format(Path::new("test.msgpack.gz")), CassetteFormat::MessagePackGzip);
-            assert_eq!(detect_format(Path::new("test.mp.gz")), CassetteFormat::MessagePackGzip);
+            assert_eq!(
+                detect_format(Path::new("test.msgpack.gz")),
+                CassetteFormat::MessagePackGzip
+            );
+            assert_eq!(
+                detect_format(Path::new("test.mp.gz")),
+                CassetteFormat::MessagePackGzip
+            );
         }
     }
 
@@ -439,7 +470,8 @@ mod tests {
         let path = dir.path().join("test-json.json.gz");
 
         // Save as compressed JSON
-        storage.save_sync(cassette.clone(), path.clone(), CassetteFormat::JsonGzip)
+        storage
+            .save_sync(cassette.clone(), path.clone(), CassetteFormat::JsonGzip)
             .await
             .unwrap();
 
@@ -453,15 +485,22 @@ mod tests {
 
         // Verify compression roundtrip works correctly
         let uncompressed_path = dir.path().join("test-json-uncompressed.json");
-        storage.save_sync(cassette, uncompressed_path.clone(), CassetteFormat::Json)
+        storage
+            .save_sync(cassette, uncompressed_path.clone(), CassetteFormat::Json)
             .await
             .unwrap();
 
         let compressed_size = std::fs::metadata(&path).unwrap().len();
         let uncompressed_size = std::fs::metadata(&uncompressed_path).unwrap().len();
 
-        println!("Compressed: {} bytes, Uncompressed: {} bytes", compressed_size, uncompressed_size);
-        println!("Compression ratio: {:.1}%", (compressed_size as f64 / uncompressed_size as f64) * 100.0);
+        println!(
+            "Compressed: {} bytes, Uncompressed: {} bytes",
+            compressed_size, uncompressed_size
+        );
+        println!(
+            "Compression ratio: {:.1}%",
+            (compressed_size as f64 / uncompressed_size as f64) * 100.0
+        );
 
         // For small cassettes with some data, compression might not always be better
         // Just verify the file was created and can be read
@@ -499,7 +538,12 @@ mod tests {
         let path = dir.path().join("test-msgpack.msgpack.gz");
 
         // Save as compressed MessagePack
-        storage.save_sync(cassette.clone(), path.clone(), CassetteFormat::MessagePackGzip)
+        storage
+            .save_sync(
+                cassette.clone(),
+                path.clone(),
+                CassetteFormat::MessagePackGzip,
+            )
             .await
             .unwrap();
 
@@ -513,15 +557,26 @@ mod tests {
 
         // Verify compression roundtrip works correctly
         let uncompressed_path = dir.path().join("test-msgpack-uncompressed.msgpack");
-        storage.save_sync(cassette, uncompressed_path.clone(), CassetteFormat::MessagePack)
+        storage
+            .save_sync(
+                cassette,
+                uncompressed_path.clone(),
+                CassetteFormat::MessagePack,
+            )
             .await
             .unwrap();
 
         let compressed_size = std::fs::metadata(&path).unwrap().len();
         let uncompressed_size = std::fs::metadata(&uncompressed_path).unwrap().len();
 
-        println!("Compressed: {} bytes, Uncompressed: {} bytes", compressed_size, uncompressed_size);
-        println!("Compression ratio: {:.1}%", (compressed_size as f64 / uncompressed_size as f64) * 100.0);
+        println!(
+            "Compressed: {} bytes, Uncompressed: {} bytes",
+            compressed_size, uncompressed_size
+        );
+        println!(
+            "Compression ratio: {:.1}%",
+            (compressed_size as f64 / uncompressed_size as f64) * 100.0
+        );
 
         // Verify the file was created and can be read
         assert!(path.exists());
@@ -560,21 +615,33 @@ mod tests {
         let json_gz_path = dir.path().join("large-json.json.gz");
 
         // Save uncompressed and compressed
-        storage.save_sync(cassette.clone(), json_path.clone(), CassetteFormat::Json)
+        storage
+            .save_sync(cassette.clone(), json_path.clone(), CassetteFormat::Json)
             .await
             .unwrap();
 
-        storage.save_sync(cassette, json_gz_path.clone(), CassetteFormat::JsonGzip)
+        storage
+            .save_sync(cassette, json_gz_path.clone(), CassetteFormat::JsonGzip)
             .await
             .unwrap();
 
         let json_size = std::fs::metadata(&json_path).unwrap().len();
         let json_gz_size = std::fs::metadata(&json_gz_path).unwrap().len();
 
-        println!("JSON: {} KB, JSON.GZ: {} KB", json_size / 1024, json_gz_size / 1024);
-        println!("Compression ratio: {:.2}%", (json_gz_size as f64 / json_size as f64) * 100.0);
+        println!(
+            "JSON: {} KB, JSON.GZ: {} KB",
+            json_size / 1024,
+            json_gz_size / 1024
+        );
+        println!(
+            "Compression ratio: {:.2}%",
+            (json_gz_size as f64 / json_size as f64) * 100.0
+        );
 
         // Compression should be significant for large repetitive data
-        assert!(json_gz_size < json_size / 2, "Expected at least 50% compression");
+        assert!(
+            json_gz_size < json_size / 2,
+            "Expected at least 50% compression"
+        );
     }
 }

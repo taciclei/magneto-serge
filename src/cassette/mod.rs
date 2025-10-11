@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 // Re-export storage types
-pub use storage::{AsyncCassetteStorage, BufferedCassetteWriter, CassetteFormat, detect_format};
+pub use storage::{detect_format, AsyncCassetteStorage, BufferedCassetteWriter, CassetteFormat};
 
 /// A cassette containing recorded HTTP/WebSocket interactions
 #[derive(Debug, Clone, Serialize, Deserialize)]

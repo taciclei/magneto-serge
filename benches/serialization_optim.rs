@@ -1,6 +1,5 @@
-///! Benchmark for serialization optimizations (JSON vs MessagePack)
-
-use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId, Throughput};
+//! Benchmark for serialization optimizations (JSON vs MessagePack)
+use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use magneto_serge::cassette::{Cassette, HttpRequest, HttpResponse, InteractionKind};
 use std::collections::HashMap;
 
@@ -28,7 +27,13 @@ fn create_test_cassette(name: &str, interactions: usize) -> Cassette {
                 h.insert("Content-Type".to_string(), "application/json".to_string());
                 h
             },
-            body: Some(format!("{{\"response\": {}, \"result\": [1,2,3,4,5], \"message\": \"success\"}}", i).into_bytes()),
+            body: Some(
+                format!(
+                    "{{\"response\": {}, \"result\": [1,2,3,4,5], \"message\": \"success\"}}",
+                    i
+                )
+                .into_bytes(),
+            ),
         };
 
         cassette.add_interaction(InteractionKind::Http { request, response });
@@ -44,18 +49,14 @@ fn bench_json_serialization(c: &mut Criterion) {
     for size in [1, 10, 50, 100, 500].iter() {
         group.throughput(Throughput::Elements(*size as u64));
 
-        group.bench_with_input(
-            BenchmarkId::from_parameter(size),
-            size,
-            |b, &size| {
-                let cassette = create_test_cassette("json-bench", size);
+        group.bench_with_input(BenchmarkId::from_parameter(size), size, |b, &size| {
+            let cassette = create_test_cassette("json-bench", size);
 
-                b.iter(|| {
-                    let bytes = serde_json::to_vec(&cassette).unwrap();
-                    black_box(bytes);
-                });
-            },
-        );
+            b.iter(|| {
+                let bytes = serde_json::to_vec(&cassette).unwrap();
+                black_box(bytes);
+            });
+        });
     }
 
     group.finish();
@@ -71,16 +72,12 @@ fn bench_json_deserialization(c: &mut Criterion) {
         let cassette = create_test_cassette("json-bench", *size);
         let bytes = serde_json::to_vec(&cassette).unwrap();
 
-        group.bench_with_input(
-            BenchmarkId::from_parameter(size),
-            &bytes,
-            |b, bytes| {
-                b.iter(|| {
-                    let cassette: Cassette = serde_json::from_slice(bytes).unwrap();
-                    black_box(cassette);
-                });
-            },
-        );
+        group.bench_with_input(BenchmarkId::from_parameter(size), &bytes, |b, bytes| {
+            b.iter(|| {
+                let cassette: Cassette = serde_json::from_slice(bytes).unwrap();
+                black_box(cassette);
+            });
+        });
     }
 
     group.finish();
@@ -94,18 +91,14 @@ fn bench_msgpack_serialization(c: &mut Criterion) {
     for size in [1, 10, 50, 100, 500].iter() {
         group.throughput(Throughput::Elements(*size as u64));
 
-        group.bench_with_input(
-            BenchmarkId::from_parameter(size),
-            size,
-            |b, &size| {
-                let cassette = create_test_cassette("msgpack-bench", size);
+        group.bench_with_input(BenchmarkId::from_parameter(size), size, |b, &size| {
+            let cassette = create_test_cassette("msgpack-bench", size);
 
-                b.iter(|| {
-                    let bytes = rmp_serde::to_vec(&cassette).unwrap();
-                    black_box(bytes);
-                });
-            },
-        );
+            b.iter(|| {
+                let bytes = rmp_serde::to_vec(&cassette).unwrap();
+                black_box(bytes);
+            });
+        });
     }
 
     group.finish();
@@ -122,16 +115,12 @@ fn bench_msgpack_deserialization(c: &mut Criterion) {
         let cassette = create_test_cassette("msgpack-bench", *size);
         let bytes = rmp_serde::to_vec(&cassette).unwrap();
 
-        group.bench_with_input(
-            BenchmarkId::from_parameter(size),
-            &bytes,
-            |b, bytes| {
-                b.iter(|| {
-                    let cassette: Cassette = rmp_serde::from_slice(bytes).unwrap();
-                    black_box(cassette);
-                });
-            },
-        );
+        group.bench_with_input(BenchmarkId::from_parameter(size), &bytes, |b, bytes| {
+            b.iter(|| {
+                let cassette: Cassette = rmp_serde::from_slice(bytes).unwrap();
+                black_box(cassette);
+            });
+        });
     }
 
     group.finish();
@@ -150,12 +139,19 @@ fn bench_file_size_comparison(c: &mut Criterion) {
 
         let json_size = json_bytes.len();
         let msgpack_size = msgpack_bytes.len();
-        let compression_ratio = ((json_size as f64 - msgpack_size as f64) / json_size as f64) * 100.0;
+        let compression_ratio =
+            ((json_size as f64 - msgpack_size as f64) / json_size as f64) * 100.0;
 
         println!("{} interactions:", size);
         println!("  JSON:        {:>8} bytes", json_size);
-        println!("  MessagePack: {:>8} bytes ({:>5.1}% smaller)", msgpack_size, compression_ratio);
-        println!("  Speedup:     {:.2}x smaller\n", json_size as f64 / msgpack_size as f64);
+        println!(
+            "  MessagePack: {:>8} bytes ({:>5.1}% smaller)",
+            msgpack_size, compression_ratio
+        );
+        println!(
+            "  Speedup:     {:.2}x smaller\n",
+            json_size as f64 / msgpack_size as f64
+        );
     }
 
     // Dummy benchmark to satisfy Criterion

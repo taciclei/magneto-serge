@@ -224,7 +224,11 @@ impl HudsuckerHttpHandler for MatgtoHttpHandler {
                 let is_strict = matches!(self.mode, ProxyMode::ReplayStrict);
 
                 if is_strict {
-                    tracing::info!("🔒 STRICT Replay mode: Matching {} {}", req.method(), req.uri());
+                    tracing::info!(
+                        "🔒 STRICT Replay mode: Matching {} {}",
+                        req.method(),
+                        req.uri()
+                    );
                 } else {
                     tracing::info!("Replay mode: Matching {} {}", req.method(), req.uri());
                 }
@@ -392,8 +396,9 @@ impl HudsuckerHttpHandler for MatgtoHttpHandler {
 
                             if let Ok(idx) = player_lock.find_interaction(&signature) {
                                 if let Some(interaction) = player_lock.get_interaction(idx) {
-                                    if let crate::cassette::InteractionKind::Http { response, .. } =
-                                        &interaction.kind
+                                    if let crate::cassette::InteractionKind::Http {
+                                        response, ..
+                                    } = &interaction.kind
                                     {
                                         tracing::info!("  📼 Found in cassette, replaying");
                                         found_in_cassette = true;

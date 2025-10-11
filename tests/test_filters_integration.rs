@@ -52,9 +52,18 @@ fn test_recorder_with_default_filters() {
     if let magneto_serge::cassette::InteractionKind::Http { request, response } =
         &cassette.interactions[0].kind
     {
-        assert_eq!(request.headers.get("Authorization"), Some(&"[FILTERED]".to_string()));
-        assert_eq!(request.headers.get("X-API-Key"), Some(&"[FILTERED]".to_string()));
-        assert_eq!(response.headers.get("Set-Cookie"), Some(&"[FILTERED]".to_string()));
+        assert_eq!(
+            request.headers.get("Authorization"),
+            Some(&"[FILTERED]".to_string())
+        );
+        assert_eq!(
+            request.headers.get("X-API-Key"),
+            Some(&"[FILTERED]".to_string())
+        );
+        assert_eq!(
+            response.headers.get("Set-Cookie"),
+            Some(&"[FILTERED]".to_string())
+        );
 
         // Content-Type should not be filtered
         assert_eq!(
@@ -230,8 +239,14 @@ fn test_recorder_preset_security() {
     if let magneto_serge::cassette::InteractionKind::Http { request, response } =
         &cassette.interactions[0].kind
     {
-        assert_eq!(request.headers.get("Authorization"), Some(&"[FILTERED]".to_string()));
-        assert_eq!(response.headers.get("Set-Cookie"), Some(&"[FILTERED]".to_string()));
+        assert_eq!(
+            request.headers.get("Authorization"),
+            Some(&"[FILTERED]".to_string())
+        );
+        assert_eq!(
+            response.headers.get("Set-Cookie"),
+            Some(&"[FILTERED]".to_string())
+        );
 
         // Bodies should NOT be filtered (security preset only filters headers)
         assert!(request.body.is_some());
@@ -382,6 +397,9 @@ fn test_recorder_dynamic_filter_change() {
     if let magneto_serge::cassette::InteractionKind::Http { request, .. } =
         &cassette.interactions[1].kind
     {
-        assert_eq!(request.headers.get("Authorization"), Some(&"[FILTERED]".to_string()));
+        assert_eq!(
+            request.headers.get("Authorization"),
+            Some(&"[FILTERED]".to_string())
+        );
     }
 }
