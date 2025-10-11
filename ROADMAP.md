@@ -213,8 +213,18 @@
 - [ ] Configuration secrets GitHub (pour publication effective)
 
 ### 4.3 - Production Ready
-- [ ] Benchmarks de performance
+- [x] **Benchmarks de performance** ✅
+  - [x] HTTP proxy benchmarks (7 groups, 21 benchmarks)
+  - [x] WebSocket proxy benchmarks (8 groups, 18 benchmarks)
+  - [x] Latency measurements (~49ns overhead)
+  - [x] Throughput analysis (835 interactions/sec)
+  - [x] Complete BENCHMARKS.md documentation
+  - [x] Optimization priorities identified
 - [ ] Optimisations
+  - [ ] Async cassette I/O
+  - [ ] MessagePack binary format
+  - [ ] In-memory cassette buffering
+  - [ ] Memory-mapped large cassettes
 - [ ] Sécurité : audit des dépendances
 - [ ] Documentation complète
 - [ ] Site web / GitHub Pages
@@ -330,8 +340,9 @@
 - ✅ Renommage complet : MatgtoProxy → MagnetoProxy (309 occurrences, 35 fichiers)
 - ✅ Binaire uniffi-bindgen créé pour génération de bindings
 - ✅ Tests Rust : 43 tests passent (8 ignorés volontairement)
+- ✅ **Benchmarks Criterion : 39 benchmarks couvrant toutes les opérations**
+- ✅ **Performance mesurée : ~49ns overhead, 445µs startup, 835 interactions/sec**
 - ⏳ Couverture de code > 80%
-- ⏳ Performance : < 10ms overhead par requête
 
 ### Distribution
 - ⏳ Package PyPI (prêt à publier)
@@ -351,15 +362,16 @@
 
 Vous pouvez contribuer sur :
 
-### Phase actuelle (4.2 - CI/CD & Publication)
-1. Configurer les secrets GitHub pour la publication
-2. Tester la publication sur les registres de packages
-3. Créer la première release (v0.4.0)
-4. Nettoyer les warnings Rust
+### Phase actuelle (4.3 - Production Ready)
+1. ✅ Benchmarks de performance (39 benchmarks Criterion)
+2. Implémenter optimisations identifiées (async I/O, MessagePack)
+3. Audit de sécurité des dépendances
+4. Documentation complète (API docs, guides)
+5. Configurer secrets GitHub pour publication
 
 ### Prochaines phases
-1. Optimiser la performance (Phase 4.3)
-2. Benchmarks et métriques (Phase 4.3)
+1. Optimisations performance (Phase 4.3) - **EN COURS**
+2. Release v1.0.0 (Phase 4.4)
 3. Features avancées (Phase 5)
 
 ---
@@ -396,6 +408,6 @@ MIT OR Apache-2.0
 
 ---
 
-**Dernière mise à jour** : 2025-10-10 (après CI/CD verte)
-**Version actuelle** : v0.4.0-rc (Release Candidate)
-**Prochaine milestone** : v1.0.0 (Publication & Production Ready)
+**Dernière mise à jour** : 2025-10-11 (après ajout benchmarks Criterion)
+**Version actuelle** : v0.1.0 (First Release)
+**Prochaine milestone** : v0.2.0 (Optimisations & Advanced Features)
