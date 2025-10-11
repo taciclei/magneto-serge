@@ -15,6 +15,7 @@ enum ProxyMode {
   "Record",
   "Replay",
   "ReplayStrict",
+  "Hybrid",
   "Passthrough",
 };
 
@@ -34,6 +35,11 @@ interface MagnetoProxy {
   // Replay methods - return false on error
   boolean replay(string cassette_name);
   boolean replay_strict(string cassette_name);
+
+  // Hybrid mode methods - return false on error
+  boolean hybrid(string cassette_name);
+  boolean stop_hybrid();
+
   void shutdown();
 
   // Getters

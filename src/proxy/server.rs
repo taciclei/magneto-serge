@@ -378,6 +378,89 @@ impl HudsuckerHttpHandler for MatgtoHttpHandler {
                 }
             }
 
+            ProxyMode::Hybrid => {
+                // Hybrid mode: Try replay first, fall back to record if not found
+                tracing::info!("🔀 Hybrid mode: {} {}", req.method(), req.uri());
+
+                match Self::convert_request(req).await {
+                    Ok((http_req, _body_bytes)) => {
+                        // First, try to find in cassette
+                        let mut found_in_cassette = false;
+                        if let Some(player) = &self.player {
+                            let mut player_lock = player.lock().await;
+                            let signature = Self::to_signature(&http_req);
+
+                            if let Ok(idx) = player_lock.find_interaction(&signature) {
+                                if let Some(interaction) = player_lock.get_interaction(idx) {
+                                    if let crate::cassette::InteractionKind::Http { response, .. } =
+                                        &interaction.kind
+                                    {
+                                        tracing::info!("  📼 Found in cassette, replaying");
+                                        found_in_cassette = true;
+
+                                        if let Ok(resp) = Self::convert_response(response) {
+                                            return RequestOrResponse::Response(resp);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // If not found, record new interaction
+                        if !found_in_cassette {
+                            tracing::info!("  📹 Not in cassette, forwarding and recording");
+
+                            match self.forwarder.forward(&http_req).await {
+                                Ok(http_resp) => {
+                                    // Record the new interaction
+                                    if let Some(recorder) = &self.recorder {
+                                        let mut recorder_lock = recorder.lock().await;
+                                        recorder_lock
+                                            .record_http(http_req.clone(), http_resp.clone());
+                                        tracing::debug!("  ✅ New interaction recorded");
+                                    }
+
+                                    match Self::convert_response(&http_resp) {
+                                        Ok(response) => RequestOrResponse::Response(response),
+                                        Err(e) => {
+                                            tracing::error!("Failed to convert response: {}", e);
+                                            let err_response = Response::builder()
+                                                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                                                .body(Body::from("Failed to convert response"))
+                                                .unwrap();
+                                            RequestOrResponse::Response(err_response)
+                                        }
+                                    }
+                                }
+                                Err(e) => {
+                                    tracing::error!("Failed to forward request: {}", e);
+                                    let err_response = Response::builder()
+                                        .status(StatusCode::BAD_GATEWAY)
+                                        .body(Body::from(format!("Proxy error: {}", e)))
+                                        .unwrap();
+                                    RequestOrResponse::Response(err_response)
+                                }
+                            }
+                        } else {
+                            // Should never reach here but handle it anyway
+                            let err_response = Response::builder()
+                                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                                .body(Body::from("Hybrid mode logic error"))
+                                .unwrap();
+                            RequestOrResponse::Response(err_response)
+                        }
+                    }
+                    Err(e) => {
+                        tracing::error!("Failed to buffer request: {}", e);
+                        let err_response = Response::builder()
+                            .status(StatusCode::BAD_REQUEST)
+                            .body(Body::from("Failed to read request"))
+                            .unwrap();
+                        RequestOrResponse::Response(err_response)
+                    }
+                }
+            }
+
             ProxyMode::Passthrough => {
                 // Pass through - forward without recording
                 tracing::info!(

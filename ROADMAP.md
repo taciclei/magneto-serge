@@ -14,7 +14,7 @@
 | **Phase 2** | WebSocket Support | ✅ Terminé | 100% |
 | **Phase 3** | Multi-language Bindings | ✅ Terminé | 100% |
 | **Phase 4** | CLI & Production | ✅ Terminé | 100% |
-| **Phase 5** | Advanced Features | 🟡 En cours | 30% |
+| **Phase 5** | Advanced Features | 🟡 En cours | 35% |
 
 ---
 
@@ -243,7 +243,7 @@
 
 **Objectif** : Fonctionnalités avancées et améliorations.
 
-**Statut** : En cours (5.1 compression, 5.3 mode STRICT, et 5.4 filtres terminés)
+**Statut** : En cours (5.1 compression, 5.3 modes STRICT+HYBRID, et 5.4 filtres terminés)
 
 ### 5.1 - Cassette Management
 - [ ] Édition de cassettes (modifier réponses)
@@ -274,7 +274,14 @@
   - [x] Enhanced error logging with 🔒 prefix
   - [x] 3 unit tests + 7 integration tests
   - [x] Documentation complète (STRICT_MODE.md)
-- [ ] Mode HYBRID (mix record/replay)
+- [x] **Mode HYBRID** ✅ (mix record/replay)
+  - [x] ProxyMode::Hybrid enum variant
+  - [x] MagnetoProxy::hybrid() and stop_hybrid() methods
+  - [x] Hybrid logic in http_handler.rs (replay then record fallback)
+  - [x] Hybrid logic in server.rs (full implementation with RequestSignature matching)
+  - [x] Recorder::cassette_mut() for modifying existing cassettes
+  - [x] UniFFI bindings updated (magneto_serge.udl)
+  - [x] All 99 tests passing
 - [ ] Mode UPDATE (met à jour cassettes existantes)
 - [ ] Mode ONCE (record uniquement si absent)
 

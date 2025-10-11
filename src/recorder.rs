@@ -105,6 +105,11 @@ impl Recorder {
     pub fn cassette(&self) -> &Cassette {
         &self.cassette
     }
+
+    /// Get mutable reference to the cassette (for hybrid mode)
+    pub fn cassette_mut(&mut self) -> &mut Cassette {
+        &mut self.cassette
+    }
 }
 
 #[cfg(test)]

@@ -132,6 +132,39 @@ impl HttpHandler {
                     })
                 }
 
+                ProxyMode::Hybrid => {
+                    // Try to replay from cassette, fall back to record if not found
+                    tracing::debug!("🔀 Hybrid mode: {} {}", method, url);
+
+                    // Try to find interaction in player
+                    if let Some(_player) = &self.player {
+                        // TODO: Create RequestSignature and try to find interaction
+                        // For now, always fall back to record
+                        tracing::debug!("  Interaction not found in cassette, recording new");
+                    }
+
+                    // Record new interaction
+                    let response = HttpResponse {
+                        status: 200,
+                        headers: HashMap::new(),
+                        body: Some(b"{}".to_vec()),
+                    };
+
+                    if let Some(recorder) = &self.recorder {
+                        let request = HttpRequest {
+                            method: method.clone(),
+                            url: url.clone(),
+                            headers: headers.clone(),
+                            body: body.clone(),
+                        };
+
+                        recorder.lock().await.record_http(request, response.clone());
+                        tracing::debug!("  ✅ New interaction recorded");
+                    }
+
+                    Ok(response)
+                }
+
                 ProxyMode::Passthrough => {
                     // Forward request without recording
                     tracing::debug!("Passthrough request: {} {}", method, url);

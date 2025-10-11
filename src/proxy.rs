@@ -36,6 +36,10 @@ pub enum ProxyMode {
     /// Use this mode in CI/CD to ensure all network calls are captured
     ReplayStrict,
 
+    /// Hybrid mode: Replay from cassette if interaction exists, otherwise record new
+    /// Perfect for evolving APIs where you want to keep old interactions but record new ones
+    Hybrid,
+
     /// Transparent proxy without record/replay
     Passthrough,
 }
@@ -286,6 +290,88 @@ impl MagnetoProxy {
     /// Replay an existing cassette in STRICT mode (UniFFI compatible - returns bool)
     pub fn replay_strict(&self, cassette_name: String) -> bool {
         self.replay_strict_internal(cassette_name).is_ok()
+    }
+
+    /// Start hybrid mode: replay existing interactions, record new ones (internal version with Result)
+    /// This mode is perfect for:
+    /// - Evolving APIs: Keep old interactions, record new endpoints
+    /// - Incremental testing: Gradually build up cassettes
+    /// - API exploration: Capture only new interactions during development
+    pub fn hybrid_internal(&self, cassette_name: String) -> Result<()> {
+        let mut state = self.state.lock().unwrap();
+
+        state.current_cassette = Some(cassette_name.clone());
+
+        let cassette_dir = state.cassette_dir.clone();
+
+        // Try to load existing cassette, or create new one
+        let (player, recorder) = match Player::load(&cassette_dir, &cassette_name) {
+            Ok(player) => {
+                tracing::info!("📼 Loaded existing cassette '{}' for hybrid mode", cassette_name);
+                tracing::info!("   Existing interactions will be replayed, new ones will be recorded");
+
+                // Load existing cassette into recorder to append to it
+                let cassette = player.cassette().cloned().ok_or_else(|| {
+                    MatgtoError::CassetteNotFound {
+                        name: cassette_name.clone(),
+                    }
+                })?;
+
+                let mut recorder = Recorder::new(cassette_name.clone());
+                // Copy existing interactions
+                recorder.cassette_mut().interactions = cassette.interactions.clone();
+
+                (Some(player), recorder)
+            }
+            Err(_) => {
+                tracing::info!("📹 No existing cassette found, starting fresh in hybrid mode");
+                tracing::info!("   All interactions will be recorded to '{}'", cassette_name);
+
+                (None, Recorder::new(cassette_name.clone()))
+            }
+        };
+
+        let recorder_arc = Arc::new(Mutex::new(recorder));
+        state.recorder = Some(recorder_arc.clone());
+
+        let player_arc = player.map(|p| Arc::new(Mutex::new(p)));
+        state.player = player_arc.clone();
+
+        // Create and start proxy server in hybrid mode
+        let mut server = ProxyServer::new(state.proxy_port, self.ca.clone(), ProxyMode::Hybrid)?
+            .with_recorder(recorder_arc);
+
+        if let Some(player) = player_arc {
+            server = server.with_player(player);
+        }
+
+        tracing::info!("🔀 Starting HYBRID mode for cassette: {}", cassette_name);
+
+        // Start server in background
+        let runtime_handle = self.runtime.handle().clone();
+        runtime_handle.spawn(async move {
+            if let Err(e) = server.start().await {
+                tracing::error!("Proxy server error: {}", e);
+            }
+        });
+
+        Ok(())
+    }
+
+    /// Start hybrid mode: replay existing interactions, record new ones (UniFFI compatible - returns bool)
+    pub fn hybrid(&self, cassette_name: String) -> bool {
+        self.hybrid_internal(cassette_name).is_ok()
+    }
+
+    /// Stop hybrid mode and save the cassette with new interactions (internal version with Result)
+    pub fn stop_hybrid_internal(&self) -> Result<()> {
+        // Same as stop_recording since we need to save the updated cassette
+        self.stop_recording_internal()
+    }
+
+    /// Stop hybrid mode and save the cassette (UniFFI compatible - returns bool)
+    pub fn stop_hybrid(&self) -> bool {
+        self.stop_hybrid_internal().is_ok()
     }
 
     /// Shutdown the proxy (internal version with Result)
