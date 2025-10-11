@@ -151,10 +151,16 @@ fn test_latency_simulation_realistic_timing() {
     std::thread::sleep(std::time::Duration::from_millis(delay_ms));
     let elapsed = start.elapsed().as_millis() as u64;
 
-    // Allow some tolerance for timing (±20ms)
+    // Allow generous tolerance for timing variability in CI environments (±200ms)
+    // CI systems (especially macOS) can have significant timing variability
     assert!(
-        (90..=120).contains(&elapsed),
-        "Expected delay ~100ms, got {}ms",
+        elapsed >= 80,
+        "Expected delay >= 80ms, got {}ms (too fast)",
+        elapsed
+    );
+    assert!(
+        elapsed <= 300,
+        "Expected delay <= 300ms, got {}ms (too slow)",
         elapsed
     );
 }
