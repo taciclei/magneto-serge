@@ -314,23 +314,26 @@ matgto-serge est une bibliothèque de test qui enregistre et rejoue automatiquem
   - [x] Exemples PHP (basic, replay, PHPUnit) ✨
   - [x] composer.json pour Packagist ✨
 
-### 3.2 Génération Bindings (En cours ⏸️ - Bloqué)
-- [ ] Build Rust library avec UniFFI
-  - [ ] ⚠️ **BLOCKER**: Cargo registry permission errors
-  - [ ] Nécessite: `sudo chown -R $(whoami) ~/.cargo/registry`
-  - [ ] Ou: `rm -rf ~/.cargo/registry && cargo fetch`
+### 3.2 Génération Bindings (En cours 🔄 - Python ✅)
+- [x] Build Rust library avec UniFFI
+  - [x] ✅ uniffi-bindgen 0.28.3 compilé depuis projet
+  - [x] ✅ libmagneto_serge.dylib générée (2.1MB)
+  - [x] ✅ Script automatique: `scripts/generate-python-bindings.sh`
 - [ ] Exécuter `bindings/generate.sh` pour tous les langages
-- [ ] Générer code Python avec UniFFI
-  - [ ] Fichier: `bindings/python/matgto_serge.py`
-  - [ ] Test: `python example_basic.py`
+- [x] Générer code Python avec UniFFI ✅
+  - [x] Fichier: `bindings/python/magneto_serge.py` (52KB)
+  - [x] Bibliothèque: `libuniffi_magneto_serge.dylib`
+  - [x] Test: `python test_magneto_bindings.py` ✅ (4/4 tests)
+  - [x] Exemple: `python example_magneto.py` ✅
+  - [x] README complet avec API reference
 - [ ] Générer code Kotlin avec UniFFI
-  - [ ] Fichier: `bindings/kotlin/uniffi/matgto_serge/matgto_serge.kt`
+  - [ ] Fichier: `bindings/kotlin/uniffi/magneto_serge/magneto_serge.kt`
   - [ ] Setup Gradle wrapper
 - [ ] Générer code Swift avec UniFFI
-  - [ ] Fichier: `bindings/swift/MatgtoSerge.swift`
+  - [ ] Fichier: `bindings/swift/MagnetoSerge.swift`
   - [ ] Setup Swift Package Manager
-- [ ] Tests des bindings générés
-  - [ ] Python: importer et créer proxy
+- [x] Tests des bindings générés
+  - [x] Python: importer et créer proxy ✅
   - [ ] Kotlin: compiler avec Gradle
   - [ ] Swift: compiler avec SPM
   - [x] PHP: tests déjà réussis (FFI custom)
@@ -406,26 +409,44 @@ matgto-serge est une bibliothèque de test qui enregistre et rejoue automatiquem
 
 **Note:** NAPI-RS choisi au lieu d'UniFFI pour JavaScript car plus moderne, performant et compatible Node.js 20+.
 
-### 3.5 Bindings Python (Distribution)
-- [ ] Générer code Python avec UniFFI
-  - [ ] Package PyPI `matgto-serge`
-  - [ ] Type hints (PEP 484)
-- [ ] Exemple intégration pytest
+### 3.5 Bindings Python ✅ COMPLET
+- [x] ✅ Générer code Python avec UniFFI
+  - [x] Code Python: `bindings/python/magneto_serge.py` (52KB)
+  - [x] Bibliothèque: `libuniffi_magneto_serge.dylib` (2.1MB)
+  - [x] Script génération: `scripts/generate-python-bindings.sh`
+  - [x] Classes: MagnetoProxy, ProxyMode, InternalError
+  - [x] Type hints intégrés (via UniFFI)
+- [x] ✅ Exemples d'utilisation
   ```python
-  from matgto_serge import MagnetoProxy
+  from magneto_serge import MagnetoProxy, ProxyMode
 
-  def test_api_with_matgto():
-      proxy = MagnetoProxy(cassette_dir="./cassettes")
-      proxy.start_recording("api-test")
+  # Créer proxy
+  proxy = MagnetoProxy("./cassettes")
+  proxy.set_port(8888)
 
-      response = requests.get("https://api.example.com")
+  # Mode enregistrement
+  proxy.set_mode(ProxyMode.RECORD)
+  proxy.start_recording("api-test")
 
-      proxy.stop_recording()
+  # Mode rejeu
+  proxy.replay("api-test")
+
+  # Mode hybride
+  proxy.hybrid("api-test")
   ```
-- [ ] Tests intégration Python
+- [x] ✅ Tests et exemples créés
+  - [x] `test_magneto_bindings.py` - Tests unitaires (4/4) ✅
+  - [x] `example_magneto.py` - 5 exemples complets ✅
+  - [x] `README.md` - Documentation complète avec API reference
+- [ ] ⏳ Package PyPI (distribution) - À venir
+  - [ ] Setup.py / pyproject.toml
+  - [ ] Build wheels multi-platform
+  - [ ] Publication PyPI
+- [ ] ⏳ Tests intégration frameworks - À venir
   - [ ] requests library
   - [ ] httpx (async)
   - [ ] websockets library
+  - [ ] pytest plugin
 
 ### 3.6 Bindings Additionnels
 - [ ] Ruby (compatibilité VHS original)
@@ -693,20 +714,30 @@ rcgen = "0.11"                  # Génération certificats
   - WebSocket Latency Simulation (Issue #5)
   - Docker Transparent Proxy (Issue #6)
   - docker-vcr templates et documentation
-- 🟡 Phase 3 en cours 🔄 (Multi-language Bindings) - 50%
+- 🟡 Phase 3 en cours 🔄 (Multi-language Bindings) - 65%
   - 🟢 Phase 3.1 complète ✅ (UniFFI Setup)
+  - 🟢 Phase 3.2 Python débloqué ✅ (uniffi-bindgen 0.28.3 compilé)
   - 🟢 Phase 3.4 complète ✅ (JavaScript Bindings via NAPI-RS)
-  - ⏸️ Phase 3.2-3.3 bloquées (Python/Kotlin/Swift - UniFFI)
-- 🟡 Phase 4 en cours 🔄 (CLI & Production) - 10%
-  - CLI basique existe déjà
-  - À améliorer et compléter
+  - 🟢 Phase 3.5 complète ✅ (Python Bindings via UniFFI)
+  - ⏳ Phase 3.3 en attente (Java - Kotlin wrapper)
+  - ⏳ Kotlin/Swift bindings à générer
+- 🟡 Phase 4 en cours 🔄 (CLI & Production) - 70%
+  - CLI étendu avec clean, validate, config
+  - ROADMAP mise à jour
+  - À compléter: intégrations frameworks
 
-**Tests actuels :** 79/79 passing ✅
+**Tests actuels :** 83/83 passing ✅
 - 39 tests unitaires Rust (incluant 6 WebSocket latency)
 - 9 tests d'intégration Rust
 - 14 tests WebSocket (incluant latency modes)
 - 10+ tests API JavaScript
 - 7+ tests HTTP JavaScript
+- 4 tests Python bindings ✨
+
+**Bindings disponibles :**
+- ✅ JavaScript/Node.js (NAPI-RS) - Package npm complet
+- ✅ Python (UniFFI) - magneto_serge.py + libuniffi_magneto_serge.dylib
+- ✅ PHP (FFI custom) - Bindings FFI manuels
 
 **CI/CD :** ✅ Fonctionnel (GitHub Actions)
 
@@ -716,3 +747,8 @@ rcgen = "0.11"                  # Génération certificats
 - ✅ docker-entrypoint.sh pour configuration automatique
 - ✅ 5 exemples docker-compose
 - ✅ 1,550 lignes de documentation Docker ajoutées
+- ✅ **Python bindings UniFFI générés et testés** ✨
+- ✅ Script automatique génération: `scripts/generate-python-bindings.sh`
+- ✅ Documentation Python complète: `bindings/python/README.md`
+- ✅ Exemples Python: test_magneto_bindings.py + example_magneto.py
+- ✅ CLI étendu avec commandes clean, validate, config (Phase 4.1 70%)
