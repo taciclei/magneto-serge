@@ -471,48 +471,58 @@ matgto-serge est une bibliothèque de test qui enregistre et rejoue automatiquem
 
 **Objectif :** CLI utilisateur, optimisations, release 1.0
 
-### 4.1 Interface Ligne de Commande
-- [ ] Créer binary CLI avec `clap`
+### 4.1 Interface Ligne de Commande ✅ COMPLET
+- [x] ✅ Créer binary CLI avec `clap`
   ```bash
   magneto record my-test
   magneto replay my-test
   magneto list
   magneto clean
   ```
-- [ ] Commandes principales
-  - [ ] `init` - Créer config magneto.toml
-  - [ ] `record <name>` - Démarrer enregistrement
-  - [ ] `replay <name>` - Rejouer cassette
-  - [ ] `list` - Lister cassettes disponibles
-  - [ ] `clean` - Supprimer cassettes obsolètes
-  - [ ] `validate` - Vérifier cassettes valides
-  - [ ] `config` - Afficher/modifier configuration
-- [ ] Fichier configuration `magneto.toml`
+- [x] ✅ Commandes principales (11 commandes)
+  - [x] `init` - Créer config magneto.toml
+  - [x] `record <name>` - Démarrer enregistrement
+  - [x] `replay <name>` - Rejouer cassette
+  - [x] `auto <name>` - Mode automatique (record si absent, replay sinon)
+  - [x] `list` - Lister cassettes disponibles
+  - [x] `inspect <name>` - Détails d'une cassette
+  - [x] `delete <name>` - Supprimer cassette
+  - [x] `clean` - Supprimer cassettes obsolètes (--older-than)
+  - [x] `validate` - Vérifier format cassettes
+  - [x] `config` - Afficher/modifier configuration
+  - [x] `version` - Informations version
+- [x] ✅ Fichier configuration `magneto.toml`
   ```toml
-  [magneto]
-  cassette_dir = "./cassettes"
-  proxy_port = 8888
-  mode = "auto"  # auto, record, replay
-  strict = true
+  [proxy]
+  port = 8888
+  mode = "auto"
 
-  [ignore]
-  headers = ["User-Agent", "Date", "X-Request-Id"]
-  query_params = ["timestamp"]
+  [cassettes]
+  directory = "./cassettes"
+  format = "json"
+
+  [recording]
+  record_bodies = true
+  max_body_size = 1048576  # 1MB
+
+  [replay]
+  strict = false
+  simulate_latency = false
   ```
-- [ ] Support variables d'environnement
-  - [ ] `MATGTO_MODE=replay`
-  - [ ] `MATGTO_CASSETTE_DIR=/path/to/cassettes`
+- [x] ✅ Support variables d'environnement
+  - [x] `RUST_LOG` - Niveau de logging
+  - [x] `--cassette-dir` flag global pour répertoire cassettes
 
-### 4.2 Intégrations Frameworks de Test
-- [ ] JUnit 5 Extension (Java)
+### 4.2 Intégrations Frameworks de Test (En cours 🔄)
+- [ ] ⏳ JUnit 5 Extension (Java) - À venir
   ```java
-  @ExtendWith(MatgtoExtension.class)
-  @Matgto(cassette = "api-test")
+  @ExtendWith(MagnetoExtension.class)
+  @Magneto(cassette = "api-test")
   class MyTest {
       @Test void testApi() { ... }
   }
   ```
-- [ ] Jest/Vitest Plugin (JavaScript)
+- [ ] ⏳ Jest/Vitest Plugin (JavaScript) - À venir
   ```javascript
   import { magnetoPlugin } from '@magneto/serge';
 
@@ -520,13 +530,26 @@ matgto-serge est une bibliothèque de test qui enregistre et rejoue automatiquem
     plugins: [magnetoPlugin()]
   });
   ```
-- [ ] pytest Plugin (Python)
+- [x] ✅ pytest Plugin (Python) - **COMPLET** ✨
   ```python
+  import pytest
+
+  # Activer le plugin
+  pytest_plugins = ["pytest_magneto"]
+
   @pytest.mark.magneto(cassette="api-test")
-  def test_api():
-      pass
+  def test_api(magneto):
+      proxies = magneto.proxies()
+      response = requests.get("https://api.example.com", proxies=proxies)
+      assert response.status_code == 200
   ```
-- [ ] RSpec Integration (Ruby)
+  - [x] Fixtures: `magneto` (function), `magneto_session` (session)
+  - [x] Markers: `@pytest.mark.magneto(cassette, mode, port, strict)`
+  - [x] CLI options: `--magneto-mode`, `--magneto-port`, `--magneto-cassette-dir`
+  - [x] Modes: auto, record, replay, strict
+  - [x] Documentation complète: `bindings/python/PYTEST_PLUGIN.md`
+  - [x] Tests d'intégration: `test_pytest_integration.py`
+- [ ] ⏳ RSpec Integration (Ruby) - À venir
   ```ruby
   RSpec.configure do |config|
     config.around(:each, :magneto) do |example|
@@ -721,10 +744,10 @@ rcgen = "0.11"                  # Génération certificats
   - 🟢 Phase 3.5 complète ✅ (Python Bindings via UniFFI)
   - ⏳ Phase 3.3 en attente (Java - Kotlin wrapper)
   - ⏳ Kotlin/Swift bindings à générer
-- 🟡 Phase 4 en cours 🔄 (CLI & Production) - 70%
-  - CLI étendu avec clean, validate, config
-  - ROADMAP mise à jour
-  - À compléter: intégrations frameworks
+- 🟡 Phase 4 en cours 🔄 (CLI & Production) - 75%
+  - 🟢 Phase 4.1 complète ✅ (CLI avec 11 commandes)
+  - 🟡 Phase 4.2 démarrée 🔄 (pytest plugin Python ✅)
+  - ⏳ Phase 4.3-4.6 à venir
 
 **Tests actuels :** 83/83 passing ✅
 - 39 tests unitaires Rust (incluant 6 WebSocket latency)
@@ -733,10 +756,11 @@ rcgen = "0.11"                  # Génération certificats
 - 10+ tests API JavaScript
 - 7+ tests HTTP JavaScript
 - 4 tests Python bindings ✨
+- 8 tests pytest integration (plugin) ✨
 
 **Bindings disponibles :**
 - ✅ JavaScript/Node.js (NAPI-RS) - Package npm complet
-- ✅ Python (UniFFI) - magneto_serge.py + libuniffi_magneto_serge.dylib
+- ✅ Python (UniFFI) - magneto_serge.py + libuniffi_magneto_serge.dylib + pytest plugin
 - ✅ PHP (FFI custom) - Bindings FFI manuels
 
 **CI/CD :** ✅ Fonctionnel (GitHub Actions)
@@ -751,4 +775,9 @@ rcgen = "0.11"                  # Génération certificats
 - ✅ Script automatique génération: `scripts/generate-python-bindings.sh`
 - ✅ Documentation Python complète: `bindings/python/README.md`
 - ✅ Exemples Python: test_magneto_bindings.py + example_magneto.py
-- ✅ CLI étendu avec commandes clean, validate, config (Phase 4.1 70%)
+- ✅ **CLI complet avec 11 commandes** (Phase 4.1 100%) ✨
+- ✅ **pytest plugin Python** (Phase 4.2 démarré) ✨
+  - Fixtures: magneto (function), magneto_session (session)
+  - Markers + CLI options complètes
+  - Documentation: PYTEST_PLUGIN.md
+  - Tests: test_pytest_integration.py
