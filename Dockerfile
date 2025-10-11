@@ -22,9 +22,12 @@ FROM debian:bookworm-slim
 
 WORKDIR /app
 
-# Install runtime dependencies
+# Install runtime dependencies (including iptables for transparent proxy)
 RUN apt-get update && apt-get install -y \
     ca-certificates \
+    iptables \
+    curl \
+    net-tools \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the binary from builder
@@ -40,6 +43,10 @@ ENV RUST_LOG=info
 # Expose default proxy port
 EXPOSE 8888
 
+# Health check (magneto doesn't have /health endpoint yet, so we check if port is listening)
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+    CMD netstat -an | grep 8888 || exit 1
+
 # Set the entrypoint
-ENTRYPOINT ["matgto"]
+ENTRYPOINT ["magneto"]
 CMD ["--help"]

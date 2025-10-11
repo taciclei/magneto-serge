@@ -1,0 +1,20 @@
+# Dockerfile for transparent proxy mode
+# Uses iptables to intercept all network traffic without app modification
+#
+# Build: docker build -f Dockerfile.transparent -t magneto-transparent .
+# Run:   docker run --cap-add=NET_ADMIN -e CASSETTE_NAME=my-cassette magneto-transparent
+
+FROM ghcr.io/taciclei/magneto-serge:latest
+
+# Copy transparent proxy entrypoint
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Enable transparent proxy by default
+ENV TRANSPARENT_PROXY=true
+
+# Override entrypoint
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+
+# Default: keep magneto running without executing another command
+CMD []
