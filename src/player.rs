@@ -33,6 +33,22 @@ impl From<crate::cassette::HttpRequest> for RequestSignature {
     }
 }
 
+/// Latency simulation mode
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LatencyMode {
+    /// No latency simulation
+    None,
+
+    /// Use recorded response times from cassette
+    Recorded,
+
+    /// Fixed delay for all responses (ms)
+    Fixed(u64),
+
+    /// Multiply recorded times by factor (e.g., 0.5 for half speed, 2.0 for double)
+    Scaled(u64), // Store as integer percentage (100 = 1.0x, 200 = 2.0x)
+}
+
 /// Plays back recorded interactions from cassettes
 #[derive(Debug)]
 pub struct Player {
@@ -47,6 +63,9 @@ pub struct Player {
 
     /// Strict mode: fail fast on missing interactions
     strict_mode: bool,
+
+    /// Latency simulation mode
+    latency_mode: LatencyMode,
 }
 
 impl Player {
@@ -57,6 +76,7 @@ impl Player {
             interactions_index: HashMap::new(),
             replay_count: HashMap::new(),
             strict_mode: false,
+            latency_mode: LatencyMode::None,
         }
     }
 
@@ -67,6 +87,30 @@ impl Player {
             interactions_index: HashMap::new(),
             replay_count: HashMap::new(),
             strict_mode: true,
+            latency_mode: LatencyMode::None,
+        }
+    }
+
+    /// Set latency simulation mode
+    pub fn with_latency(mut self, mode: LatencyMode) -> Self {
+        self.latency_mode = mode;
+        self
+    }
+
+    /// Get current latency mode
+    pub fn latency_mode(&self) -> LatencyMode {
+        self.latency_mode
+    }
+
+    /// Calculate delay for an interaction based on latency mode
+    pub fn calculate_delay(&self, interaction: &crate::cassette::Interaction) -> Option<u64> {
+        match self.latency_mode {
+            LatencyMode::None => None,
+            LatencyMode::Recorded => interaction.response_time_ms,
+            LatencyMode::Fixed(ms) => Some(ms),
+            LatencyMode::Scaled(percentage) => interaction
+                .response_time_ms
+                .map(|ms| (ms * percentage) / 100),
         }
     }
 
@@ -132,6 +176,7 @@ impl Player {
             interactions_index,
             replay_count: HashMap::new(),
             strict_mode: strict,
+            latency_mode: LatencyMode::None,
         })
     }
 

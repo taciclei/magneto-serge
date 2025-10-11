@@ -34,6 +34,11 @@ pub struct Interaction {
 
     /// When this interaction was recorded
     pub recorded_at: DateTime<Utc>,
+
+    /// Response time in milliseconds (for latency simulation)
+    /// None if not recorded or unknown
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub response_time_ms: Option<u64>,
 }
 
 /// Type of interaction
@@ -150,6 +155,16 @@ impl Cassette {
         self.interactions.push(Interaction {
             kind,
             recorded_at: Utc::now(),
+            response_time_ms: None,
+        });
+    }
+
+    /// Add an interaction with response time
+    pub fn add_interaction_with_timing(&mut self, kind: InteractionKind, response_time_ms: u64) {
+        self.interactions.push(Interaction {
+            kind,
+            recorded_at: Utc::now(),
+            response_time_ms: Some(response_time_ms),
         });
     }
 }

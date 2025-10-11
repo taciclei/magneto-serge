@@ -225,6 +225,7 @@ mod tests {
             interactions: vec![
                 Interaction {
                     recorded_at: Utc::now(),
+                    response_time_ms: None,
                     kind: InteractionKind::WebSocket {
                         url: "ws://example.com/socket".to_string(),
                         messages: vec![
@@ -248,6 +249,7 @@ mod tests {
                 },
                 Interaction {
                     recorded_at: Utc::now(),
+                    response_time_ms: None,
                     kind: InteractionKind::WebSocket {
                         url: "ws://example.com/socket".to_string(),
                         messages: vec![WebSocketMessage {

@@ -14,7 +14,7 @@
 | **Phase 2** | WebSocket Support | ✅ Terminé | 100% |
 | **Phase 3** | Multi-language Bindings | ✅ Terminé | 100% |
 | **Phase 4** | CLI & Production | ✅ Terminé | 100% |
-| **Phase 5** | Advanced Features | 🟡 En cours | 40% |
+| **Phase 5** | Advanced Features | 🟡 En cours | 45% |
 
 ---
 
@@ -243,7 +243,7 @@
 
 **Objectif** : Fonctionnalités avancées et améliorations.
 
-**Statut** : En cours (5.1 compression, 5.3 modes STRICT+HYBRID+ONCE, et 5.4 filtres terminés)
+**Statut** : En cours (5.1 compression, 5.3 modes STRICT+HYBRID+ONCE, 5.4 filtres, et 5.5 latency simulation terminés)
 
 ### 5.1 - Cassette Management
 - [ ] Édition de cassettes (modifier réponses)
@@ -307,7 +307,14 @@
 - [ ] Recording conditionnel avancé (custom functions)
 
 ### 5.5 - Replay Features
-- [ ] Latency simulation (replay timing réel)
+- [x] **Latency simulation** ✅ (replay timing réel)
+  - [x] LatencyMode enum (None, Recorded, Fixed, Scaled)
+  - [x] response_time_ms field in Interaction struct
+  - [x] Player::with_latency() and calculate_delay() methods
+  - [x] Cassette::add_interaction_with_timing() method
+  - [x] 10 tests unitaires (timing, modes, scaling)
+  - [x] Documentation complète (LATENCY_SIMULATION.md)
+  - [x] Backward compatibility (optional field)
 - [ ] Erreur simulation (500, timeout, etc.)
 - [ ] Replay séquentiel vs aléatoire
 - [ ] Replay avec variations
