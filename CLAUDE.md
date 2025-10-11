@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**matgto-serge** is a high-performance HTTP/HTTPS/WebSocket proxy library for testing, written in Rust with multi-language bindings. It records network interactions into "cassettes" that can be replayed deterministically, similar to VCR for Ruby but with 10-100x better performance and support for 8+ programming languages.
+**magneto-serge** is a high-performance HTTP/HTTPS/WebSocket proxy library for testing, written in Rust with multi-language bindings. It records network interactions into "cassettes" that can be replayed deterministically, similar to VCR for Ruby but with 10-100x better performance and support for 8+ programming languages.
 
 **Technology Stack:** Rust 1.75+, UniFFI for multi-language bindings, Tokio async runtime
 **Target Languages:** Java, JavaScript, Python, Ruby, Kotlin, Swift, Go, C#
@@ -45,13 +45,13 @@ cargo doc --open
 
 ```bash
 # Generate Java bindings
-cargo run --features=uniffi/cli --bin uniffi-bindgen -- generate src/matgto_serge.udl --language java --out-dir bindings/java
+cargo run --features=uniffi/cli --bin uniffi-bindgen -- generate src/magneto_serge.udl --language java --out-dir bindings/java
 
 # Generate JavaScript bindings
-cargo run --features=uniffi/cli --bin uniffi-bindgen -- generate src/matgto_serge.udl --language typescript --out-dir bindings/js
+cargo run --features=uniffi/cli --bin uniffi-bindgen -- generate src/magneto_serge.udl --language typescript --out-dir bindings/js
 
 # Generate Python bindings
-cargo run --features=uniffi/cli --bin uniffi-bindgen -- generate src/matgto_serge.udl --language python --out-dir bindings/python
+cargo run --features=uniffi/cli --bin uniffi-bindgen -- generate src/magneto_serge.udl --language python --out-dir bindings/python
 ```
 
 ### Features
@@ -73,7 +73,7 @@ cargo build --all-features
 
 ### High-Level Design
 
-matgto-serge uses a **layered proxy architecture**:
+magneto-serge uses a **layered proxy architecture**:
 
 1. **Public API Layer** (`MagnetoProxy`) - Simple API exposed via UniFFI to all target languages
 2. **Core Proxy Layer** - HTTP/HTTPS interceptor (Hudsucker) + WebSocket interceptor (tokio-tungstenite)
@@ -121,7 +121,7 @@ Cassettes are stored as JSON (or MessagePack with `msgpack` feature) with this s
 - **Zero-Copy**: Uses `Bytes` (Arc-based) to minimize memory allocations
 - **Async/Await**: Tokio runtime with multi-threaded executor for high throughput (>5000 req/s target)
 - **Thread-Safe Sharing**: `Arc<Mutex<Recorder>>` and `Arc<RwLock<Player>>` for concurrent access
-- **UniFFI Bindings**: UDL file (`matgto_serge.udl`) defines cross-language API, generated in `build.rs`
+- **UniFFI Bindings**: UDL file (`magneto_serge.udl`) defines cross-language API, generated in `build.rs`
 
 ---
 
@@ -130,7 +130,7 @@ Cassettes are stored as JSON (or MessagePack with `msgpack` feature) with this s
 The project follows a **Cargo workspace** pattern (when implemented):
 
 ```
-matgto-serge/
+magneto-serge/
 ├── core/              # Core Rust proxy logic
 ├── bindings/          # Language-specific bindings
 │   ├── java/
@@ -186,7 +186,7 @@ Current status: **Planning** (0/4 phases complete)
 ### Adding New Features
 
 1. Implement in Rust core (`src/`)
-2. Add to UDL file if exposing to bindings (`src/matgto_serge.udl`)
+2. Add to UDL file if exposing to bindings (`src/magneto_serge.udl`)
 3. Regenerate bindings via `build.rs` or manual uniffi-bindgen
 4. Write tests (unit in `src/`, integration in `tests/`)
 5. Update documentation
@@ -286,7 +286,7 @@ Use `thiserror` for library errors (public types), `anyhow` for CLI/application 
 
 ```rust
 #[derive(Error, Debug)]
-pub enum MatgtoError {
+pub enum MagnetoError {
     #[error("Cassette not found: {name}")]
     CassetteNotFound { name: String },
 
