@@ -1,0 +1,4 @@
+module magneto_sergeFFI {
+    header "magneto_sergeFFI.h"
+    export *
+}
