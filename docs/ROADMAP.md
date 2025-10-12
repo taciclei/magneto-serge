@@ -14,7 +14,7 @@
 | **Phase 2** | WebSocket Support | ✅ Terminé | 100% |
 | **Phase 3** | Multi-language Bindings | ✅ Terminé | 100% |
 | **Phase 4** | CLI & Production | ✅ Terminé | 100% |
-| **Phase 5** | Advanced Features | 🟡 En cours | 45% |
+| **Phase 5** | Advanced Features | 🟡 En cours | 60% |
 
 ---
 
@@ -247,7 +247,7 @@
 
 **Objectif** : Fonctionnalités avancées et améliorations.
 
-**Statut** : En cours (5.1 compression, 5.3 modes STRICT+HYBRID+ONCE, 5.4 filtres, et 5.5 latency simulation terminés)
+**Statut** : En cours (5.1 compression, 5.3 modes STRICT+HYBRID+ONCE, 5.4 filtres, 5.5 latency simulation, et 5.7 intégrations terminés)
 
 ### 5.1 - Cassette Management
 - [ ] Édition de cassettes (modifier réponses)
@@ -329,11 +329,32 @@
 - [ ] Dashboard web (statistiques)
 - [ ] Export de rapports
 
-### 5.7 - Intégrations
-- [ ] Plugin Jest (JavaScript)
-- [ ] Plugin pytest (Python)
-- [ ] Plugin JUnit (Java)
-- [ ] Plugin XCTest (Swift)
+### 5.7 - Intégrations ✅
+- [x] **Plugin Jest** (JavaScript) ✅
+  - [x] jest-magneto.js avec useMagneto() fixture
+  - [x] Helpers: getProxyConfig(), getProxyUrl()
+  - [x] Custom matcher: toHaveCassette()
+  - [x] Support modes: auto, record, replay, strict
+  - [x] Documentation complète (JEST_PLUGIN.md)
+- [x] **Plugin pytest** (Python) ✅
+  - [x] pytest_magneto.py avec fixtures
+  - [x] Markers: @pytest.mark.magneto
+  - [x] Options CLI: --magneto-mode, --magneto-cassette-dir
+  - [x] Support modes: auto, record, replay, strict
+  - [x] Documentation complète (PYTEST_PLUGIN.md)
+- [x] **Plugin JUnit** (Java/Kotlin) ✅
+  - [x] MagnetoExtension.java pour JUnit 5
+  - [x] Annotation @Magneto avec configuration
+  - [x] Scope: METHOD (isolé) ou CLASS (partagé)
+  - [x] Parameter injection pour MagnetoProxy
+  - [x] Documentation complète (JUNIT_EXTENSION.md)
+- [x] **Plugin XCTest** (Swift) ✅
+  - [x] MagnetoXCTestCase base class
+  - [x] MagnetoConfiguration avec modes
+  - [x] Scope: test (isolé) ou class (partagé)
+  - [x] Helpers: performGET(), performPOST()
+  - [x] Support iOS 13+, macOS 10.15+
+  - [x] Documentation complète (XCTEST_INTEGRATION.md)
 - [ ] Plugin Gradle (Kotlin)
 - [ ] Plugin Docker (image officielle)
 
@@ -458,6 +479,6 @@ MIT OR Apache-2.0
 
 ---
 
-**Dernière mise à jour** : 2025-10-12 (après ajout bindings Kotlin et Swift)
+**Dernière mise à jour** : 2025-10-12 (après ajout plugins Jest, pytest, JUnit, XCTest)
 **Version actuelle** : v0.1.0 (First Release)
 **Prochaine milestone** : v0.2.0 (Optimisations & Advanced Features)
