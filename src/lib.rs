@@ -11,6 +11,7 @@
 pub mod cassette;
 pub mod error;
 pub mod filters;
+pub mod matching;
 pub mod player;
 pub mod proxy;
 pub mod recorder;
@@ -19,7 +20,12 @@ pub mod websocket;
 
 pub use error::{MatgtoError, Result};
 pub use filters::{FilterPresets, RecordingFilters};
+pub use matching::{
+    BodyMatchMode, CustomMatcher, MatchingStrategy, RequestSignature, UrlMatchMode,
+};
+pub use player::{LatencyMode, Player};
 pub use proxy::{MagnetoProxy, ProxyMode};
+pub use recorder::Recorder;
 pub use tls::CertificateAuthority;
 pub use websocket::{WebSocketInterceptor, WebSocketPlayer, WebSocketRecorder};
 

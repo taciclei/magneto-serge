@@ -2,6 +2,7 @@
 
 use crate::cassette::{Cassette, InteractionKind};
 use crate::error::{MatgtoError, Result};
+use crate::matching::{MatchingStrategy, RequestSignature as MatchingSignature};
 use std::collections::HashMap;
 use std::fs::File;
 use std::path::Path;
@@ -66,6 +67,9 @@ pub struct Player {
 
     /// Latency simulation mode
     latency_mode: LatencyMode,
+
+    /// Advanced matching strategy
+    matching_strategy: MatchingStrategy,
 }
 
 impl Player {
@@ -77,6 +81,7 @@ impl Player {
             replay_count: HashMap::new(),
             strict_mode: false,
             latency_mode: LatencyMode::None,
+            matching_strategy: MatchingStrategy::default(),
         }
     }
 
@@ -88,6 +93,7 @@ impl Player {
             replay_count: HashMap::new(),
             strict_mode: true,
             latency_mode: LatencyMode::None,
+            matching_strategy: MatchingStrategy::strict(),
         }
     }
 
@@ -100,6 +106,17 @@ impl Player {
     /// Get current latency mode
     pub fn latency_mode(&self) -> LatencyMode {
         self.latency_mode
+    }
+
+    /// Set matching strategy
+    pub fn with_matching_strategy(mut self, strategy: MatchingStrategy) -> Self {
+        self.matching_strategy = strategy;
+        self
+    }
+
+    /// Get matching strategy
+    pub fn matching_strategy(&self) -> &MatchingStrategy {
+        &self.matching_strategy
     }
 
     /// Calculate delay for an interaction based on latency mode
@@ -171,12 +188,19 @@ impl Player {
             );
         }
 
+        let matching_strategy = if strict {
+            MatchingStrategy::strict()
+        } else {
+            MatchingStrategy::default()
+        };
+
         Ok(Self {
             cassette: Some(cassette),
             interactions_index,
             replay_count: HashMap::new(),
             strict_mode: strict,
             latency_mode: LatencyMode::None,
+            matching_strategy,
         })
     }
 
@@ -190,7 +214,7 @@ impl Player {
         self.cassette.as_ref()
     }
 
-    /// Find a matching interaction by request signature
+    /// Find a matching interaction by request signature (legacy, exact matching)
     pub fn find_interaction(&mut self, signature: &RequestSignature) -> Result<usize> {
         let idx = self.interactions_index.get(signature).ok_or_else(|| {
             if self.strict_mode {
@@ -224,6 +248,65 @@ impl Player {
         }
 
         Ok(*idx)
+    }
+
+    /// Find a matching interaction using advanced matching strategy
+    pub fn find_interaction_advanced(
+        &mut self,
+        request: &crate::cassette::HttpRequest,
+    ) -> Result<usize> {
+        let signature = MatchingSignature::from_request(request);
+
+        // Find first matching interaction
+        let cassette =
+            self.cassette
+                .as_ref()
+                .ok_or_else(|| MatgtoError::NoMatchingInteraction {
+                    method: request.method.clone(),
+                    url: request.url.clone(),
+                })?;
+
+        for (idx, interaction) in cassette.interactions.iter().enumerate() {
+            if let InteractionKind::Http {
+                request: recorded_request,
+                ..
+            } = &interaction.kind
+            {
+                if signature.matches(recorded_request, &self.matching_strategy)? {
+                    // Increment replay counter
+                    *self.replay_count.entry(idx).or_insert(0) += 1;
+
+                    if self.strict_mode {
+                        tracing::debug!(
+                            "🔒 STRICT MODE (advanced): Found interaction #{} for {} {}",
+                            idx,
+                            request.method,
+                            request.url
+                        );
+                    }
+
+                    return Ok(idx);
+                }
+            }
+        }
+
+        // No match found
+        if self.strict_mode {
+            tracing::error!(
+                "🔒 STRICT MODE (advanced): No matching interaction found for {} {}",
+                request.method,
+                request.url
+            );
+            tracing::error!(
+                "💡 Available interactions in cassette: {}",
+                cassette.interactions.len()
+            );
+        }
+
+        Err(MatgtoError::NoMatchingInteraction {
+            method: request.method.clone(),
+            url: request.url.clone(),
+        })
     }
 
     /// Check if player is in strict mode

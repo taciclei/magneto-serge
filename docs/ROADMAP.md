@@ -14,7 +14,7 @@
 | **Phase 2** | WebSocket Support | ✅ Terminé | 100% |
 | **Phase 3** | Multi-language Bindings | ✅ Terminé | 100% |
 | **Phase 4** | CLI & Production | ✅ Terminé | 100% |
-| **Phase 5** | Advanced Features | 🟡 En cours | 60% |
+| **Phase 5** | Advanced Features | 🟡 En cours | 68% |
 
 ---
 
@@ -263,7 +263,7 @@
 
 **Objectif** : Fonctionnalités avancées et améliorations.
 
-**Statut** : En cours (5.1 compression, 5.3 modes STRICT+HYBRID+ONCE, 5.4 filtres, 5.5 latency simulation, et 5.7 intégrations terminés)
+**Statut** : En cours (5.1 compression, 5.2 matching avancé, 5.3 modes STRICT+HYBRID+ONCE, 5.4 filtres, 5.5 latency simulation, et 5.7 intégrations terminés)
 
 ### 5.1 - Cassette Management
 - [ ] Édition de cassettes (modifier réponses)
@@ -279,12 +279,31 @@
   - [x] Réduction de taille 50-95% selon le format
 - [ ] Chiffrement des cassettes sensibles
 
-### 5.2 - Matching Avancé
-- [ ] Matching par regex sur URL
-- [ ] Matching par body partiel (JSON path)
-- [ ] Matching par headers spécifiques
-- [ ] Custom matchers
-- [ ] Stratégies de matching configurables
+### 5.2 - Matching Avancé ✅
+- [x] **Matching par regex sur URL** ✅
+  - [x] UrlMatchMode::Regex avec pattern configurable
+  - [x] Matching bidirectionnel (signature et recorded URL)
+  - [x] Tests unitaires complets
+- [x] **Matching par body partiel (JSON path)** ✅
+  - [x] BodyMatchMode::JsonPath pour extraction de valeurs JSON
+  - [x] Support des paths simples (user.id, user.addresses.0.city)
+  - [x] Tests avec bodies JSON complexes
+- [x] **Matching par headers spécifiques** ✅
+  - [x] match_headers HashSet pour headers requis
+  - [x] ignore_headers HashSet pour headers ignorés
+  - [x] Tests d'autorisation et headers multiples
+- [x] **Custom matchers** ✅
+  - [x] CustomMatcher trait (Send + Sync + Debug)
+  - [x] with_custom_matcher() pour ajout de matchers personnalisés
+  - [x] Extensibilité complète pour logique custom
+- [x] **Stratégies de matching configurables** ✅
+  - [x] MatchingStrategy struct avec builder pattern
+  - [x] UrlMatchMode (Exact, Regex, IgnoreQuery, IgnoreQueryParams, PathOnly)
+  - [x] BodyMatchMode (Hash, Ignore, JsonPath, Regex, SizeOnly)
+  - [x] Presets: lenient(), strict(), default()
+  - [x] Player::with_matching_strategy() et find_interaction_advanced()
+  - [x] 10 tests unitaires + 7 tests d'intégration
+  - [x] Example complet (examples/advanced_matching.rs)
 
 ### 5.3 - Modes Avancés
 - [x] **Mode STRICT** ✅ (erreur si pas de match)
@@ -495,6 +514,6 @@ MIT OR Apache-2.0
 
 ---
 
-**Dernière mise à jour** : 2025-10-12 (après release notes, migration guide, contributing guide)
+**Dernière mise à jour** : 2025-10-12 (après Phase 5.2 - Matching Avancé complet)
 **Version actuelle** : v0.1.0 (First Release)
 **Prochaine milestone** : v0.2.0 (Optimisations & Advanced Features)
