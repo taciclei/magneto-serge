@@ -301,6 +301,75 @@ L'API suit les principes HATEOAS avec Hydra/JSON-LD. Chaque réponse inclut des 
 
 Voir [docs/API.md](../docs/API.md) pour la documentation complète de l'API.
 
+## 🌐 Clients Hydra pour l'API
+
+Magneto-Serge expose une API Hydra/JSON-LD complète. Deux approches sont fournies pour la consommer :
+
+### 1. Client Angular avec Alcaeus (Démonstration)
+
+**Localisation**: `angular-client/`
+
+Client Angular 19 standalone qui utilise **Alcaeus** directement dans le browser pour consommer l'API Hydra.
+
+```bash
+cd angular-client
+npm install
+npm start
+# → http://localhost:4200
+```
+
+**Fonctionnalités:**
+- ✅ Navigation Hydra automatique (zéro URL hardcodée)
+- ✅ Découverte dynamique des endpoints
+- ✅ Parsing JSON-LD complet
+- ✅ Interface complète (statut proxy, cassettes, etc.)
+
+**Note**: Cette approche nécessite des polyfills Node.js car Alcaeus est conçu pour Node.js. Voir `angular-client/README.md` pour les détails.
+
+### 2. Backend Node.js/Express avec Alcaeus (RECOMMANDÉ pour production)
+
+**Localisation**: `nodejs-backend/`
+
+Backend Node.js qui wrappe Alcaeus et expose une API REST simplifiée pour les clients frontend.
+
+```bash
+cd nodejs-backend
+npm install
+npm start
+# → http://localhost:3000
+```
+
+**Architecture:**
+```
+Angular/React/Vue
+      ↓ REST API (JSON simple)
+Node.js Backend (Alcaeus)
+      ↓ Hydra/JSON-LD
+Magneto-Serge API
+```
+
+**Avantages:**
+- ✅ Alcaeus fonctionne nativement (zéro polyfill)
+- ✅ Cache serveur partagé entre tous les clients
+- ✅ API REST simplifiée (pas de RDF côté client)
+- ✅ Performance optimale
+- ✅ Build léger côté frontend
+
+**Documentation:**
+- `nodejs-backend/README.md` - Guide complet avec exemples
+- `nodejs-backend/ARCHITECTURE.md` - Architecture de production détaillée
+
+### Comparaison des Approches
+
+| Aspect | Angular + Alcaeus Direct | Angular + Backend Node.js |
+|--------|--------------------------|---------------------------|
+| Complexité | ⚠️ Élevée (types RDF) | ✅ Simple (JSON) |
+| Build size | ⚠️ +100kb polyfills | ✅ Léger |
+| Performance | ⚠️ Parsing client | ✅ Cache serveur |
+| Production | ⚠️ Démonstration | ✅ Recommandé |
+
+**Recommandation**: Utilisez le backend Node.js pour la production. Le client Angular direct avec Alcaeus est fourni à titre de démonstration des capacités Hydra.
+
 ## 🚀 Prochains Exemples (À venir)
 
 - [ ] `websocket_record.rs` - Enregistrement WebSocket
