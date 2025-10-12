@@ -4,7 +4,7 @@
 use clap::{Parser, Subcommand};
 
 #[cfg(feature = "cli")]
-use magneto_serge::{MagnetoProxy, ProxyMode};
+use magneto_serge::{ApiConfig, ApiServer, MagnetoProxy, ProxyMode};
 
 #[cfg(feature = "cli")]
 use std::path::{Path, PathBuf};
@@ -109,6 +109,29 @@ enum Commands {
 
     /// Show version information
     Version,
+
+    /// Start REST API server
+    Api {
+        /// API server host (default: 127.0.0.1)
+        #[arg(long, default_value = "127.0.0.1")]
+        host: String,
+
+        /// API server port (default: 8889)
+        #[arg(short, long, default_value = "8889")]
+        port: u16,
+
+        /// Proxy port (default: 8888)
+        #[arg(long, default_value = "8888")]
+        proxy_port: u16,
+
+        /// Enable authentication
+        #[arg(long)]
+        auth: bool,
+
+        /// API key for authentication (required if --auth is enabled)
+        #[arg(long)]
+        api_key: Option<String>,
+    },
 }
 
 #[cfg(feature = "cli")]
@@ -294,6 +317,22 @@ strict = false
 
 # Simulate network latency
 simulate_latency = false
+
+[api]
+# Enable REST API server
+enabled = false
+
+# API server host
+host = "127.0.0.1"
+
+# API server port
+port = 8889
+
+# Enable authentication
+auth_enabled = false
+
+# API key (required if auth_enabled = true)
+# api_key = "your-secret-key-here"
 "#;
 
             fs::write(config_path, config)?;
@@ -338,6 +377,63 @@ simulate_latency = false
             println!("  Version: {}", env!("CARGO_PKG_VERSION").bright_cyan());
             println!("  Authors: {}", env!("CARGO_PKG_AUTHORS").dimmed());
             println!("  License: {}", env!("CARGO_PKG_LICENSE").dimmed());
+        }
+
+        Commands::Api {
+            host,
+            port,
+            proxy_port,
+            auth,
+            api_key,
+        } => {
+            println!("{} {}", "🌐".blue(), "Starting API Server".bold());
+            println!("  Host: {}", host.bright_cyan());
+            println!("  Port: {}", port.to_string().yellow());
+            println!("  Proxy Port: {}", proxy_port.to_string().yellow());
+            println!(
+                "  Cassette Directory: {}",
+                cli.cassette_dir.display().to_string().dimmed()
+            );
+            println!(
+                "  Authentication: {}",
+                if auth {
+                    "Enabled".green()
+                } else {
+                    "Disabled".dimmed()
+                }
+            );
+            println!();
+
+            if auth && api_key.is_none() {
+                println!(
+                    "{} API key required when authentication is enabled",
+                    "✗".red()
+                );
+                println!("  Use {} to specify an API key", "--api-key <KEY>".bright_cyan());
+                std::process::exit(1);
+            }
+
+            println!("{}", "API Endpoints:".bold());
+            println!("  {} http://{}:{}/", "•".bright_cyan(), host, port);
+            println!(
+                "  {} http://{}:{}/openapi.json",
+                "•".bright_cyan(),
+                host,
+                port
+            );
+            println!("  {} http://{}:{}/health", "•".bright_cyan(), host, port);
+            println!("  {} http://{}:{}/proxy/*", "•".bright_cyan(), host, port);
+            println!(
+                "  {} http://{}:{}/cassettes",
+                "•".bright_cyan(),
+                host,
+                port
+            );
+            println!();
+            println!("Press {} to stop...", "Ctrl+C".bold());
+            println!();
+
+            run_api_server(&cli.cassette_dir, &host, port, proxy_port, auth, api_key)?;
         }
     }
 
@@ -801,6 +897,45 @@ fn show_or_modify_config(
             println!("{} Key not found: {}", "✗".red(), k.bright_cyan());
         }
     }
+
+    Ok(())
+}
+
+#[cfg(feature = "cli")]
+fn run_api_server(
+    cassette_dir: &Path,
+    host: &str,
+    port: u16,
+    proxy_port: u16,
+    auth: bool,
+    api_key: Option<String>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    use colored::Colorize;
+
+    let runtime = tokio::runtime::Runtime::new()?;
+
+    runtime.block_on(async {
+        let config = ApiConfig {
+            host: host.to_string(),
+            port,
+            proxy_port,
+            cassette_dir: cassette_dir.display().to_string(),
+            auth_enabled: auth,
+            api_key,
+        };
+
+        let server = ApiServer::new(config);
+
+        println!("{} API Server running...", "✓".green());
+
+        // Start the server (this blocks until Ctrl+C)
+        if let Err(e) = server.start().await {
+            println!("{} Server error: {}", "✗".red(), e);
+            return Err(e.into());
+        }
+
+        Ok::<_, Box<dyn std::error::Error>>(())
+    })?;
 
     Ok(())
 }

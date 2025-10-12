@@ -264,6 +264,182 @@ mod tests {
 
 ---
 
+## 🌐 REST API
+
+Magneto-Serge provides a **complete REST API with Hydra/JSON-LD** and **OpenAPI 3.0** support for remote proxy control.
+
+### Starting the API Server
+
+```bash
+# Start the API server
+magneto api
+
+# With authentication
+magneto api --auth --api-key your-secret-key
+
+# Custom host/port
+magneto api --host 0.0.0.0 --port 8889
+```
+
+### Key Features
+
+- ✅ **Hypermedia (HATEOAS)**: Self-documenting with Hydra/JSON-LD links
+- ✅ **OpenAPI 3.0**: Complete specification at `/openapi.json`
+- ✅ **Authentication**: Bearer token support
+- ✅ **CORS**: Cross-origin requests enabled
+- ✅ **Language-agnostic**: Use from any HTTP client
+
+### Quick Example
+
+```bash
+# Start proxy via API
+curl -X POST http://localhost:8889/proxy/start \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mode": "auto",
+    "cassette_name": "my-test",
+    "port": 8888
+  }'
+
+# Check status
+curl http://localhost:8889/proxy/status
+
+# Stop proxy
+curl -X POST http://localhost:8889/proxy/stop
+```
+
+### Available Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/` | API root with Hydra links |
+| `GET` | `/openapi.json` | OpenAPI 3.0 specification |
+| `GET` | `/health` | Health check |
+| `POST` | `/proxy/start` | Start proxy (auto/record/replay/passthrough) |
+| `POST` | `/proxy/stop` | Stop proxy |
+| `GET` | `/proxy/status` | Get proxy status |
+| `GET` | `/proxy/stats` | Get statistics |
+| `GET` | `/cassettes` | List all cassettes |
+| `GET` | `/cassettes/{name}` | Get cassette content |
+| `DELETE` | `/cassettes/{name}` | Delete cassette |
+
+### Client Examples
+
+<details>
+<summary><b>🐍 Python</b></summary>
+
+```python
+import requests
+
+api = "http://localhost:8889"
+
+# Start proxy
+response = requests.post(f"{api}/proxy/start", json={
+    "mode": "auto",
+    "cassette_name": "test",
+    "port": 8888
+})
+
+# Get status
+status = requests.get(f"{api}/proxy/status").json()
+print(f"Running: {status['data']['running']}")
+
+# Follow Hydra links
+links = status.get('hydra:link', [])
+for link in links:
+    print(f"→ {link['title']}: {link['hydra:target']}")
+```
+
+</details>
+
+<details>
+<summary><b>🟨 JavaScript/Node.js</b></summary>
+
+```javascript
+const fetch = require('node-fetch');
+
+const api = 'http://localhost:8889';
+
+// Start proxy
+await fetch(`${api}/proxy/start`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    mode: 'auto',
+    cassette_name: 'test',
+    port: 8888
+  })
+});
+
+// Get status with authentication
+const status = await fetch(`${api}/proxy/status`, {
+  headers: { 'Authorization': 'Bearer your-key' }
+}).then(r => r.json());
+
+console.log('Running:', status.data.running);
+```
+
+</details>
+
+<details>
+<summary><b>💻 Bash/curl</b></summary>
+
+```bash
+#!/bin/bash
+API="http://localhost:8889"
+
+# List cassettes
+curl $API/cassettes | jq '.data[].name'
+
+# Start proxy with authentication
+curl -X POST $API/proxy/start \
+  -H "Authorization: Bearer your-key" \
+  -H "Content-Type: application/json" \
+  -d '{"mode": "record", "cassette_name": "test"}'
+
+# Get OpenAPI spec
+curl $API/openapi.json | jq '.info'
+```
+
+</details>
+
+### Hypermedia Navigation
+
+Every API response includes **Hydra links** for discoverability:
+
+```json
+{
+  "@context": "https://www.w3.org/ns/hydra/core",
+  "@type": "hydra:Resource",
+  "success": true,
+  "data": { "message": "Proxy started successfully" },
+  "hydra:link": [
+    {
+      "@type": "hydra:Link",
+      "hydra:target": "http://localhost:8889/proxy/status",
+      "title": "Check Proxy Status",
+      "hydra:operation": [{
+        "@type": "http://schema.org/ViewAction",
+        "method": "GET"
+      }]
+    }
+  ]
+}
+```
+
+Clients can **discover and navigate** the API dynamically without hardcoding URLs!
+
+### Full API Documentation
+
+See **[docs/API.md](docs/API.md)** for complete reference including:
+- Authentication setup
+- Request/response schemas
+- Error handling
+- Integration examples (CI/CD, Docker, Kubernetes)
+- Swagger UI setup
+
+---
+
 ## 📋 Cassette Format
 
 Cassettes are **language-agnostic JSON** files - record in Rust, replay in JavaScript!

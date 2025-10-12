@@ -201,6 +201,106 @@ cargo build --examples
 cargo test
 ```
 
+## 🌐 Exemples API REST
+
+Magneto-Serge fournit une API REST complète avec support Hydra/JSON-LD et OpenAPI 3.0 pour contrôler le proxy à distance.
+
+### Démarrage du Serveur API
+
+```bash
+# Démarrer le serveur API
+magneto api
+
+# Avec authentification
+magneto api --auth --api-key votre-clé-secrète
+
+# Avec host/port personnalisés
+magneto api --host 0.0.0.0 --port 8889
+```
+
+### Exemples de Clients API
+
+Trois exemples complets sont fournis :
+
+#### Python (`api_client.py`)
+```bash
+./api_client.py
+```
+
+Démontre :
+- Démarrage/arrêt du proxy via l'API
+- Vérification du statut
+- Liste des cassettes
+- Navigation hypermedia avec liens Hydra
+
+#### JavaScript/Node.js (`api_client.js`)
+```bash
+./api_client.js
+```
+
+Utilise `fetch` natif de Node.js 18+ pour interagir avec l'API.
+
+#### Bash/curl (`api_client.sh`)
+```bash
+./api_client.sh
+```
+
+Exemple simple utilisant `curl` et `jq` pour tester l'API.
+
+### Endpoints Principaux
+
+- `GET /` - Racine de l'API avec liens Hydra
+- `GET /openapi.json` - Spécification OpenAPI 3.0
+- `GET /health` - Vérification de santé
+- `POST /proxy/start` - Démarrer le proxy
+- `POST /proxy/stop` - Arrêter le proxy
+- `GET /proxy/status` - Statut du proxy
+- `GET /cassettes` - Liste des cassettes
+- `DELETE /cassettes/{name}` - Supprimer une cassette
+
+### Exemple d'Utilisation avec curl
+
+```bash
+# Démarrer le proxy en mode auto
+curl -X POST http://localhost:8889/proxy/start \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mode": "auto",
+    "cassette_name": "my-test",
+    "port": 8888
+  }'
+
+# Vérifier le statut
+curl http://localhost:8889/proxy/status
+
+# Arrêter le proxy
+curl -X POST http://localhost:8889/proxy/stop
+```
+
+### Hypermedia (HATEOAS)
+
+L'API suit les principes HATEOAS avec Hydra/JSON-LD. Chaque réponse inclut des liens vers les ressources liées :
+
+```json
+{
+  "@context": "https://www.w3.org/ns/hydra/core",
+  "@type": "hydra:Resource",
+  "success": true,
+  "data": { ... },
+  "hydra:link": [
+    {
+      "@type": "hydra:Link",
+      "hydra:target": "http://localhost:8889/proxy/status",
+      "title": "Check Proxy Status"
+    }
+  ]
+}
+```
+
+### Documentation Complète
+
+Voir [docs/API.md](../docs/API.md) pour la documentation complète de l'API.
+
 ## 🚀 Prochains Exemples (À venir)
 
 - [ ] `websocket_record.rs` - Enregistrement WebSocket
