@@ -235,9 +235,25 @@
 - [ ] Documentation complète
 - [ ] Site web / GitHub Pages
 
-### 4.4 - Release 1.0
-- [ ] Release notes
-- [ ] Migration guide
+### 4.4 - Release 1.0 ✅
+- [x] **Release notes** ✅ (RELEASE_NOTES.md)
+  - [x] Features principales (Phases 1-5)
+  - [x] Statistiques du projet
+  - [x] Instructions d'installation
+  - [x] Documentation complète
+  - [x] Known issues et roadmap
+- [x] **Migration guide** ✅ (MIGRATION_GUIDE.md)
+  - [x] Migration depuis matgto-serge
+  - [x] Migration depuis VCR (Ruby)
+  - [x] Migration depuis Polly.JS (Node.js)
+  - [x] Migration depuis Betamax (Python)
+  - [x] Migration depuis WireMock (Java)
+  - [x] Checklist de migration
+- [x] **Contributing guide** ✅ (CONTRIBUTING.md)
+  - [x] Setup development
+  - [x] Conventions de code
+  - [x] Workflow de contribution
+  - [x] Templates (PR, Bug, Feature)
 - [ ] Blog post / annonce
 - [ ] Soumission à awesome-rust
 
@@ -479,6 +495,6 @@ MIT OR Apache-2.0
 
 ---
 
-**Dernière mise à jour** : 2025-10-12 (après ajout plugins Jest, pytest, JUnit, XCTest)
+**Dernière mise à jour** : 2025-10-12 (après release notes, migration guide, contributing guide)
 **Version actuelle** : v0.1.0 (First Release)
 **Prochaine milestone** : v0.2.0 (Optimisations & Advanced Features)
