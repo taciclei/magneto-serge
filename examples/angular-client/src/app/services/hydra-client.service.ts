@@ -34,7 +34,7 @@ export class HydraClientService {
     cacheEnabled: true
   };
 
-  private alcaeusClient: typeof Alcaeus;
+  private alcaeusClient!: typeof Alcaeus;
   private resourceCache = new Map<string, IResource>();
   private navigationEvents$ = new Subject<NavigationEventPayload>();
 
@@ -187,7 +187,7 @@ export class HydraClientService {
 
     // Utiliser l'invoke d'Alcaeus pour exécuter l'opération
     return from(
-      operation.invoke(body).then(response => {
+      operation.invoke(body).then((response: IHydraResponse) => {
         if (response.root) {
           return response.root;
         }

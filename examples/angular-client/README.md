@@ -35,10 +35,12 @@ npm install
 {
   "alcaeus": "^2.0.0",           // Client Hydra/JSON-LD
   "@zazuko/env": "^2.0.0",       // Environnement RDF
-  "@rdfjs/types": "^1.1.0",      // Types TypeScript pour RDF
+  "@rdfjs/types": "^2.0.0",      // Types TypeScript pour RDF
   "@angular/core": "^19.0.0"     // Angular 19+
 }
 ```
+
+**Note importante**: Alcaeus est conçu pour Node.js et nécessite des polyfills pour fonctionner dans un navigateur. Pour une application en production, il est recommandé de créer un wrapper API côté serveur (Node.js/Express) qui utilise Alcaeus, et d'utiliser HttpClient Angular côté client.
 
 ## 🚀 Démarrage Rapide
 
@@ -336,19 +338,30 @@ Si vous obtenez des erreurs CORS:
 magneto api --host 0.0.0.0
 ```
 
-### Alcaeus Import Errors
+### Alcaeus Build Errors (Node.js polyfills)
+Alcaeus dépend de modules Node.js natifs (`querystring`, `url`, `util`). Ces polyfills sont installés automatiquement en dev dependencies. Si vous rencontrez des erreurs de build, vérifiez que ces packages sont présents:
+
 ```bash
-# Si problèmes d'imports ES modules
-npm install --save @zazuko/env @rdfjs/data-model
+npm install --save-dev querystring-es3 url util events
 ```
 
 ### TypeScript Errors avec Alcaeus
+Alcaeus a des problèmes d'export ESM. Un fichier `src/typings.d.ts` est fourni pour les déclarations de types:
+
 ```typescript
-// Utiliser les types RDF explicites
+// Utiliser les types via notre fichier de déclaration
 import { IResource } from 'alcaeus';
 
 const resource: IResource = await client.loadResource('/');
 ```
+
+### Alternative recommandée pour la production
+Pour une application de production, il est recommandé de:
+1. Créer un backend Node.js/Express qui utilise Alcaeus
+2. Exposer une API REST simplifiée pour Angular
+3. Utiliser HttpClient Angular côté client (sans Alcaeus)
+
+Ceci évite les problèmes de polyfills et améliore les performances.
 
 ## 🚀 Prochaines Étapes
 

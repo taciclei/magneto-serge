@@ -130,7 +130,6 @@ export interface MagnetoResource extends IResource {
   id?: string;
 
   // Navigation Hydra
-  operations?: HydraOperation[];
   links?: HydraLink[];
 
   // Méthodes helper
