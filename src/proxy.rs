@@ -157,6 +157,12 @@ impl MagnetoProxy {
         state.mode
     }
 
+    /// Get the current cassette name (if any)
+    pub fn current_cassette_name(&self) -> Option<String> {
+        let state = self.state.lock().unwrap();
+        state.current_cassette.clone()
+    }
+
     /// Start recording a new cassette (internal version with Result)
     pub fn start_recording_internal(&self, cassette_name: String) -> Result<()> {
         let mut state = self.state.lock().unwrap();
@@ -486,6 +492,64 @@ impl MagnetoProxy {
     /// Stop once mode (UniFFI compatible - returns bool)
     pub fn stop_once(&self) -> bool {
         self.stop_once_internal().is_ok()
+    }
+
+    /// Start the proxy and wait (blocks until Ctrl+C)
+    pub async fn start(&self) -> Result<()> {
+        // The proxy should already be started via start_recording, replay, etc.
+        // This just waits for Ctrl+C
+        tracing::info!("Proxy running... Press Ctrl+C to stop");
+        tokio::signal::ctrl_c().await.ok();
+        tracing::info!("Shutting down...");
+        Ok(())
+    }
+
+    /// Start in auto mode: replay if cassette exists, record if not
+    pub fn auto(&self, cassette_name: &str) {
+        let cassette_dir = {
+            let state = self.state.lock().unwrap();
+            state.cassette_dir.clone()
+        };
+
+        // Check if cassette exists
+        let cassette_exists = cassette_dir
+            .join(format!("{}.json", cassette_name))
+            .exists()
+            || cassette_dir
+                .join(format!("{}.json.gz", cassette_name))
+                .exists()
+            || cassette_dir
+                .join(format!("{}.msgpack", cassette_name))
+                .exists()
+            || cassette_dir
+                .join(format!("{}.msgpack.gz", cassette_name))
+                .exists();
+
+        if cassette_exists {
+            tracing::info!("🔄 Auto mode: Cassette exists, replaying");
+            let _ = self.replay_internal(cassette_name.to_string());
+        } else {
+            tracing::info!("🔄 Auto mode: Cassette doesn't exist, recording");
+            let _ = self.start_recording_internal(cassette_name.to_string());
+        }
+    }
+
+    /// Start in passthrough mode (no recording/replaying)
+    pub fn passthrough(&self) {
+        let mut state = self.state.lock().unwrap();
+        state.mode = ProxyMode::Passthrough;
+
+        let server =
+            ProxyServer::new(state.proxy_port, self.ca.clone(), ProxyMode::Passthrough).unwrap();
+
+        tracing::info!("🔀 Starting passthrough mode");
+
+        let runtime_handle = self.runtime.handle().clone();
+        runtime_handle.spawn(async move {
+            if let Err(e) = server.start().await {
+                tracing::error!("Proxy server error: {}", e);
+            }
+        });
     }
 
     /// Shutdown the proxy (internal version with Result)

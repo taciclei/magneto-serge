@@ -8,6 +8,7 @@
 // Allow clippy warnings from UniFFI generated code
 #![allow(clippy::empty_line_after_doc_comments)]
 
+pub mod api;
 pub mod cassette;
 pub mod error;
 pub mod filters;
@@ -18,6 +19,7 @@ pub mod recorder;
 pub mod tls;
 pub mod websocket;
 
+pub use api::{ApiConfig, ApiResponse, ApiServer, ProxyStatus, StartProxyRequest, StopProxyRequest};
 pub use error::{MatgtoError, Result};
 pub use filters::{FilterPresets, RecordingFilters};
 pub use matching::{
