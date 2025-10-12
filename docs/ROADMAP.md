@@ -103,14 +103,18 @@
   - [ ] Package PyPI
 
 - [x] **Kotlin** (Maven)
-  - [x] Génération via UniFFI
-  - [x] Documentation complète
+  - [x] Génération via UniFFI (magneto_serge.kt 63KB)
+  - [x] Documentation complète (README.md avec OkHttp, Ktor, Retrofit, JUnit 5)
+  - [x] Exemple complet (Example.kt avec 6 scenarios)
+  - [x] JUnit 5 extension pour tests automatiques
   - [ ] Tests
   - [ ] Package Maven
 
 - [x] **Swift** (Swift Package Manager)
-  - [x] Génération via UniFFI
-  - [x] Documentation complète
+  - [x] Génération via UniFFI (magneto_serge.swift 30KB + FFI headers)
+  - [x] Documentation complète (README.md avec URLSession, XCTest, Alamofire, iOS 13+)
+  - [x] Exemple complet (Example.swift avec tous les modes)
+  - [x] Support iOS/macOS (iOS 13+, macOS 10.15+)
   - [ ] Tests
   - [ ] Package SPM
 
@@ -454,6 +458,6 @@ MIT OR Apache-2.0
 
 ---
 
-**Dernière mise à jour** : 2025-10-11 (après ajout benchmarks Criterion)
+**Dernière mise à jour** : 2025-10-12 (après ajout bindings Kotlin et Swift)
 **Version actuelle** : v0.1.0 (First Release)
 **Prochaine milestone** : v0.2.0 (Optimisations & Advanced Features)
