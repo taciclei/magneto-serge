@@ -840,6 +840,7 @@ magneto-serge/
 | [**ARCHITECTURE.md**](docs/ARCHITECTURE.md) | 🏗️ Technical architecture details |
 | [**API.md**](docs/API.md) | 🌐 Complete REST API reference |
 | [**TECH-STACK.md**](docs/TECH-STACK.md) | 📚 Complete dependency list |
+| [**SECRETS_SETUP.md**](docs/SECRETS_SETUP.md) | 🔐 GitHub secrets setup for CD |
 | [**CLAUDE.md**](CLAUDE.md) | 🤖 AI assistant instructions |
 
 **Web Ecosystem:**
