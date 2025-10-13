@@ -93,6 +93,45 @@ Multi-language bindings are in development. See [ROADMAP.md](docs/ROADMAP.md) fo
 
 ## 🚀 Quick Start
 
+### ⚡ Automated Setup (Makefile)
+
+The fastest way to get started with the complete ecosystem:
+
+```bash
+# Check dependencies
+make help           # Show all available commands
+./scripts/check-deps.sh  # Verify dependencies
+
+# Quick setup (install + build)
+make quick          # Install deps + build Rust
+
+# Install everything (Rust + Node.js backends + Angular clients)
+make install        # Install all dependencies
+make build-all      # Build everything
+
+# Start complete stack (API + Backend + Frontend)
+make dev            # Launch in tmux (automatic)
+make dev-manual     # Get manual instructions
+
+# Individual services
+make run-api               # Start Magneto API (port 8889)
+make run-backend           # Start Node.js backend (port 3000)
+make run-client-simple     # Start Angular client (port 4201)
+make run-client-hydra      # Start Angular Hydra demo (port 4200)
+
+# CLI examples
+make example-record  # Record HTTP requests
+make example-replay  # Replay from cassette
+make example-auto    # Auto mode (smart)
+
+# Utilities
+make status         # Check running services
+make ports          # Show used ports
+make clean-all      # Clean everything
+```
+
+**Complete Makefile reference**: Run `make help` for all 50+ commands.
+
 ### Basic Usage (Rust)
 
 ```rust
@@ -440,6 +479,147 @@ See **[docs/API.md](docs/API.md)** for complete reference including:
 
 ---
 
+## 🌐 Web Ecosystem
+
+Magneto-Serge includes a **complete web stack** with multiple frontend/backend architectures.
+
+### Architecture Options
+
+<table>
+<tr>
+<td width="33%">
+
+**1. CLI Only** ⚡
+```bash
+magneto record test
+magneto replay test
+```
+→ Perfect for scripts, CI/CD
+
+</td>
+<td width="33%">
+
+**2. Production Stack** 🏭
+```
+Angular Client
+    ↓
+Node.js Backend
+    ↓
+Magneto API
+```
+→ Recommended for production
+
+</td>
+<td width="33%">
+
+**3. Hydra Demo** 🔬
+```
+Angular + Alcaeus
+    ↓
+Magneto API
+```
+→ Hypermedia demonstration
+
+</td>
+</tr>
+</table>
+
+### Quick Start: Complete Stack
+
+```bash
+# Automatic (with tmux)
+make dev
+
+# Or manual (3 terminals)
+make dev-manual
+```
+
+**Opens:**
+- **API**: http://localhost:8889 (Rust/Axum)
+- **Backend**: http://localhost:3000 (Node.js/Express)
+- **Client**: http://localhost:4201 (Angular)
+
+### Components
+
+#### 1. Backend Node.js (Recommended)
+**Location**: `examples/nodejs-backend/`
+
+Alcaeus wrapper exposing simplified REST API:
+
+```bash
+cd examples/nodejs-backend
+npm install
+npm start
+# → http://localhost:3000
+```
+
+**Features**:
+- ✅ Alcaeus native (Node.js, zero polyfill)
+- ✅ Server-side cache (shared across clients)
+- ✅ JSON-LD → JSON simplification
+- ✅ Production-ready architecture
+
+**Docs**: [nodejs-backend/README.md](examples/nodejs-backend/README.md) | [ARCHITECTURE.md](examples/nodejs-backend/ARCHITECTURE.md)
+
+#### 2. Angular Simple Client (Production)
+**Location**: `examples/angular-simple-client/`
+
+Production Angular client using the Node.js backend:
+
+```bash
+cd examples/angular-simple-client
+npm install
+npm start
+# → http://localhost:4201
+```
+
+**Features**:
+- ✅ Native HttpClient (no Alcaeus/RDF)
+- ✅ Simple TypeScript types
+- ✅ Lightweight build (~50kb)
+- ✅ Full proxy control dashboard
+
+**Docs**: [angular-simple-client/README.md](examples/angular-simple-client/README.md)
+
+#### 3. Angular Hydra Client (Demo)
+**Location**: `examples/angular-client/`
+
+Demonstration of Hydra/JSON-LD navigation with Alcaeus in browser:
+
+```bash
+cd examples/angular-client
+npm install
+npm start
+# → http://localhost:4200
+```
+
+**Features**:
+- ✅ Alcaeus integration in browser
+- ✅ Automatic Hydra navigation (zero hardcoded URLs)
+- ✅ JSON-LD parsing
+- ⚠️ Requires Node.js polyfills (+100kb)
+
+**Docs**: [angular-client/README.md](examples/angular-client/README.md)
+
+### Architecture Comparison
+
+| Aspect | CLI | Simple Client + Backend | Hydra Client Direct |
+|--------|-----|------------------------|---------------------|
+| **Use Case** | Scripts, CI/CD | Production web app | Hydra demo |
+| **Complexity** | ✅ Simple | ✅ Medium | ⚠️ Complex |
+| **Build Size** | N/A | ✅ ~50kb | ⚠️ ~150kb |
+| **Dependencies** | Rust only | Node + Angular | Alcaeus + RDF + Polyfills |
+| **Performance** | ✅ Maximum | ✅ Server cache | ⚠️ Client parsing |
+| **Production** | ✅ Yes | ✅ **Recommended** | ⚠️ Demo only |
+
+### Complete Guides
+
+- **[QUICK_START.md](QUICK_START.md)**: Comprehensive startup guide with 5 use cases
+- **[examples/README.md](examples/README.md)**: All examples catalog
+- **[examples/nodejs-backend/ARCHITECTURE.md](examples/nodejs-backend/ARCHITECTURE.md)**: 3-tier production architecture
+
+---
+
 ## 📋 Cassette Format
 
 Cassettes are **language-agnostic JSON** files - record in Rust, replay in JavaScript!
@@ -536,11 +716,39 @@ graph TB
 
 ## 🛠️ Development
 
+### Using Makefile (Recommended)
+
 ```bash
 # Clone repository
 git clone https://github.com/taciclei/magneto-serge.git
 cd magneto-serge
 
+# Check dependencies
+./scripts/check-deps.sh
+
+# Quick setup
+make quick          # Install + build in one command
+
+# Or step by step
+make install        # Install all dependencies
+make build-all      # Build everything
+make test           # Run all tests
+
+# Development workflow
+make dev            # Start complete stack (tmux)
+make status         # Check services status
+make clean-all      # Clean everything
+
+# CI/CD checks
+make ci             # Run fmt, clippy, tests
+
+# See all commands
+make help
+```
+
+### Manual Commands
+
+```bash
 # Build Rust library
 cargo build --release
 
@@ -560,6 +768,13 @@ cargo fmt --all
 cd bindings/javascript
 npm install
 npm run build
+
+# Build Angular clients
+cd examples/angular-simple-client && npm install && npm run build
+cd examples/angular-client && npm install && npm run build
+
+# Build Node.js backend
+cd examples/nodejs-backend && npm install
 ```
 
 ### Running Tests
@@ -619,10 +834,26 @@ magneto-serge/
 
 | Documentation | Description |
 |---------------|-------------|
+| [**QUICK_START.md**](QUICK_START.md) | 🚀 Quick start guide with use cases |
+| [**Makefile**](Makefile) | ⚡ 50+ automation commands |
 | [**ROADMAP.md**](docs/ROADMAP.md) | 🗺️ Development roadmap & progress |
 | [**ARCHITECTURE.md**](docs/ARCHITECTURE.md) | 🏗️ Technical architecture details |
+| [**API.md**](docs/API.md) | 🌐 Complete REST API reference |
 | [**TECH-STACK.md**](docs/TECH-STACK.md) | 📚 Complete dependency list |
 | [**CLAUDE.md**](CLAUDE.md) | 🤖 AI assistant instructions |
+
+**Web Ecosystem:**
+| Documentation | Description |
+|---------------|-------------|
+| [**nodejs-backend/README.md**](examples/nodejs-backend/README.md) | 🟢 Node.js backend guide |
+| [**nodejs-backend/ARCHITECTURE.md**](examples/nodejs-backend/ARCHITECTURE.md) | 🏗️ Production architecture (3-tier) |
+| [**angular-simple-client/README.md**](examples/angular-simple-client/README.md) | 🅰️ Production Angular client |
+| [**angular-client/README.md**](examples/angular-client/README.md) | 🅰️ Hydra demo client |
+| [**examples/README.md**](examples/README.md) | 📚 All examples catalog |
+
+**Bindings:**
+| Documentation | Description |
+|---------------|-------------|
 | [**JavaScript README**](bindings/javascript/README.md) | 🟨 JS/TS bindings guide |
 
 ---
