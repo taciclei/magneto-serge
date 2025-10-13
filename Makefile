@@ -201,14 +201,31 @@ example-list: build ## Exemple: lister les cassettes
 
 ##@ Docker
 
-docker-build: ## Build l'image Docker
+docker-build: ## Build l'image Docker standard
 	@echo "$(BLUE)Build de l'image Docker...$(RESET)"
 	@docker build -t magneto-serge:latest .
 	@echo "$(GREEN)✓ Image Docker créée: magneto-serge:latest$(RESET)"
 
+docker-build-alpine: ## Build l'image Docker Alpine (optimisée)
+	@echo "$(BLUE)Build de l'image Docker Alpine...$(RESET)"
+	@docker build -f Dockerfile.alpine -t magneto-serge:alpine -t tabou/magneto-serge:alpine .
+	@echo "$(GREEN)✓ Image Docker Alpine créée: magneto-serge:alpine$(RESET)"
+
 docker-run: ## Lance le container Docker
 	@echo "$(BLUE)Démarrage du container Docker...$(RESET)"
 	@docker run -p 8889:8889 -p 8888:8888 magneto-serge:latest
+
+docker-run-alpine: ## Lance le container Docker Alpine (tous services)
+	@echo "$(BLUE)Démarrage du container Docker Alpine...$(RESET)"
+	@docker run -d --name magneto-serge \
+		-p 8889:8889 -p 3000:3000 -p 4201:4201 -p 8888:8888 \
+		-v $(PWD)/cassettes:/app/cassettes \
+		magneto-serge:alpine all
+	@echo "$(GREEN)✓ Container démarré$(RESET)"
+	@echo "$(YELLOW)API: http://localhost:8889$(RESET)"
+	@echo "$(YELLOW)Backend: http://localhost:3000$(RESET)"
+	@echo "$(YELLOW)Frontend: http://localhost:4201$(RESET)"
+	@echo "$(YELLOW)Proxy: http://localhost:8888$(RESET)"
 
 docker-compose: ## Lance avec docker-compose (stack complète)
 	@echo "$(BLUE)Démarrage avec docker-compose...$(RESET)"
@@ -218,8 +235,30 @@ docker-compose: ## Lance avec docker-compose (stack complète)
 	@echo "$(YELLOW)Backend: http://localhost:3000$(RESET)"
 	@echo "$(YELLOW)Client: http://localhost:4201$(RESET)"
 
+docker-compose-alpine: ## Lance avec docker-compose Alpine
+	@echo "$(BLUE)Démarrage avec docker-compose Alpine...$(RESET)"
+	@docker-compose -f docker-compose.alpine.yml up -d
+	@echo "$(GREEN)✓ Stack Alpine démarrée$(RESET)"
+	@echo "$(YELLOW)API: http://localhost:8889$(RESET)"
+	@echo "$(YELLOW)Backend: http://localhost:3000$(RESET)"
+	@echo "$(YELLOW)Frontend: http://localhost:4201$(RESET)"
+	@echo "$(YELLOW)Proxy: http://localhost:8888$(RESET)"
+
 docker-stop: ## Arrête les containers docker-compose
 	@docker-compose down
+
+docker-stop-alpine: ## Arrête les containers docker-compose Alpine
+	@docker-compose -f docker-compose.alpine.yml down
+
+docker-push-alpine: docker-build-alpine ## Push l'image Alpine sur Docker Hub
+	@echo "$(BLUE)Push de l'image sur Docker Hub...$(RESET)"
+	@docker tag magneto-serge:alpine tabou/magneto-serge:latest
+	@docker push tabou/magneto-serge:alpine
+	@docker push tabou/magneto-serge:latest
+	@echo "$(GREEN)✓ Image pushée sur Docker Hub$(RESET)"
+
+docker-logs-alpine: ## Affiche les logs du container Alpine
+	@docker logs -f magneto-serge
 
 ##@ Nettoyage
 

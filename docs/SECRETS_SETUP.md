@@ -7,6 +7,7 @@ Guide complet pour configurer les secrets nécessaires à la publication automat
 ## 📋 Vue d'ensemble
 
 Le workflow CD (`.github/workflows/cd.yml`) nécessite **9 secrets** pour publier automatiquement sur :
+
 - **crates.io** (Rust)
 - **PyPI** (Python)
 - **Maven Central** (Java/Kotlin)
@@ -16,17 +17,17 @@ Le workflow CD (`.github/workflows/cd.yml`) nécessite **9 secrets** pour publie
 
 ## 🔑 Secrets Requis
 
-| Secret | Service | Description | Obligatoire |
-|--------|---------|-------------|-------------|
-| `CARGO_REGISTRY_TOKEN` | crates.io | Token API pour publier packages Rust | ✅ Oui |
-| `PYPI_TOKEN` | PyPI | Token API pour publier packages Python | ✅ Oui |
-| `OSSRH_USERNAME` | Maven Central | Username Sonatype OSSRH | ✅ Oui |
-| `OSSRH_PASSWORD` | Maven Central | Password Sonatype OSSRH | ✅ Oui |
-| `GPG_PRIVATE_KEY` | Maven Central | Clé privée GPG pour signer artifacts | ✅ Oui |
-| `GPG_PASSPHRASE` | Maven Central | Passphrase de la clé GPG | ✅ Oui |
-| `DOCKER_USERNAME` | Docker Hub | Username Docker Hub | ⚠️ Optionnel |
-| `DOCKER_PASSWORD` | Docker Hub | Password/Token Docker Hub | ⚠️ Optionnel |
-| `GITHUB_TOKEN` | GitHub | Token auto-généré par GitHub Actions | ✅ Auto |
+| Secret                 | Service       | Description                            | Obligatoire  |
+| ---------------------- | ------------- | -------------------------------------- | ------------ |
+| `CARGO_REGISTRY_TOKEN` | crates.io     | Token API pour publier packages Rust   | ✅ Oui       |
+| `PYPI_TOKEN`           | PyPI          | Token API pour publier packages Python | ✅ Oui       |
+| `OSSRH_USERNAME`       | Maven Central | Username Sonatype OSSRH                | ✅ Oui       |
+| `OSSRH_PASSWORD`       | Maven Central | Password Sonatype OSSRH                | ✅ Oui       |
+| `GPG_PRIVATE_KEY`      | Maven Central | Clé privée GPG pour signer artifacts   | ✅ Oui       |
+| `GPG_PASSPHRASE`       | Maven Central | Passphrase de la clé GPG               | ✅ Oui       |
+| `DOCKER_USERNAME`      | Docker Hub    | Username Docker Hub                    | ⚠️ Optionnel |
+| `DOCKER_PASSWORD`      | Docker Hub    | Password/Token Docker Hub              | ⚠️ Optionnel |
+| `GITHUB_TOKEN`         | GitHub        | Token auto-généré par GitHub Actions   | ✅ Auto      |
 
 > **Note** : `GITHUB_TOKEN` est automatiquement fourni par GitHub Actions, pas besoin de le configurer.
 
@@ -52,9 +53,11 @@ Le workflow CD (`.github/workflows/cd.yml`) nécessite **9 secrets** pour publie
    - Clique sur **Generate Token**
 
 3. **Copier le token**
+
    ```
    Exemple : crates_io_XXXXXXXXXXXXXXXXXXXXXXXXXXXXX
    ```
+
    ⚠️ **IMPORTANT** : Le token n'est affiché qu'une seule fois !
 
 4. **Ajouter le secret GitHub**
@@ -65,6 +68,7 @@ Le workflow CD (`.github/workflows/cd.yml`) nécessite **9 secrets** pour publie
    - Clique sur **Add secret**
 
 #### Test local (optionnel) :
+
 ```bash
 # Vérifier que le token fonctionne
 export CARGO_REGISTRY_TOKEN="crates_io_XXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
@@ -95,9 +99,11 @@ cargo publish --dry-run
    - Clique sur **Add token**
 
 4. **Copier le token**
+
    ```
    Exemple : pypi-AgEIcHlwaS5vcmc...
    ```
+
    ⚠️ **IMPORTANT** : Le token commence par `pypi-` et n'est affiché qu'une fois !
 
 5. **Ajouter le secret GitHub**
@@ -105,11 +111,14 @@ cargo publish --dry-run
    - Value : Colle le token complet (avec `pypi-`)
 
 #### Après la première publication :
+
 Tu peux créer un token **scoped** (limité au package) :
+
 - Scope : **Project: magneto-serge**
 - Plus sécurisé
 
 #### Test local (optionnel) :
+
 ```bash
 # Installer twine
 pip install twine
@@ -166,6 +175,7 @@ twine check target/wheels/*.whl
 Maven Central **exige** que tous les artifacts soient signés avec GPG.
 
 1. **Installer GPG**
+
    ```bash
    # macOS
    brew install gnupg
@@ -175,9 +185,11 @@ Maven Central **exige** que tous les artifacts soient signés avec GPG.
    ```
 
 2. **Générer une clé GPG**
+
    ```bash
    gpg --full-generate-key
    ```
+
    - Type : **RSA and RSA** (1)
    - Key size : **4096** bits
    - Validity : **0** (n'expire jamais) ou **2y** (2 ans)
@@ -186,29 +198,38 @@ Maven Central **exige** que tous les artifacts soient signés avec GPG.
    - Passphrase : Choisis une passphrase forte (tu en auras besoin !)
 
 3. **Lister les clés**
+
    ```bash
    gpg --list-secret-keys --keyid-format=long
    ```
+
    Sortie :
+
    ```
    sec   rsa4096/ABCD1234EFGH5678 2025-10-13 [SC]
          1234567890ABCDEF1234567890ABCDEF12345678
    uid                 [ultimate] Magneto-Serge CI <ton@email.com>
    ssb   rsa4096/IJKL9012MNOP3456 2025-10-13 [E]
    ```
+
    Note le **key ID** : `ABCD1234EFGH5678`
 
 4. **Exporter la clé privée**
+
    ```bash
    gpg --armor --export-secret-keys ABCD1234EFGH5678 > gpg-private.key
    ```
+
    ⚠️ **ATTENTION** : Ce fichier contient ta clé privée, garde-le sécurisé !
 
 5. **Publier la clé publique sur un keyserver**
+
    ```bash
    gpg --keyserver keyserver.ubuntu.com --send-keys ABCD1234EFGH5678
    ```
+
    OU
+
    ```bash
    gpg --keyserver keys.openpgp.org --send-keys ABCD1234EFGH5678
    ```
@@ -228,15 +249,18 @@ Maven Central **exige** que tous les artifacts soient signés avec GPG.
 
 3. **GPG_PRIVATE_KEY**
    - Value : Contenu complet du fichier `gpg-private.key`
+
    ```bash
    cat gpg-private.key
    ```
+
    - Copie TOUT le contenu (de `-----BEGIN PGP PRIVATE KEY BLOCK-----` à `-----END PGP PRIVATE KEY BLOCK-----`)
 
 4. **GPG_PASSPHRASE**
    - Value : La passphrase que tu as choisie lors de la génération de la clé
 
 #### Test local (optionnel) :
+
 ```bash
 # Configurer Maven settings.xml
 mkdir -p ~/.m2
@@ -258,6 +282,7 @@ mvn clean install -Possrh
 ```
 
 #### Références Maven Central :
+
 - Guide officiel : https://central.sonatype.org/publish/publish-guide/
 - Requirements : https://central.sonatype.org/publish/requirements/
 
@@ -268,6 +293,7 @@ mvn clean install -Possrh
 **Service** : Publication images Docker sur [Docker Hub](https://hub.docker.com)
 
 ⚠️ **Optionnel** - Si tu ne veux pas publier d'images Docker, tu peux :
+
 1. Ne pas configurer ces secrets
 2. Supprimer le job `build-docker` du workflow CD
 
@@ -277,13 +303,15 @@ mvn clean install -Possrh
    - Va sur https://hub.docker.com/signup
 
 2. **Créer un Access Token**
-   - Va dans **Account Settings** → **Security** : https://hub.docker.com/settings/security
+   - Va dans **Account Settings** → **Security** :
+
    - Clique sur **New Access Token**
    - Description : `magneto-serge-cd`
    - Access permissions : **Read, Write, Delete**
    - Clique sur **Generate**
 
 3. **Copier le token**
+
    ```
    Exemple : dckr_pat_1234567890abcdefghijklmno
    ```
@@ -296,6 +324,7 @@ mvn clean install -Possrh
      - Value : Le token copié
 
 #### Test local (optionnel) :
+
 ```bash
 # Login
 echo "ton-token" | docker login -u taciclei --password-stdin
@@ -316,6 +345,7 @@ Une fois tous les secrets configurés, vérifie sur GitHub :
 
 2. **Vérifier la liste**
    Tu dois voir :
+
    ```
    ✅ CARGO_REGISTRY_TOKEN
    ✅ PYPI_TOKEN
@@ -346,6 +376,7 @@ git push origin v0.1.0
 ```
 
 Le workflow CD se déclenchera automatiquement et publiera sur :
+
 - ✅ crates.io
 - ✅ PyPI
 - ✅ Maven Central
@@ -365,26 +396,32 @@ Le workflow CD se déclenchera automatiquement et publiera sur :
 ## 🐛 Dépannage
 
 ### Erreur : "401 Unauthorized" (crates.io)
+
 - ❌ Token invalide ou expiré
 - ✅ Régénère un nouveau token sur https://crates.io/settings/tokens
 
 ### Erreur : "403 Forbidden" (PyPI)
+
 - ❌ Token invalide ou scope insuffisant
 - ✅ Crée un token avec scope "Entire account"
 
 ### Erreur : "401 Unauthorized" (Maven Central)
+
 - ❌ Username/password incorrect
 - ✅ Vérifie tes credentials Sonatype OSSRH
 
 ### Erreur : "GPG signature verification failed"
+
 - ❌ Clé GPG non publiée sur keyserver
 - ✅ Publie ta clé : `gpg --keyserver keyserver.ubuntu.com --send-keys KEY_ID`
 
 ### Erreur : "Namespace not approved" (Maven Central)
+
 - ❌ Le ticket OSSRH n'est pas encore approuvé
 - ✅ Attends l'approbation (1-2 jours ouvrés)
 
 ### Erreur : "docker login failed"
+
 - ❌ Token Docker Hub invalide
 - ✅ Régénère un Access Token sur https://hub.docker.com/settings/security
 
