@@ -71,12 +71,11 @@ impl ApiServer {
 
         tracing::info!("🌐 API Server starting on http://{}", addr);
 
-        Server::bind(&addr)
-            .serve(make_svc)
-            .await
-            .map_err(|e| crate::MatgtoError::ProxyStartFailed {
+        Server::bind(&addr).serve(make_svc).await.map_err(|e| {
+            crate::MatgtoError::ProxyStartFailed {
                 reason: format!("Failed to start API server: {}", e),
-            })?;
+            }
+        })?;
 
         Ok(())
     }
@@ -175,8 +174,7 @@ impl ApiServer {
     /// Handle OpenAPI specification request
     async fn handle_openapi(&self) -> Result<Response<Body>> {
         let spec = super::openapi::generate_openapi_spec(&self.config.host, self.config.port);
-        let json = serde_json::to_string_pretty(&spec)
-            .unwrap_or_else(|_| "{}".to_string());
+        let json = serde_json::to_string_pretty(&spec).unwrap_or_else(|_| "{}".to_string());
 
         Ok(Response::builder()
             .status(StatusCode::OK)
@@ -207,8 +205,8 @@ impl ApiServer {
             .await
             .map_err(|e| crate::MatgtoError::Http(format!("Failed to read body: {}", e)))?;
 
-        let start_req: StartProxyRequest = serde_json::from_slice(&body)
-            .map_err(|e| crate::MatgtoError::Serialization(e))?;
+        let start_req: StartProxyRequest =
+            serde_json::from_slice(&body).map_err(crate::MatgtoError::Serialization)?;
 
         // Check if proxy is already running
         {
@@ -223,10 +221,11 @@ impl ApiServer {
 
         // Create proxy
         let cassette_dir = PathBuf::from(&self.config.cassette_dir);
-        let proxy = MagnetoProxy::new_internal(&cassette_dir)
-            .map_err(|e| crate::MatgtoError::ProxyStartFailed {
+        let proxy = MagnetoProxy::new_internal(&cassette_dir).map_err(|e| {
+            crate::MatgtoError::ProxyStartFailed {
                 reason: format!("Failed to create proxy: {}", e),
-            })?;
+            }
+        })?;
 
         let proxy = Arc::new(proxy);
         let port = start_req.port.unwrap_or(self.config.proxy_port);
@@ -330,9 +329,8 @@ impl ApiServer {
             .await
             .unwrap_or_else(|_| hyper::body::Bytes::from("{}"));
 
-        let _stop_req: StopProxyRequest = serde_json::from_slice(&body).unwrap_or_else(|_| {
-            StopProxyRequest { force: false }
-        });
+        let _stop_req: StopProxyRequest =
+            serde_json::from_slice(&body).unwrap_or(StopProxyRequest { force: false });
 
         // Get and remove proxy
         let proxy = {
@@ -366,7 +364,7 @@ impl ApiServer {
             let status = ProxyStatus {
                 running: true,
                 mode: format!("{:?}", proxy.mode()),
-                port: proxy.port() as u16,
+                port: proxy.port(),
                 cassette: proxy.current_cassette_name(),
                 interactions_count: 0, // TODO: Get from player
                 uptime_seconds: self.start_time.elapsed().as_secs(),
@@ -469,7 +467,7 @@ impl ApiServer {
         // Read cassette file
         let content = tokio::fs::read_to_string(&cassette_path)
             .await
-            .map_err(|e| crate::MatgtoError::Io(e))?;
+            .map_err(crate::MatgtoError::Io)?;
 
         Ok(Self::json_response(
             StatusCode::OK,
@@ -494,7 +492,7 @@ impl ApiServer {
 
         tokio::fs::remove_file(&cassette_path)
             .await
-            .map_err(|e| crate::MatgtoError::Io(e))?;
+            .map_err(crate::MatgtoError::Io)?;
 
         Ok(Self::json_response(
             StatusCode::OK,

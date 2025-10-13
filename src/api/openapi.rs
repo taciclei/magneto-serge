@@ -169,7 +169,8 @@ fn generate_paths() -> HashMap<String, HashMap<String, OpenApiOperation>> {
         "post".to_string(),
         OpenApiOperation {
             summary: "Start Proxy".to_string(),
-            description: "Start the proxy in specified mode (auto, record, replay, passthrough)".to_string(),
+            description: "Start the proxy in specified mode (auto, record, replay, passthrough)"
+                .to_string(),
             tags: Some(vec!["Proxy Control".to_string()]),
             request_body: Some(OpenApiRequestBody {
                 description: "Proxy start configuration".to_string(),
@@ -200,10 +201,15 @@ fn generate_paths() -> HashMap<String, HashMap<String, OpenApiOperation>> {
             }),
             responses: {
                 let mut responses = generate_response_200("Proxy started successfully");
-                responses.insert("409".to_string(), OpenApiResponse {
-                    description: "Proxy already running".to_string(),
-                    content: Some(generate_json_content(json!({"$ref": "#/components/schemas/ErrorResponse"}))),
-                });
+                responses.insert(
+                    "409".to_string(),
+                    OpenApiResponse {
+                        description: "Proxy already running".to_string(),
+                        content: Some(generate_json_content(
+                            json!({"$ref": "#/components/schemas/ErrorResponse"}),
+                        )),
+                    },
+                );
                 responses
             },
             security: Some(vec![{
@@ -238,10 +244,15 @@ fn generate_paths() -> HashMap<String, HashMap<String, OpenApiOperation>> {
             }),
             responses: {
                 let mut responses = generate_response_200("Proxy stopped successfully");
-                responses.insert("404".to_string(), OpenApiResponse {
-                    description: "Proxy not running".to_string(),
-                    content: Some(generate_json_content(json!({"$ref": "#/components/schemas/ErrorResponse"}))),
-                });
+                responses.insert(
+                    "404".to_string(),
+                    OpenApiResponse {
+                        description: "Proxy not running".to_string(),
+                        content: Some(generate_json_content(
+                            json!({"$ref": "#/components/schemas/ErrorResponse"}),
+                        )),
+                    },
+                );
                 responses
             },
             security: Some(vec![{
@@ -321,10 +332,15 @@ fn generate_paths() -> HashMap<String, HashMap<String, OpenApiOperation>> {
             request_body: None,
             responses: {
                 let mut responses = generate_response_200("Cassette content");
-                responses.insert("404".to_string(), OpenApiResponse {
-                    description: "Cassette not found".to_string(),
-                    content: Some(generate_json_content(json!({"$ref": "#/components/schemas/ErrorResponse"}))),
-                });
+                responses.insert(
+                    "404".to_string(),
+                    OpenApiResponse {
+                        description: "Cassette not found".to_string(),
+                        content: Some(generate_json_content(
+                            json!({"$ref": "#/components/schemas/ErrorResponse"}),
+                        )),
+                    },
+                );
                 responses
             },
             security: Some(vec![{
@@ -347,10 +363,15 @@ fn generate_paths() -> HashMap<String, HashMap<String, OpenApiOperation>> {
             request_body: None,
             responses: {
                 let mut responses = generate_response_200("Cassette deleted");
-                responses.insert("404".to_string(), OpenApiResponse {
-                    description: "Cassette not found".to_string(),
-                    content: Some(generate_json_content(json!({"$ref": "#/components/schemas/ErrorResponse"}))),
-                });
+                responses.insert(
+                    "404".to_string(),
+                    OpenApiResponse {
+                        description: "Cassette not found".to_string(),
+                        content: Some(generate_json_content(
+                            json!({"$ref": "#/components/schemas/ErrorResponse"}),
+                        )),
+                    },
+                );
                 responses
             },
             security: Some(vec![{

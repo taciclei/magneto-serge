@@ -19,7 +19,9 @@ pub mod recorder;
 pub mod tls;
 pub mod websocket;
 
-pub use api::{ApiConfig, ApiResponse, ApiServer, ProxyStatus, StartProxyRequest, StopProxyRequest};
+pub use api::{
+    ApiConfig, ApiResponse, ApiServer, ProxyStatus, StartProxyRequest, StopProxyRequest,
+};
 pub use error::{MatgtoError, Result};
 pub use filters::{FilterPresets, RecordingFilters};
 pub use matching::{

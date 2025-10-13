@@ -409,7 +409,10 @@ auth_enabled = false
                     "{} API key required when authentication is enabled",
                     "✗".red()
                 );
-                println!("  Use {} to specify an API key", "--api-key <KEY>".bright_cyan());
+                println!(
+                    "  Use {} to specify an API key",
+                    "--api-key <KEY>".bright_cyan()
+                );
                 std::process::exit(1);
             }
 
@@ -423,12 +426,7 @@ auth_enabled = false
             );
             println!("  {} http://{}:{}/health", "•".bright_cyan(), host, port);
             println!("  {} http://{}:{}/proxy/*", "•".bright_cyan(), host, port);
-            println!(
-                "  {} http://{}:{}/cassettes",
-                "•".bright_cyan(),
-                host,
-                port
-            );
+            println!("  {} http://{}:{}/cassettes", "•".bright_cyan(), host, port);
             println!();
             println!("Press {} to stop...", "Ctrl+C".bold());
             println!();
