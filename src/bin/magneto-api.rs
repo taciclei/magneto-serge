@@ -17,7 +17,7 @@ async fn main() -> anyhow::Result<()> {
     let cassette_dir =
         env::var("MAGNETO_CASSETTE_DIR").unwrap_or_else(|_| "./cassettes".to_string());
 
-    println!("🚀 Magnéto-Serge API Server v2.2.0");
+    println!("🚀 Magnéto-Serge API Server v0.2.0");
     println!("   Listening on http://{}:{}", host, port);
     println!("   Cassette directory: {}", cassette_dir);
     println!("   Health check: http://{}:{}/health", host, port);

@@ -1,4 +1,4 @@
-# 🎉 Magnéto-Serge v2.2.0 Release Notes
+# 🎉 Magnéto-Serge v0.2.0 Release Notes
 
 **Release Date**: October 25, 2025
 **Codename**: "Testing Utilities Complete"
@@ -8,13 +8,13 @@
 
 ## 📋 Executive Summary
 
-Magnéto-Serge v2.2.0 marks the **completion of the initial roadmap** with comprehensive testing utilities for **5 programming languages**. This release includes Rust-native test helpers, completing our multi-language support alongside existing Jest, JUnit, pytest, and PHPUnit utilities.
+Magnéto-Serge v0.2.0 marks the **completion of the initial roadmap** with comprehensive testing utilities for **5 programming languages**. This release includes Rust-native test helpers, completing our multi-language support alongside existing Jest, JUnit, pytest, and PHPUnit utilities.
 
 This is the **final release** of the initial development phase, bringing the project to **100% roadmap completion** with full production readiness.
 
 ---
 
-## 🎯 What's New in v2.2.0
+## 🎯 What's New in v0.2.0
 
 ### ✨ Rust Test Helpers (NEW!)
 
@@ -67,7 +67,7 @@ fn test_user_login_macro() {
 
 ## 📦 Complete Testing Utilities Suite
 
-With v2.2.0, Magnéto-Serge now offers testing utilities for **5 languages**:
+With v0.2.0, Magnéto-Serge now offers testing utilities for **5 languages**:
 
 ### 1. 🦀 Rust (Native) - NEW!
 ```rust
@@ -113,7 +113,7 @@ v1.1.0 (Oct 25) → Cookie Preservation (RFC 6265)
 v1.2.0 (Oct 25) → Smart Filtering (95.8% reduction)
 v1.3.0 (Oct 25) → REST API (8 endpoints)
 v2.1.0 (Oct 25) → CLI Tools (10 commands)
-v2.2.0 (Oct 25) → Testing Utilities (5 languages) ← YOU ARE HERE
+v0.2.0 (Oct 25) → Testing Utilities (5 languages) ← YOU ARE HERE
 ```
 
 All releases delivered in a single **5.5-hour development session**!
@@ -129,7 +129,7 @@ All releases delivered in a single **5.5-hour development session**!
 
 ### Developer Tools (v2.x)
 - ✅ **CLI** - 10 commands (`magneto list`, `serve`, etc.) (v2.1.0)
-- ✅ **Test Utilities** - 5 languages, 36 assertions (v2.2.0)
+- ✅ **Test Utilities** - 5 languages, 36 assertions (v0.2.0)
 
 ### Infrastructure
 - ✅ **89 tests passing** (100%)
@@ -164,7 +164,7 @@ npm install --save-dev @magneto-serge/jest-matchers
 <dependency>
     <groupId>com.magneto-serge</groupId>
     <artifactId>junit-assertions</artifactId>
-    <version>2.2.0</version>
+    <version>0.2.0</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -222,17 +222,17 @@ magneto replay my-test --strict
 
 ## 🔄 Upgrade Guide
 
-### From v2.1.0 → v2.2.0
+### From v2.1.0 → v0.2.0
 
 **No breaking changes!** Simply update and start using Rust test helpers:
 
 ```toml
 # Cargo.toml
 [dependencies]
-magneto-serge = "2.2.0"
+magneto-serge = "0.2.0"
 
 [dev-dependencies]
-magneto-serge = { version = "2.2.0", features = ["test_helpers"] }
+magneto-serge = { version = "0.2.0", features = ["test_helpers"] }
 ```
 
 ```rust
@@ -385,7 +385,7 @@ All issues tracked in ROADMAP_PROGRESS.md
 - Docker image with CLI
 
 ### Release Schedule
-- **v2.2.0** - October 25, 2025 (Current)
+- **v0.2.0** - October 25, 2025 (Current)
 - **v2.3.0** - Q4 2025 (Additional bindings)
 - **v3.0.0** - Q1 2026 (Breaking changes if needed)
 
@@ -417,7 +417,7 @@ MIT OR Apache-2.0
 
 ## 🎊 Conclusion
 
-**v2.2.0 completes the initial roadmap** with:
+**v0.2.0 completes the initial roadmap** with:
 - ✅ 5/5 phases complete (100%)
 - ✅ 5 programming languages supported
 - ✅ 89 tests passing
@@ -428,5 +428,5 @@ Thank you for using Magnéto-Serge! 🚀
 
 ---
 
-**Magnéto-Serge v2.2.0** - HTTP/WebSocket Testing Made Easy
+**Magnéto-Serge v0.2.0** - HTTP/WebSocket Testing Made Easy
 Built with 🦀 Rust | Tested with ✅ 89 Tests | Documented with 📚 Love

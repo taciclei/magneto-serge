@@ -1,8 +1,8 @@
-# 📋 Pre-Publication Checklist v2.2.0
+# 📋 Pre-Publication Checklist v0.2.0
 
 **Date**: 2025-10-25
-**Version**: 2.2.0
-**Branch**: `release/v2.2.0`
+**Version**: 0.2.0
+**Branch**: `release/v0.2.0`
 **Status**: ⏳ Review in Progress
 
 ---
@@ -32,15 +32,15 @@
 
 ### Core Documentation
 - [x] **README.md**: Updated (badges: 92 tests)
-- [x] **CHANGELOG.md**: Complete with v2.2.0
-- [x] **RELEASE_NOTES_v2.2.0.md**: Comprehensive
+- [x] **CHANGELOG.md**: Complete with v0.2.0
+- [x] **RELEASE_NOTES_v0.2.0.md**: Comprehensive
 - [x] **CONTRIBUTING.md**: Exists and complete
 - [x] **QUICKSTART.md**: Docker quickstart complete
 - [x] **ROADMAP.md**: Up to date
 - [x] **CLAUDE.md**: GitFlow workflow documented
 
 ### Release Documentation
-- [x] **RELEASE_v2.2.0_SUMMARY.md**: Created
+- [x] **RELEASE_v0.2.0_SUMMARY.md**: Created
 - [x] **PHASE_2.2_COMPLETE.md**: Detailed completion report
 - [x] **PRE_PUBLICATION_CHECKLIST.md**: This file
 
@@ -64,7 +64,7 @@
 - [x] **All features implemented**: Phase 2.2 complete
 - [x] **No dead code**: Clean codebase
 - [x] **No TODOs**: All addressed or documented
-- [x] **Version numbers**: Updated to 2.2.0
+- [x] **Version numbers**: Updated to 0.2.0
 
 ### Test Utilities (36 total)
 - [x] **Rust**: 9 functions + 1 macro (10 total)
@@ -74,7 +74,7 @@
 - [x] **PHP/PHPUnit**: 7 assertions
 
 ### Binaries
-- [x] **magneto CLI**: v2.2.0, 8 commands
+- [x] **magneto CLI**: v0.2.0, 8 commands
 - [x] **magneto-api**: REST API server
 - [x] **Binary size**: Reasonable (~12MB)
 - [ ] **Multi-platform builds**: Linux, macOS, Windows
@@ -123,9 +123,9 @@
 ## 🚀 Git & Release
 
 ### Git Status
-- [x] **Branch**: `release/v2.2.0` created
+- [x] **Branch**: `release/v0.2.0` created
 - [x] **Commits**: 3 commits (prepare, features, consolidate)
-- [x] **Tag**: `v2.2.0` created with detailed message
+- [x] **Tag**: `v0.2.0` created with detailed message
 - [x] **Commit messages**: Follow Conventional Commits
 - [ ] **Branch pushed**: Not yet (intentional)
 - [ ] **Tag pushed**: Not yet (intentional)
@@ -181,7 +181,7 @@ Run each command manually to verify:
 ```bash
 # Version
 [ ] magneto --version
-    Expected: "magneto 2.2.0"
+    Expected: "magneto 0.2.0"
 
 # Init
 [ ] magneto init
@@ -345,17 +345,17 @@ Once this checklist is complete:
 ### 1. Push to Remote (GitFlow)
 ```bash
 # Push release branch
-git push origin release/v2.2.0
+git push origin release/v0.2.0
 
 # Push tag
-git push origin v2.2.0
+git push origin v0.2.0
 ```
 
 ### 2. Create Pull Request
 ```bash
-gh pr create --base main --head release/v2.2.0 \
-  --title "Release v2.2.0 - Testing Utilities Complete" \
-  --body "$(cat RELEASE_NOTES_v2.2.0.md)"
+gh pr create --base main --head release/v0.2.0 \
+  --title "Release v0.2.0 - Testing Utilities Complete" \
+  --body "$(cat RELEASE_NOTES_v0.2.0.md)"
 ```
 
 ### 3. After Merge to Main
@@ -365,7 +365,7 @@ git checkout main
 git pull origin main
 
 # Verify tag is on main
-git tag --contains v2.2.0
+git tag --contains v0.2.0
 
 # Merge back to develop
 git checkout develop
@@ -375,9 +375,9 @@ git push origin develop
 
 ### 4. Create GitHub Release
 ```bash
-gh release create v2.2.0 \
-  --title "v2.2.0 - Testing Utilities Complete" \
-  --notes-file RELEASE_NOTES_v2.2.0.md \
+gh release create v0.2.0 \
+  --title "v0.2.0 - Testing Utilities Complete" \
+  --notes-file RELEASE_NOTES_v0.2.0.md \
   target/release/magneto-*
 ```
 

@@ -1,9 +1,9 @@
-# 📋 Release v2.2.0 - Summary & Checklist
+# 📋 Release v0.2.0 - Summary & Checklist
 
 **Status**: ✅ Ready for Review
 **Date**: 2025-10-25
-**Branch**: `release/v2.2.0`
-**Tag**: `v2.2.0`
+**Branch**: `release/v0.2.0`
+**Tag**: `v0.2.0`
 
 ---
 
@@ -191,7 +191,7 @@ MagnetoAssertions::assertHasCookie($cassette, 'JSESSIONID');
 |------|-------|--------|
 | `README.md` | ~800 | ✅ Updated |
 | `CHANGELOG.md` | ~350 | ✅ Complete |
-| `RELEASE_NOTES_v2.2.0.md` | ~500 | ✅ Complete |
+| `RELEASE_NOTES_v0.2.0.md` | ~500 | ✅ Complete |
 | `CONTRIBUTING.md` | 440 | ✅ Exists |
 | `QUICKSTART.md` | 346 | ✅ Exists |
 | `ROADMAP.md` | 685 | ✅ Exists |
@@ -228,7 +228,7 @@ $ cargo fmt --check
 ### Binaries
 ```bash
 $ ./target/release/magneto --version
-✅ magneto 2.2.0
+✅ magneto 0.2.0
 
 $ ./target/release/magneto list
 ✅ CLI working correctly
@@ -239,14 +239,14 @@ $ ./target/release/magneto list
 ## 📦 Release Artifacts
 
 ### Git
-- **Branch**: `release/v2.2.0` (3 commits)
-- **Tag**: `v2.2.0` (annotated, detailed message)
+- **Branch**: `release/v0.2.0` (3 commits)
+- **Tag**: `v0.2.0` (annotated, detailed message)
 - **Base**: `develop` branch
 
 ### Commits
-1. `64bfe1d` - chore: prepare release v2.2.0
+1. `64bfe1d` - chore: prepare release v0.2.0
 2. `b0833c1` - feat: add API handlers and cassette management
-3. `df31c1a` - fix: consolidate codebase for v2.2.0 release
+3. `df31c1a` - fix: consolidate codebase for v0.2.0 release
 
 ### Files Added (Major)
 - `src/test_helpers.rs` (465 lines)
@@ -256,7 +256,7 @@ $ ./target/release/magneto list
 - `bindings/pytest/` (3 files)
 - `bindings/phpunit/` (3 files)
 - `scripts/install.sh` (360 lines)
-- `RELEASE_NOTES_v2.2.0.md` (~500 lines)
+- `RELEASE_NOTES_v0.2.0.md` (~500 lines)
 - `src/cookies.rs` (Session management)
 - `src/filters/` (5 modules)
 
@@ -290,7 +290,7 @@ $ ./target/release/magneto list
 ### Documentation ✅
 - [x] README.md updated
 - [x] CHANGELOG.md complete
-- [x] RELEASE_NOTES_v2.2.0.md created
+- [x] RELEASE_NOTES_v0.2.0.md created
 - [x] CONTRIBUTING.md exists
 - [x] QUICKSTART.md exists
 - [x] All examples documented
@@ -298,12 +298,12 @@ $ ./target/release/magneto list
 ### Binaries ✅
 - [x] CLI binary working (magneto)
 - [x] API server working (magneto-api)
-- [x] Version number correct (2.2.0)
+- [x] Version number correct (0.2.0)
 - [x] Help text accurate
 
 ### Git ✅
-- [x] Branch created (release/v2.2.0)
-- [x] Tag created (v2.2.0)
+- [x] Branch created (release/v0.2.0)
+- [x] Tag created (v0.2.0)
 - [x] Commits squashed/organized
 - [x] Commit messages follow convention
 
@@ -321,15 +321,15 @@ $ ./target/release/magneto list
 ### 1. GitFlow Release Process
 ```bash
 # Push release branch
-git push origin release/v2.2.0
+git push origin release/v0.2.0
 
 # Push tag
-git push origin v2.2.0
+git push origin v0.2.0
 
 # Create PR to main
-gh pr create --base main --head release/v2.2.0 \
-  --title "Release v2.2.0 - Testing Utilities Complete" \
-  --body "See RELEASE_NOTES_v2.2.0.md for details"
+gh pr create --base main --head release/v0.2.0 \
+  --title "Release v0.2.0 - Testing Utilities Complete" \
+  --body "See RELEASE_NOTES_v0.2.0.md for details"
 
 # After merge: merge main back to develop
 git checkout develop
@@ -357,9 +357,9 @@ cd bindings/java && mvn deploy
 ### 3. GitHub Release
 ```bash
 # Create GitHub release
-gh release create v2.2.0 \
-  --title "v2.2.0 - Testing Utilities Complete" \
-  --notes-file RELEASE_NOTES_v2.2.0.md \
+gh release create v0.2.0 \
+  --title "v0.2.0 - Testing Utilities Complete" \
+  --notes-file RELEASE_NOTES_v0.2.0.md \
   target/release/magneto-x86_64-*
 ```
 
@@ -367,7 +367,7 @@ gh release create v2.2.0 \
 
 ## 🎉 Summary
 
-**Magneto-Serge v2.2.0** is:
+**Magneto-Serge v0.2.0** is:
 - ✅ Feature complete (Phase 2.2 + previous phases)
 - ✅ Fully tested (92 tests, 100% pass rate)
 - ✅ Production quality (clean build, minimal warnings)
@@ -380,5 +380,5 @@ gh release create v2.2.0 \
 ---
 
 *Generated: 2025-10-25*
-*Branch: release/v2.2.0*
+*Branch: release/v0.2.0*
 *Commit: df31c1a*

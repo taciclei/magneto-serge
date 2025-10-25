@@ -569,7 +569,7 @@ Créer une bibliothèque **10-100x plus performante** que VCR pour Ruby, avec su
 ---
 
 **Date**: 25 octobre 2025, 06:45 AM
-**Version**: v2.2.0-alpha
+**Version**: v0.2.0-alpha
 **Prochaine milestone**: Release 1.0.0 (production ready)
 
 🎉🎉🎉 **ROADMAP 100% COMPLÈTE ! 5/5 PHASES TERMINÉES !** 🎉🎉🎉

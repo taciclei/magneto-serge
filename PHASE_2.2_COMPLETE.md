@@ -856,7 +856,7 @@ composer publish
 
 **Auteur**: Claude Code
 **Projet**: Magnéto-Serge - HTTP/WebSocket Testing Library
-**Version**: v2.2.0-alpha
+**Version**: v0.2.0-alpha
 **License**: MIT
 
 **Date de complétion Phase 2.2**: 25 octobre 2025, 06:45 AM
