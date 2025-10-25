@@ -220,16 +220,38 @@ impl MagnetoProxy {
             // Save the cassette
             if let Some(recorder) = state.recorder.take() {
                 let cassette_dir = state.cassette_dir.clone();
-                let runtime = self.runtime.clone();
-                // Drop the lock before blocking
+                // Drop the lock before saving
                 drop(state);
 
-                runtime.block_on(async move {
-                    let recorder_lock = recorder.lock().await;
-                    recorder_lock.save(&cassette_dir)
-                })?;
+                // Try to lock the recorder (should succeed immediately since we own the Arc)
+                // Use try_lock to avoid async context issues
+                let can_lock_immediately = recorder.try_lock().is_ok();
 
-                tracing::info!("✅ Cassette saved");
+                if can_lock_immediately {
+                    // Lock again (we know it will succeed)
+                    let recorder_guard = recorder.try_lock().unwrap();
+                    recorder_guard.save(&cassette_dir)?;
+                    tracing::info!("✅ Cassette saved");
+                } else {
+                    // If try_lock fails, fall back to spawning a thread
+                    let save_result = std::thread::spawn(move || {
+                        let rt =
+                            tokio::runtime::Runtime::new().expect("Failed to create save runtime");
+                        let result = rt.block_on(async move {
+                            let recorder_lock = recorder.lock().await;
+                            recorder_lock.save(&cassette_dir)
+                        });
+                        // Forget the runtime to avoid "drop in async context" error
+                        std::mem::forget(rt);
+                        result
+                    })
+                    .join()
+                    .map_err(|e| MatgtoError::RecordingFailed {
+                        reason: format!("Save thread panicked: {:?}", e),
+                    })?;
+                    save_result?;
+                    tracing::info!("✅ Cassette saved (via thread)");
+                }
             }
 
             Ok(())
