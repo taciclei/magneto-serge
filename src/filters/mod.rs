@@ -21,21 +21,21 @@
 //! }
 //! ```
 
-pub mod extension;
-pub mod content_type;
-pub mod url_pattern;
 pub mod body_size;
+pub mod content_type;
+pub mod extension;
 pub mod status_code;
+pub mod url_pattern;
 
 use crate::cassette::{HttpRequest, HttpResponse};
 // use crate::error::Result;  // Not used yet
 use serde::{Deserialize, Serialize};
 
-pub use extension::ExtensionFilter;
-pub use content_type::ContentTypeFilter;
-pub use url_pattern::UrlPatternFilter;
 pub use body_size::BodySizeFilter;
+pub use content_type::ContentTypeFilter;
+pub use extension::ExtensionFilter;
 pub use status_code::StatusCodeFilter;
+pub use url_pattern::UrlPatternFilter;
 
 /// Alias for backward compatibility
 pub type RecordingFilters = FilterChain;
@@ -140,10 +140,8 @@ impl FilterPresets {
         // Filter by extension
         let mut ext_filter = ExtensionFilter::default();
         ext_filter.add_extensions(&[
-            ".js", ".mjs", ".cjs",
-            ".css", ".scss", ".sass",
-            ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".ico",
-            ".woff", ".woff2", ".ttf", ".otf", ".eot",
+            ".js", ".mjs", ".cjs", ".css", ".scss", ".sass", ".png", ".jpg", ".jpeg", ".gif",
+            ".svg", ".webp", ".ico", ".woff", ".woff2", ".ttf", ".otf", ".eot",
         ]);
         chain.add_filter(ext_filter);
 

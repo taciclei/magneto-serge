@@ -1,0 +1,179 @@
+# PATCH pour src/cassette/mod.rs - Format v2.0 avec cookies
+# Appliquer ces modifications au fichier src/cassette/mod.rs existant
+
+# ============================================================
+# 1. AJOUTER IMPORT cookies (ligne ~8)
+# ============================================================
+
+use crate::cookies::Cookie;
+
+# ============================================================
+# 2. MODIFIER STRUCT Cassette - Ajouter champ cookies
+# ============================================================
+
+/// A cassette containing recorded HTTP/WebSocket interactions
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Cassette {
+    /// Cassette format version
+    pub version: String,
+
+    /// Cassette name
+    pub name: String,
+
+    /// Recording timestamp
+    pub recorded_at: DateTime<Utc>,
+
+    /// List of recorded interactions
+    pub interactions: Vec<Interaction>,
+
+    /// Cookies stored during recording (v2.0+) [NOUVEAU]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub cookies: Vec<Cookie>,
+
+    /// Metadata about filtering applied (v2.0+) [NOUVEAU - pour Phase 1.2]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub filtered: Option<FilterMetadata>,
+}
+
+# ============================================================
+# 3. AJOUTER STRUCT FilterMetadata (pour Phase 1.2)
+# ============================================================
+
+/// Metadata about filtering applied to cassette
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FilterMetadata {
+    /// Was filtering enabled?
+    pub enabled: bool,
+
+    /// Number of interactions recorded
+    pub recorded_count: usize,
+
+    /// Number of interactions filtered out
+    pub filtered_count: usize,
+
+    /// Filter rules applied
+    pub rules: Vec<String>,
+}
+
+# ============================================================
+# 4. MODIFIER Cassette::new() pour version 2.0
+# ============================================================
+
+impl Cassette {
+    /// Create a new cassette
+    pub fn new(name: String) -> Self {
+        Self {
+            version: "2.0".to_string(),  // [CHANGÉ de "1.0" à "2.0"]
+            name,
+            recorded_at: Utc::now(),
+            interactions: Vec::new(),
+            cookies: Vec::new(),          // [NOUVEAU]
+            filtered: None,               // [NOUVEAU]
+        }
+    }
+
+# ============================================================
+# 5. AJOUTER MÉTHODE pour migration v1.0 → v2.0
+# ============================================================
+
+    /// Migrate cassette from v1.0 to v2.0
+    pub fn migrate_to_v2(mut self) -> Self {
+        if self.version == "1.0" {
+            self.version = "2.0".to_string();
+            // Add empty cookies (will be filled on next replay)
+            if self.cookies.is_empty() {
+                self.cookies = Vec::new();
+            }
+            // Add default filter metadata
+            if self.filtered.is_none() {
+                self.filtered = Some(FilterMetadata {
+                    enabled: false,
+                    recorded_count: self.interactions.len(),
+                    filtered_count: 0,
+                    rules: Vec::new(),
+                });
+            }
+        }
+        self
+    }
+
+    /// Check if cassette is v2.0 format
+    pub fn is_v2(&self) -> bool {
+        self.version == "2.0"
+    }
+
+    /// Get cassette version
+    pub fn version(&self) -> &str {
+        &self.version
+    }
+
+# ============================================================
+# 6. MÉTHODE pour extraire cookies des interactions
+# ============================================================
+
+    /// Extract all cookies from interactions (Set-Cookie headers)
+    pub fn extract_cookies(&self) -> Vec<Cookie> {
+        use crate::cookies::Cookie;
+
+        let mut cookies = Vec::new();
+
+        for interaction in &self.interactions {
+            if let InteractionKind::Http { response, .. } = &interaction.kind {
+                if let Some(set_cookie) = response.headers.get("set-cookie") {
+                    for cookie_str in set_cookie.split('\n') {
+                        if let Ok(cookie) = Cookie::parse(cookie_str.trim()) {
+                            cookies.push(cookie);
+                        }
+                    }
+                }
+            }
+        }
+
+        cookies
+    }
+
+    /// Store cookies in cassette
+    pub fn store_cookies(&mut self, cookies: Vec<Cookie>) {
+        self.cookies = cookies;
+    }
+
+# ============================================================
+# EXEMPLE D'UTILISATION
+# ============================================================
+
+# Dans Recorder::save():
+
+let mut cassette = Cassette {
+    version: "2.0".to_string(),
+    name: self.name.clone(),
+    recorded_at: Utc::now(),
+    interactions: self.interactions.clone(),
+    cookies: Vec::new(),  // Sera rempli ci-dessous
+    filtered: Some(FilterMetadata {
+        enabled: self.filtering_enabled,
+        recorded_count: self.interactions.len(),
+        filtered_count: self.filtered_count,
+        rules: self.filter_rules.clone(),
+    }),
+};
+
+// Extract cookies from interactions
+let cookies = cassette.extract_cookies();
+cassette.store_cookies(cookies);
+
+# ============================================================
+# COMPATIBILITÉ BACKWARD
+# ============================================================
+
+# Les cassettes v1.0 peuvent toujours être chargées car:
+# - #[serde(default)] sur cookies et filtered
+# - Migration automatique possible avec migrate_to_v2()
+
+# Lors du chargement d'une cassette v1.0:
+
+let mut cassette = Cassette::load(path)?;
+if !cassette.is_v2() {
+    tracing::warn!("Cassette is v1.0, migrating to v2.0");
+    cassette = cassette.migrate_to_v2();
+}
+

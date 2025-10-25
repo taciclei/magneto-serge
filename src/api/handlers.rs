@@ -3,7 +3,9 @@
 //! HTTP endpoints that expose CassetteManager functionality.
 //! Built with Axum web framework for high-performance async HTTP.
 
-use super::cassettes::{CassetteManager, CassetteMetadata, CassetteStats, GlobalStats, ValidationResult};
+use super::cassettes::{
+    CassetteManager, CassetteMetadata, CassetteStats, GlobalStats, ValidationResult,
+};
 use crate::error::Result;
 use axum::{
     extract::{Path, Query, State},
@@ -285,7 +287,12 @@ pub async fn export_cassette(
     Ok(Json(ExportResponse {
         format: format_str.to_string(),
         size_bytes: 0, // TODO: Calculate actual size
-        download_url: format!("/downloads/{}_{}.{}", name, chrono::Utc::now().timestamp(), format_str),
+        download_url: format!(
+            "/downloads/{}_{}.{}",
+            name,
+            chrono::Utc::now().timestamp(),
+            format_str
+        ),
     }))
 }
 
@@ -315,7 +322,6 @@ pub fn build_router(state: ApiState) -> Router {
     Router::new()
         // Health check
         .route("/health", get(health))
-
         // Cassette management
         .route("/cassettes", get(list_cassettes))
         .route("/cassettes/stats", get(get_global_stats))
@@ -324,7 +330,6 @@ pub fn build_router(state: ApiState) -> Router {
         .route("/cassettes/:name/stats", get(get_cassette_stats))
         .route("/cassettes/:name/validate", get(validate_cassette))
         .route("/cassettes/:name/export", post(export_cassette))
-
         // Shared state
         .with_state(state)
 }

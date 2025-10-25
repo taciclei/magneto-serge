@@ -360,15 +360,15 @@ fn cmd_list(
             for cassette in cassettes {
                 println!(
                     "{} - {} - {} interactions - {} days old",
-                    cassette.name,
-                    cassette.size_human,
-                    cassette.interaction_count,
-                    cassette.age_days
+                    cassette.name, cassette.size_human, cassette.interaction_count, cassette.age_days
                 );
             }
         }
         OutputFormat::Table => {
-            println!("\n{}\n", "📼 Cassettes".bright_cyan().bold());
+            println!(
+                "\n{}\n",
+                "📼 Cassettes".bright_cyan().bold()
+            );
             println!(
                 "{:<40} {:>12} {:>15} {:>10}",
                 "Name".bold(),
@@ -409,10 +409,7 @@ fn cmd_validate(manager: &CassetteManager, name: &str, errors_only: bool) -> Res
         let mut total_errors = 0;
         let mut total_warnings = 0;
 
-        println!(
-            "\n{}\n",
-            "🔍 Validating all cassettes...".bright_cyan().bold()
-        );
+        println!("\n{}\n", "🔍 Validating all cassettes...".bright_cyan().bold());
 
         for cassette in &cassettes {
             let result = manager.validate_cassette(&cassette.name)?;
@@ -438,7 +435,11 @@ fn cmd_validate(manager: &CassetteManager, name: &str, errors_only: bool) -> Res
             }
         }
 
-        println!("{} {} cassettes validated", "✅".green(), cassettes.len());
+        println!(
+            "{} {} cassettes validated",
+            "✅".green(),
+            cassettes.len()
+        );
         if total_errors > 0 {
             println!("{} {} errors found", "❌".red(), total_errors);
         }
@@ -448,11 +449,7 @@ fn cmd_validate(manager: &CassetteManager, name: &str, errors_only: bool) -> Res
     } else {
         let result = manager.validate_cassette(name)?;
 
-        println!(
-            "\n{} {}\n",
-            "🔍 Validating cassette:".bright_cyan().bold(),
-            name.bright_white()
-        );
+        println!("\n{} {}\n", "🔍 Validating cassette:".bright_cyan().bold(), name.bright_white());
 
         if result.valid && result.warnings.is_empty() {
             println!("{} Cassette is valid", "✅".green());
@@ -583,19 +580,13 @@ fn cmd_stats(manager: &CassetteManager, name: &str, format: &OutputFormat) -> Re
             }
             _ => {
                 println!("\n{}\n", "📊 Global Statistics".bright_cyan().bold());
-                println!(
-                    "Total Cassettes: {}",
-                    stats.total_count.to_string().bright_white()
-                );
+                println!("Total Cassettes: {}", stats.total_count.to_string().bright_white());
                 println!("Total Size: {}", stats.total_size_human.bright_blue());
 
                 if let Some(oldest) = &stats.oldest_cassette {
                     println!("\nOldest Cassette:");
                     println!("  Name: {}", oldest.name.bright_white());
-                    println!(
-                        "  Age: {} days",
-                        oldest.age_days.to_string().bright_yellow()
-                    );
+                    println!("  Age: {} days", oldest.age_days.to_string().bright_yellow());
                 }
 
                 if let Some(largest) = &stats.largest_cassette {
@@ -605,44 +596,14 @@ fn cmd_stats(manager: &CassetteManager, name: &str, format: &OutputFormat) -> Re
                 }
 
                 println!("\nSize Distribution:");
-                println!(
-                    "  < 1 MB: {}",
-                    stats.size_distribution.under_1mb.to_string().bright_green()
-                );
-                println!(
-                    "  1-10 MB: {}",
-                    stats
-                        .size_distribution
-                        .mb_1_to_10
-                        .to_string()
-                        .bright_yellow()
-                );
-                println!(
-                    "  > 10 MB: {}",
-                    stats.size_distribution.over_10mb.to_string().bright_red()
-                );
+                println!("  < 1 MB: {}", stats.size_distribution.under_1mb.to_string().bright_green());
+                println!("  1-10 MB: {}", stats.size_distribution.mb_1_to_10.to_string().bright_yellow());
+                println!("  > 10 MB: {}", stats.size_distribution.over_10mb.to_string().bright_red());
 
                 println!("\nAge Distribution:");
-                println!(
-                    "  < 7 days: {}",
-                    stats
-                        .age_distribution
-                        .under_7_days
-                        .to_string()
-                        .bright_green()
-                );
-                println!(
-                    "  7-30 days: {}",
-                    stats
-                        .age_distribution
-                        .days_7_to_30
-                        .to_string()
-                        .bright_yellow()
-                );
-                println!(
-                    "  > 30 days: {}",
-                    stats.age_distribution.over_30_days.to_string().bright_red()
-                );
+                println!("  < 7 days: {}", stats.age_distribution.under_7_days.to_string().bright_green());
+                println!("  7-30 days: {}", stats.age_distribution.days_7_to_30.to_string().bright_yellow());
+                println!("  > 30 days: {}", stats.age_distribution.over_30_days.to_string().bright_red());
                 println!();
             }
         }
@@ -654,35 +615,15 @@ fn cmd_stats(manager: &CassetteManager, name: &str, format: &OutputFormat) -> Re
                 println!("{}", serde_json::to_string_pretty(&stats)?);
             }
             _ => {
-                println!(
-                    "\n{} {}\n",
-                    "📊 Cassette Statistics:".bright_cyan().bold(),
-                    name.bright_white()
-                );
-                println!(
-                    "Total Interactions: {}",
-                    stats.total_interactions.to_string().bright_white()
-                );
-                println!(
-                    "HTTP Requests: {}",
-                    stats.http_count.to_string().bright_green()
-                );
-                println!(
-                    "WebSocket Messages: {}",
-                    stats.websocket_count.to_string().bright_blue()
-                );
-                println!(
-                    "HTTP Errors: {}",
-                    stats.http_error_count.to_string().bright_red()
-                );
+                println!("\n{} {}\n", "📊 Cassette Statistics:".bright_cyan().bold(), name.bright_white());
+                println!("Total Interactions: {}", stats.total_interactions.to_string().bright_white());
+                println!("HTTP Requests: {}", stats.http_count.to_string().bright_green());
+                println!("WebSocket Messages: {}", stats.websocket_count.to_string().bright_blue());
+                println!("HTTP Errors: {}", stats.http_error_count.to_string().bright_red());
 
                 println!("\nHTTP Methods:");
                 for (method, count) in &stats.http_methods {
-                    println!(
-                        "  {}: {}",
-                        method.bright_white(),
-                        count.to_string().bright_cyan()
-                    );
+                    println!("  {}: {}", method.bright_white(), count.to_string().bright_cyan());
                 }
 
                 println!("\nStatus Codes:");
@@ -694,22 +635,12 @@ fn cmd_stats(manager: &CassetteManager, name: &str, format: &OutputFormat) -> Re
                     } else {
                         "yellow"
                     };
-                    println!(
-                        "  {}: {}",
-                        code.to_string().color(color),
-                        count.to_string().bright_cyan()
-                    );
+                    println!("  {}: {}", code.to_string().color(color), count.to_string().bright_cyan());
                 }
 
                 println!("\nBody Sizes:");
-                println!(
-                    "  Request: {}",
-                    format_bytes(stats.total_request_body_bytes as u64).bright_blue()
-                );
-                println!(
-                    "  Response: {}",
-                    format_bytes(stats.total_response_body_bytes as u64).bright_blue()
-                );
+                println!("  Request: {}", format_bytes(stats.total_request_body_bytes as u64).bright_blue());
+                println!("  Response: {}", format_bytes(stats.total_response_body_bytes as u64).bright_blue());
 
                 if let Some(avg_time) = stats.avg_response_time_ms {
                     println!("\nAverage Response Time: {:.2} ms", avg_time);
@@ -723,13 +654,13 @@ fn cmd_stats(manager: &CassetteManager, name: &str, format: &OutputFormat) -> Re
 }
 
 /// Export cassette
-fn cmd_export(manager: &CassetteManager, name: &str, output: &PathBuf, format: &str) -> Result<()> {
-    println!(
-        "\n{} Exporting cassette '{}' to {:?}...\n",
-        "📦".bright_cyan(),
-        name.bright_white(),
-        output
-    );
+fn cmd_export(
+    manager: &CassetteManager,
+    name: &str,
+    output: &PathBuf,
+    format: &str,
+) -> Result<()> {
+    println!("\n{} Exporting cassette '{}' to {:?}...\n", "📦".bright_cyan(), name.bright_white(), output);
 
     let cassette = manager.load_cassette(name)?;
 
@@ -739,29 +670,20 @@ fn cmd_export(manager: &CassetteManager, name: &str, output: &PathBuf, format: &
             std::fs::write(output, json)?;
         }
         "yaml" => {
-            println!(
-                "{} YAML export not yet implemented (TODO: Phase 2)",
-                "⚠️ ".yellow()
-            );
+            println!("{} YAML export not yet implemented (TODO: Phase 2)", "⚠️ ".yellow());
             return Ok(());
         }
         "har" => {
-            println!(
-                "{} HAR export not yet implemented (TODO: Phase 2)",
-                "⚠️ ".yellow()
-            );
+            println!("{} HAR export not yet implemented (TODO: Phase 2)", "⚠️ ".yellow());
             return Ok(());
         }
         "msgpack" => {
-            println!(
-                "{} MessagePack export not yet implemented (TODO: Phase 2)",
-                "⚠️ ".yellow()
-            );
+            println!("{} MessagePack export not yet implemented (TODO: Phase 2)", "⚠️ ".yellow());
             return Ok(());
         }
         _ => {
-            return Err(magneto_serge::error::MatgtoError::CassetteLoadFailed {
-                reason: format!("Unknown export format: {}", format),
+            return Err(magneto_serge::error::MatgtoError::ConfigError {
+                message: format!("Unknown export format: {}", format),
             });
         }
     }
@@ -773,43 +695,30 @@ fn cmd_export(manager: &CassetteManager, name: &str, output: &PathBuf, format: &
 
 /// Start API server
 async fn cmd_serve(host: &str, port: u16, cassette_dir: &PathBuf) -> Result<()> {
-    println!(
-        "\n{}",
-        "🚀 Starting Magnéto-Serge API Server..."
-            .bright_cyan()
-            .bold()
-    );
+    println!("\n{}", "🚀 Starting Magnéto-Serge API Server...".bright_cyan().bold());
     println!("📂 Cassette directory: {:?}", cassette_dir);
     println!("🌐 Listening on: {}:{}", host, port);
     println!("📖 API documentation: http://{}:{}/health\n", host, port);
     println!("{} Press Ctrl+C to stop\n", "ℹ️ ".blue());
 
-    start_server(host, port, cassette_dir).await?;
+    start_server(host, *port, cassette_dir).await?;
 
     Ok(())
 }
 
 /// Migrate cassettes
 fn cmd_migrate(
-    _manager: &CassetteManager,
+    manager: &CassetteManager,
     from: &str,
     to: &str,
-    _name: &str,
-    _backup: bool,
+    name: &str,
+    backup: bool,
 ) -> Result<()> {
-    println!(
-        "\n{} Migrating cassettes from v{} to v{}\n",
-        "🔄".bright_cyan(),
-        from,
-        to
-    );
+    println!("\n{} Migrating cassettes from v{} to v{}\n", "🔄".bright_cyan(), from, to);
 
     if from == "1.0" && to == "2.0" {
         // TODO: Implement v1.0 → v2.0 migration
-        println!(
-            "{} v1.0 → v2.0 migration not yet implemented",
-            "⚠️ ".yellow()
-        );
+        println!("{} v1.0 → v2.0 migration not yet implemented", "⚠️ ".yellow());
         println!("   This will:");
         println!("   - Add cookies field");
         println!("   - Add filtered metadata field");
@@ -823,31 +732,12 @@ fn cmd_migrate(
 
 /// Replay mode
 fn cmd_replay(port: u16, strict: bool, cassette_dir: &PathBuf) -> Result<()> {
-    println!(
-        "\n{}",
-        "▶️  Starting Magnéto-Serge in REPLAY mode"
-            .bright_green()
-            .bold()
-    );
+    println!("\n{}", "▶️  Starting Magnéto-Serge in REPLAY mode".bright_green().bold());
     println!("📂 Cassette directory: {:?}", cassette_dir);
     println!("🌐 Proxy port: {}", port);
-    println!(
-        "📏 Strict mode: {}",
-        if strict {
-            "enabled".bright_red()
-        } else {
-            "disabled".bright_green()
-        }
-    );
-    println!(
-        "\n{} Configure your app to use proxy: http://localhost:{}\n",
-        "ℹ️ ".blue(),
-        port
-    );
-    println!(
-        "{} Replay mode not yet fully implemented (TODO: integrate with proxy)\n",
-        "⚠️ ".yellow()
-    );
+    println!("📏 Strict mode: {}", if strict { "enabled".bright_red() } else { "disabled".bright_green() });
+    println!("\n{} Configure your app to use proxy: http://localhost:{}\n", "ℹ️ ".blue(), port);
+    println!("{} Replay mode not yet fully implemented (TODO: integrate with proxy)\n", "⚠️ ".yellow());
 
     Ok(())
 }
@@ -860,40 +750,14 @@ fn cmd_record(
     overwrite: bool,
     cassette_dir: &PathBuf,
 ) -> Result<()> {
-    println!(
-        "\n{}",
-        "⏺️  Starting Magnéto-Serge in RECORD mode"
-            .bright_red()
-            .bold()
-    );
+    println!("\n{}", "⏺️  Starting Magnéto-Serge in RECORD mode".bright_red().bold());
     println!("📼 Cassette name: {}", name.bright_white());
     println!("📂 Cassette directory: {:?}", cassette_dir);
     println!("🌐 Proxy port: {}", port);
-    println!(
-        "🔍 Filtering: {}",
-        if filter {
-            "enabled".bright_green()
-        } else {
-            "disabled".bright_yellow()
-        }
-    );
-    println!(
-        "📝 Overwrite: {}",
-        if overwrite {
-            "yes".bright_red()
-        } else {
-            "no".bright_green()
-        }
-    );
-    println!(
-        "\n{} Configure your app to use proxy: http://localhost:{}\n",
-        "ℹ️ ".blue(),
-        port
-    );
-    println!(
-        "{} Record mode not yet fully implemented (TODO: integrate with proxy)\n",
-        "⚠️ ".yellow()
-    );
+    println!("🔍 Filtering: {}", if filter { "enabled".bright_green() } else { "disabled".bright_yellow() });
+    println!("📝 Overwrite: {}", if overwrite { "yes".bright_red() } else { "no".bright_green() });
+    println!("\n{} Configure your app to use proxy: http://localhost:{}\n", "ℹ️ ".blue(), port);
+    println!("{} Record mode not yet fully implemented (TODO: integrate with proxy)\n", "⚠️ ".yellow());
 
     Ok(())
 }
@@ -903,73 +767,14 @@ fn cmd_init(force: bool) -> Result<()> {
     let config_path = std::path::Path::new("magneto.toml");
 
     if config_path.exists() && !force {
-        println!(
-            "{} magneto.toml already exists. Use --force to overwrite.",
-            "⚠️ ".yellow()
-        );
+        println!("{} magneto.toml already exists. Use --force to overwrite.", "⚠️ ".yellow());
         return Ok(());
     }
 
-    let default_config = r#"# Magneto-Serge Configuration
-#
-# This file configures the HTTP/WebSocket proxy behavior.
-
-[magneto]
-# Directory where cassettes are stored
-cassette_dir = "./cassettes"
-
-# Default proxy port
-proxy_port = 8888
-
-# Default mode: auto, record, replay, passthrough
-mode = "auto"
-
-# Strict mode for replay (error if interaction not found)
-strict = true
-
-[matching]
-# Headers to ignore when matching requests
-ignore_headers = ["User-Agent", "Date", "X-Request-Id", "Accept-Encoding"]
-
-# Query parameters to ignore
-ignore_query_params = ["timestamp", "_t", "cache_bust"]
-
-[recording]
-# Headers to filter from cassettes (sensitive data)
-filter_headers = ["Authorization", "X-API-Key", "Cookie", "Set-Cookie"]
-
-# Compress cassettes with gzip
-compress = false
-
-# Format: json or msgpack
-format = "json"
-
-[filters]
-# Enable smart filtering to reduce cassette size
-enabled = true
-
-# Preset: web_assets, api_only, minimal, or custom
-preset = "web_assets"
-
-# Custom extensions to exclude (if preset = "custom")
-exclude_extensions = [".js", ".css", ".png", ".jpg", ".woff2", ".svg"]
-
-# Status codes to exclude
-exclude_status_codes = [404, 500, 502, 503]
-
-[api]
-# REST API server configuration
-enabled = false
-host = "127.0.0.1"
-port = 8889
-auth_enabled = false
-"#;
+    let default_config = include_str!("../../../../magneto-phase1.2/magneto.toml");
     std::fs::write(config_path, default_config)?;
 
-    println!(
-        "\n{} Created magneto.toml with default configuration",
-        "✅".green()
-    );
+    println!("\n{} Created magneto.toml with default configuration", "✅".green());
     println!("\n{} Edit magneto.toml to customize:", "ℹ️ ".blue());
     println!("  - Cassette directory");
     println!("  - Proxy port");

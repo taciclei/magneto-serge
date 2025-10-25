@@ -4,10 +4,10 @@
 //!
 //! This example shows various assertion helpers for testing cassettes.
 
-use magneto_serge::test_helpers::*;
-use magneto_serge::cassette::InteractionKind;
-use magneto_serge::{Cassette, Cookie, HttpRequest, HttpResponse, Interaction};
 use chrono::Utc;
+use magneto_serge::cassette::InteractionKind;
+use magneto_serge::test_helpers::*;
+use magneto_serge::{Cassette, Cookie, HttpRequest, HttpResponse, Interaction};
 use std::collections::HashMap;
 
 fn create_example_cassette() -> Cassette {
@@ -48,16 +48,15 @@ fn create_example_cassette() -> Cassette {
             request: HttpRequest {
                 method: "GET".to_string(),
                 url: "https://api.example.com/users".to_string(),
-                headers: HashMap::from([
-                    ("Accept".to_string(), "application/json".to_string()),
-                ]),
+                headers: HashMap::from([("Accept".to_string(), "application/json".to_string())]),
                 body: None,
             },
             response: HttpResponse {
                 status: 200,
-                headers: HashMap::from([
-                    ("Content-Type".to_string(), "application/json".to_string()),
-                ]),
+                headers: HashMap::from([(
+                    "Content-Type".to_string(),
+                    "application/json".to_string(),
+                )]),
                 body: Some(b"{\"users\":[]}".to_vec()),
             },
         },
@@ -71,16 +70,18 @@ fn create_example_cassette() -> Cassette {
             request: HttpRequest {
                 method: "POST".to_string(),
                 url: "https://api.example.com/users".to_string(),
-                headers: HashMap::from([
-                    ("Content-Type".to_string(), "application/json".to_string()),
-                ]),
+                headers: HashMap::from([(
+                    "Content-Type".to_string(),
+                    "application/json".to_string(),
+                )]),
                 body: Some(b"{\"name\":\"John\"}".to_vec()),
             },
             response: HttpResponse {
                 status: 201,
-                headers: HashMap::from([
-                    ("Content-Type".to_string(), "application/json".to_string()),
-                ]),
+                headers: HashMap::from([(
+                    "Content-Type".to_string(),
+                    "application/json".to_string(),
+                )]),
                 body: Some(b"{\"id\":1,\"name\":\"John\"}".to_vec()),
             },
         },
@@ -99,9 +100,10 @@ fn create_example_cassette() -> Cassette {
             },
             response: HttpResponse {
                 status: 200,
-                headers: HashMap::from([
-                    ("Content-Type".to_string(), "application/json".to_string()),
-                ]),
+                headers: HashMap::from([(
+                    "Content-Type".to_string(),
+                    "application/json".to_string(),
+                )]),
                 body: Some(b"{\"id\":1,\"name\":\"John\"}".to_vec()),
             },
         },

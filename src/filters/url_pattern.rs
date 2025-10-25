@@ -45,9 +45,8 @@ impl UrlPatternFilter {
 
     /// Simple glob matching (* = wildcard)
     fn matches_glob(&self, path: &str, pattern: &str) -> bool {
-        if pattern.ends_with("/*") {
+        if let Some(prefix) = pattern.strip_suffix("/*") {
             // Prefix match: "/static/*" matches "/static/app.js"
-            let prefix = &pattern[..pattern.len() - 2];
             path.starts_with(prefix)
         } else if pattern.contains('*') {
             // TODO: More complex glob matching

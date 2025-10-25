@@ -54,10 +54,9 @@ pub fn load_cassette_from(name: &str, dir: impl AsRef<Path>) -> Result<Cassette>
     // Try .json first
     let json_path = dir.join(format!("{}.json", name));
     if json_path.exists() {
-        let file = std::fs::File::open(&json_path)
-            .map_err(|e| MatgtoError::Io(e))?;
-        let cassette: Cassette = serde_json::from_reader(file)
-            .map_err(|e| MatgtoError::Serialization(e))?;
+        let file = std::fs::File::open(&json_path).map_err(MatgtoError::Io)?;
+        let cassette: Cassette =
+            serde_json::from_reader(file).map_err(MatgtoError::Serialization)?;
         return Ok(cassette);
     }
 
@@ -66,17 +65,18 @@ pub fn load_cassette_from(name: &str, dir: impl AsRef<Path>) -> Result<Cassette>
     {
         let msgpack_path = dir.join(format!("{}.msgpack", name));
         if msgpack_path.exists() {
-            let file = std::fs::File::open(&msgpack_path)
-                .map_err(|e| MatgtoError::Io(e))?;
-            let cassette: Cassette = rmp_serde::from_read(file)
-                .map_err(|e| MatgtoError::CassetteLoadFailed {
-                    reason: format!("Failed to deserialize MessagePack: {}", e)
+            let file = std::fs::File::open(&msgpack_path).map_err(MatgtoError::Io)?;
+            let cassette: Cassette =
+                rmp_serde::from_read(file).map_err(|e| MatgtoError::CassetteLoadFailed {
+                    reason: format!("Failed to deserialize MessagePack: {}", e),
                 })?;
             return Ok(cassette);
         }
     }
 
-    Err(MatgtoError::CassetteNotFound { name: name.to_string() })
+    Err(MatgtoError::CassetteNotFound {
+        name: name.to_string(),
+    })
 }
 
 /// Assert that a cassette has a specific version
@@ -168,7 +168,10 @@ pub fn assert_has_cookie(cassette: &Cassette, cookie_name: &str) {
             cookie_name
         );
     } else {
-        panic!("Expected cassette to have cookie '{}' but cassette has no cookies", cookie_name);
+        panic!(
+            "Expected cassette to have cookie '{}' but cassette has no cookies",
+            cookie_name
+        );
     }
 }
 
@@ -189,7 +192,9 @@ pub fn assert_has_cookie(cassette: &Cassette, cookie_name: &str) {
 pub fn assert_has_http_interactions(cassette: &Cassette) {
     use crate::cassette::InteractionKind;
 
-    let http_count = cassette.interactions.iter()
+    let http_count = cassette
+        .interactions
+        .iter()
         .filter(|i| matches!(i.kind, InteractionKind::Http { .. }))
         .count();
 
@@ -216,7 +221,9 @@ pub fn assert_has_http_interactions(cassette: &Cassette) {
 pub fn assert_has_websocket_interactions(cassette: &Cassette) {
     use crate::cassette::InteractionKind;
 
-    let ws_count = cassette.interactions.iter()
+    let ws_count = cassette
+        .interactions
+        .iter()
         .filter(|i| matches!(i.kind, InteractionKind::WebSocket { .. }))
         .count();
 
@@ -244,7 +251,9 @@ pub fn assert_has_websocket_interactions(cassette: &Cassette) {
 pub fn assert_http_method_count(cassette: &Cassette, method: &str, expected: usize) {
     use crate::cassette::InteractionKind;
 
-    let actual = cassette.interactions.iter()
+    let actual = cassette
+        .interactions
+        .iter()
         .filter_map(|i| match &i.kind {
             InteractionKind::Http { request, .. } => Some(&request.method),
             _ => None,
@@ -277,7 +286,9 @@ pub fn assert_http_method_count(cassette: &Cassette, method: &str, expected: usi
 pub fn assert_status_code_count(cassette: &Cassette, status: u16, expected: usize) {
     use crate::cassette::InteractionKind;
 
-    let actual = cassette.interactions.iter()
+    let actual = cassette
+        .interactions
+        .iter()
         .filter_map(|i| match &i.kind {
             InteractionKind::Http { response, .. } => Some(response.status),
             _ => None,
@@ -361,7 +372,7 @@ macro_rules! assert_cassette {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::cassette::{Cassette, Interaction, InteractionKind, HttpRequest, HttpResponse};
+    use crate::cassette::{Cassette, HttpRequest, HttpResponse, Interaction, InteractionKind};
     use crate::cookies::Cookie;
     use chrono::Utc;
     use std::collections::HashMap;
@@ -370,20 +381,18 @@ mod tests {
         let mut cassette = Cassette::new("test".to_string());
 
         // Add cookies
-        cassette.cookies = Some(vec![
-            Cookie {
-                name: "JSESSIONID".to_string(),
-                value: "ABC123".to_string(),
-                domain: Some("example.com".to_string()),
-                path: Some("/".to_string()),
-                expires: None,
-                max_age: None,
-                secure: true,
-                http_only: true,
-                same_site: None,
-                created_at: Utc::now(),
-            },
-        ]);
+        cassette.cookies = Some(vec![Cookie {
+            name: "JSESSIONID".to_string(),
+            value: "ABC123".to_string(),
+            domain: Some("example.com".to_string()),
+            path: Some("/".to_string()),
+            expires: None,
+            max_age: None,
+            secure: true,
+            http_only: true,
+            same_site: None,
+            created_at: Utc::now(),
+        }]);
 
         // Add HTTP interaction
         cassette.interactions.push(Interaction {

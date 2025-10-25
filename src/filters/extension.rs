@@ -48,16 +48,11 @@ impl Default for ExtensionFilter {
         // Default web assets
         filter.add_extensions(&[
             // JavaScript
-            ".js", ".mjs", ".cjs", ".jsx",
-            // CSS
-            ".css", ".scss", ".sass", ".less",
-            // Images
-            ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".ico", ".bmp",
-            // Fonts
-            ".woff", ".woff2", ".ttf", ".otf", ".eot",
-            // Media
-            ".mp4", ".webm", ".mp3", ".wav", ".ogg",
-            // Archives
+            ".js", ".mjs", ".cjs", ".jsx", // CSS
+            ".css", ".scss", ".sass", ".less", // Images
+            ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".ico", ".bmp", // Fonts
+            ".woff", ".woff2", ".ttf", ".otf", ".eot", // Media
+            ".mp4", ".webm", ".mp3", ".wav", ".ogg", // Archives
             ".zip", ".tar", ".gz", ".7z",
         ]);
 

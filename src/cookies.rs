@@ -208,8 +208,7 @@ impl Cookie {
         }
 
         // Domain with leading dot matches subdomains
-        if cookie_domain.starts_with('.') {
-            let domain_without_dot = &cookie_domain[1..];
+        if let Some(domain_without_dot) = cookie_domain.strip_prefix('.') {
             if request_domain == domain_without_dot || request_domain.ends_with(&cookie_domain) {
                 return true;
             }
@@ -363,9 +362,9 @@ impl CookieJar {
 fn parse_http_date(date_str: &str) -> Result<DateTime<Utc>, chrono::ParseError> {
     // Try multiple formats
     let formats = [
-        "%a, %d %b %Y %H:%M:%S GMT",        // RFC 1123
-        "%A, %d-%b-%y %H:%M:%S GMT",        // RFC 850 (obsolete)
-        "%a %b %d %H:%M:%S %Y",             // ANSI C asctime()
+        "%a, %d %b %Y %H:%M:%S GMT", // RFC 1123
+        "%A, %d-%b-%y %H:%M:%S GMT", // RFC 850 (obsolete)
+        "%a %b %d %H:%M:%S %Y",      // ANSI C asctime()
     ];
 
     for format in &formats {
@@ -384,7 +383,7 @@ fn parse_url(url: &str) -> Result<(String, String), url::ParseError> {
 
     let domain = parsed
         .host_str()
-        .ok_or_else(|| url::ParseError::EmptyHost)?
+        .ok_or(url::ParseError::EmptyHost)?
         .to_string();
 
     let path = parsed.path().to_string();

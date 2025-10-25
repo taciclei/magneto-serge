@@ -4,11 +4,11 @@
 
 use crate::cassette::Cassette;
 use crate::error::{MatgtoError, Result};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
-use chrono::{DateTime, Utc};
 
 /// Cassette metadata (lightweight, no full interactions)
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -196,7 +196,10 @@ impl CassetteManager {
                     *stats.status_codes.entry(response.status).or_insert(0) += 1;
 
                     // HTTP methods
-                    *stats.http_methods.entry(request.method.clone()).or_insert(0) += 1;
+                    *stats
+                        .http_methods
+                        .entry(request.method.clone())
+                        .or_insert(0) += 1;
 
                     // Body sizes
                     if let Some(body) = &request.body {
@@ -242,7 +245,9 @@ impl CassetteManager {
             Ok(c) => c,
             Err(e) => {
                 result.valid = false;
-                result.errors.push(format!("Failed to load cassette: {}", e));
+                result
+                    .errors
+                    .push(format!("Failed to load cassette: {}", e));
                 return Ok(result);
             }
         };
@@ -256,7 +261,9 @@ impl CassetteManager {
         }
 
         if cassette.version == "1.0" {
-            result.warnings.push("Cassette is v1.0, consider migrating to v2.0 for cookie support".to_string());
+            result.warnings.push(
+                "Cassette is v1.0, consider migrating to v2.0 for cookie support".to_string(),
+            );
         }
 
         // Check age
@@ -301,13 +308,17 @@ impl CassetteManager {
                 }
                 crate::cassette::InteractionKind::HttpError { request, .. } => {
                     if request.url.is_empty() {
-                        result.errors.push(format!("Interaction {}: empty URL in error", i));
+                        result
+                            .errors
+                            .push(format!("Interaction {}: empty URL in error", i));
                         result.valid = false;
                     }
                 }
                 crate::cassette::InteractionKind::WebSocket { url, .. } => {
                     if url.is_empty() {
-                        result.errors.push(format!("Interaction {}: empty WebSocket URL", i));
+                        result
+                            .errors
+                            .push(format!("Interaction {}: empty WebSocket URL", i));
                         result.valid = false;
                     }
                 }
@@ -335,10 +346,9 @@ impl CassetteManager {
     /// Load a cassette by name
     pub fn load_cassette(&self, name: &str) -> Result<Cassette> {
         let path = self.cassette_path(name)?;
-        let file = std::fs::File::open(&path)
-            .map_err(|e| MatgtoError::Io(e))?;
-        let cassette: Cassette = serde_json::from_reader(file)
-            .map_err(|e| MatgtoError::Serialization(e))?;
+        let file = std::fs::File::open(&path).map_err(MatgtoError::Io)?;
+        let cassette: Cassette =
+            serde_json::from_reader(file).map_err(MatgtoError::Serialization)?;
         Ok(cassette)
     }
 
@@ -368,15 +378,9 @@ impl CassetteManager {
         let total_count = cassettes.len();
         let total_size_bytes: u64 = cassettes.iter().map(|c| c.size_bytes).sum();
 
-        let oldest = cassettes
-            .iter()
-            .min_by_key(|c| c.recorded_at)
-            .map(|c| c.clone());
+        let oldest = cassettes.iter().min_by_key(|c| c.recorded_at).cloned();
 
-        let largest = cassettes
-            .iter()
-            .max_by_key(|c| c.size_bytes)
-            .map(|c| c.clone());
+        let largest = cassettes.iter().max_by_key(|c| c.size_bytes).cloned();
 
         // Size distribution
         let mut size_dist = SizeDistribution::default();

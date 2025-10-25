@@ -104,14 +104,18 @@ mod tests {
             headers: HashMap::new(),
             body: None,
         };
-        res_image.headers.insert("content-type".to_string(), "image/png".to_string());
+        res_image
+            .headers
+            .insert("content-type".to_string(), "image/png".to_string());
 
         let mut res_json = HttpResponse {
             status: 200,
             headers: HashMap::new(),
             body: None,
         };
-        res_json.headers.insert("content-type".to_string(), "application/json".to_string());
+        res_json
+            .headers
+            .insert("content-type".to_string(), "application/json".to_string());
 
         assert!(!filter.should_record(&req, &res_image)); // Should filter image
         assert!(filter.should_record(&req, &res_json)); // Should record JSON

@@ -67,8 +67,8 @@ impl StatusCodeFilter {
 impl Default for StatusCodeFilter {
     fn default() -> Self {
         Self::new()
-            // By default, don't exclude any status codes
-            // Users can configure as needed
+        // By default, don't exclude any status codes
+        // Users can configure as needed
     }
 }
 

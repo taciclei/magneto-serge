@@ -2,24 +2,28 @@
 //!
 //! Standalone API server for cassette management.
 
-use anyhow::Result;
-use magneto_serge::api::create_router;
-use std::net::SocketAddr;
+use magneto_serge::api::handlers::start_server;
+use std::env;
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
-    let app = create_router()?;
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let host = env::var("MAGNETO_API_HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
+    let port = env::var("MAGNETO_API_PORT")
+        .ok()
+        .and_then(|p| p.parse().ok())
+        .unwrap_or(8889);
+    let cassette_dir =
+        env::var("MAGNETO_CASSETTE_DIR").unwrap_or_else(|_| "./cassettes".to_string());
 
-    println!("🚀 Magnéto API Server");
-    println!("   Listening on http://{}", addr);
-    println!("   API docs: http://{}/docs", addr);
+    println!("🚀 Magnéto-Serge API Server v2.2.0");
+    println!("   Listening on http://{}:{}", host, port);
+    println!("   Cassette directory: {}", cassette_dir);
+    println!("   Health check: http://{}:{}/health", host, port);
+    println!();
 
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await?;
+    start_server(&host, port, cassette_dir).await?;
 
     Ok(())
 }

@@ -1,7 +1,8 @@
+use crate::cookies::{Cookie, CookieJar};
+
 //! Playing back recorded cassettes
 
 use crate::cassette::{Cassette, InteractionKind};
-use crate::cookies::CookieJar;
 use crate::error::{MatgtoError, Result};
 use crate::matching::{MatchingStrategy, RequestSignature as MatchingSignature};
 use std::collections::HashMap;
@@ -184,7 +185,7 @@ impl Player {
         let mut cookie_jar = CookieJar::new();
         if let Some(cookies) = &cassette.cookies {
             for cookie in cookies {
-                cookie_jar.store(cookie.clone());
+                cookie_jar.add(cookie.clone());
             }
         }
 

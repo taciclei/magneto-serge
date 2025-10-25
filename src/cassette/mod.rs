@@ -2,10 +2,10 @@
 
 pub mod storage;
 
+use crate::cookies::Cookie;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::cookies::Cookie;
 
 // Re-export storage types
 pub use storage::{detect_format, AsyncCassetteStorage, BufferedCassetteWriter, CassetteFormat};
