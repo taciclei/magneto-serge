@@ -1,0 +1,56 @@
+{
+  "name": "@magneto-serge/jest",
+  "version": "0.3.1",
+  "description": "Jest integration for Magnéto-Serge HTTP/WebSocket recording library",
+  "keywords": [
+    "jest",
+    "testing",
+    "http",
+    "websocket",
+    "recording",
+    "replay",
+    "vcr",
+    "magneto-serge"
+  ],
+  "author": "Magnéto-Serge contributors <contact@taciclei.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/taciclei/magneto-serge#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/taciclei/magneto-serge.git",
+    "directory": "bindings/javascript/packages/jest"
+  },
+  "bugs": {
+    "url": "https://github.com/taciclei/magneto-serge/issues"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "prepublishOnly": "npm run build",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "jest": ">=27.0.0",
+    "@jest/globals": ">=27.0.0"
+  },
+  "dependencies": {
+    "magneto-serge": "^0.2.0"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "jest": "^29.7.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

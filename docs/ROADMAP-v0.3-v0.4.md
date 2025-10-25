@@ -313,29 +313,78 @@ end
 
 **Status**: ✅ Complete - Full VCR API compatibility achieved
 
-### Phase 3: JavaScript/Jest Plugin
+### Phase 3: JavaScript/Jest Plugin ✅ **COMPLETED** (2025-10-25)
 
-**Effort**: 2 days
+**Effort**: 2 days (actual: <1 day)
 
-- [ ] Create Jest plugin: `@magneto-serge/jest`
-- [ ] Automatic cassette management per test
-- [ ] Setup/teardown hooks
-- [ ] TypeScript types
+- [x] Create Jest plugin: `@magneto-serge/jest` ✅
+- [x] Automatic cassette management per test ✅
+- [x] Setup/teardown hooks ✅
+- [x] TypeScript types ✅
+- [x] VCR-compatible record modes ✅
+- [x] Configuration API ✅
+- [x] Documentation and examples ✅
+
+**Files Created**:
+- `bindings/javascript/packages/jest/src/index.ts` (400+ lines) - Main implementation
+- `bindings/javascript/packages/jest/src/index.test.ts` - Unit tests
+- `bindings/javascript/packages/jest/README.md` (600+ lines) - Comprehensive docs
+- `bindings/javascript/packages/jest/examples/basic.test.ts` - Basic examples
+- `bindings/javascript/packages/jest/examples/advanced.test.ts` - Advanced examples
+- `bindings/javascript/packages/jest/package.json` - NPM package config
+- `bindings/javascript/packages/jest/tsconfig.json` - TypeScript config
+- `bindings/javascript/packages/jest/jest.config.js` - Jest config
 
 **API**:
-```javascript
-import { magnetoTest } from '@magneto-serge/jest';
+```typescript
+import { magnetoTest, configure } from '@magneto-serge/jest';
 
+// Global configuration
+configure({
+  cassetteDir: '__cassettes__',
+  mode: 'auto',
+  record: 'new_episodes',
+});
+
+// Auto-generated cassette name
 magnetoTest('should fetch users', async () => {
-  // Proxy auto-configured
-  const response = await fetch('http://api.example.com/users');
+  // Cassette: __cassettes__/should_fetch_users.json
+  const response = await fetch('https://api.example.com/users');
   expect(response.status).toBe(200);
 });
 
-magnetoTest('custom cassette', { cassette: 'shared', mode: 'replay' }, async () => {
-  // Use shared cassette
+// Custom cassette name and options
+magnetoTest('custom cassette', { name: 'shared', mode: 'replay' }, async () => {
+  // Cassette: __cassettes__/shared.json
+});
+
+// VCR-compatible record modes
+magnetoTest('force record', { record: 'all' }, async () => {
+  // Always re-records
+});
+
+// Manual control
+import { useCassette } from '@magneto-serge/jest';
+
+test('manual control', async () => {
+  await useCassette('my_cassette', async () => {
+    // Cassette active for this block only
+  });
 });
 ```
+
+**Features**:
+- `magnetoTest()` - Wrapper for Jest's test() with auto cassette management
+- `magnetoDescribe()` - Wrapper for Jest's describe() with suite-level cassettes
+- `useCassette()` - Manual cassette control within tests
+- `configure()` - Global configuration
+- `setupMagneto()` - Jest environment setup
+- `getCurrentCassette()` - Get active cassette name
+- Full TypeScript support with type definitions
+- VCR-compatible record mode translation
+- Auto-generated cassette names from test names
+
+**Status**: ✅ Complete - Full Jest integration ready for npm publication
 
 ### Phase 4: Python/pytest Plugin
 
@@ -368,22 +417,22 @@ def test_with_fixture(magneto_proxy):
 
 ### v0.3.1 Summary
 
-**Status**: 🟢 **67% COMPLETE** (2 of 3 phases done)
+**Status**: 🟢 **75% COMPLETE** (3 of 4 phases done)
 
 **Completed**:
 - ✅ Rust `#[magneto_test]` proc macro
 - ✅ Ruby RSpec integration (`magneto-serge-rspec` gem)
+- ✅ JavaScript Jest plugin (`@magneto-serge/jest`)
 
 **Remaining**:
-- ⏳ Jest plugin (@magneto-serge/jest)
-- ⏳ pytest plugin (pytest-magneto-serge)
+- ⏳ Python pytest plugin (pytest-magneto-serge)
 
 **Release Checklist**:
-- [x] Rust macro implemented and tested
-- [x] RSpec gem complete with examples and docs
-- [ ] Jest plugin complete
-- [ ] pytest plugin complete
-- [ ] All integration tests passing
+- [x] Rust macro implemented and tested ✅
+- [x] RSpec gem complete with examples and docs ✅
+- [x] Jest plugin complete with examples and docs ✅
+- [ ] pytest plugin complete ⏳
+- [ ] All integration tests passing ⏳
 - [ ] Version bumped to 0.3.1
 - [ ] Changelog updated
 - [ ] Release notes prepared
@@ -391,11 +440,11 @@ def test_with_fixture(magneto_proxy):
 ### Overall v0.3.1 Release Checklist
 
 - [x] Rust macro implemented and tested ✅
-- [ ] Jest plugin published to npm ⏳
-- [ ] pytest plugin published to PyPI ⏳
-- [x] RSpec gem complete (ready for RubyGems) ✅
+- [x] Jest plugin ready for npm ✅
+- [ ] pytest plugin ready for PyPI ⏳
+- [x] RSpec gem ready for RubyGems ✅
 - [x] Documentation for RSpec integration ✅
-- [ ] Documentation for Jest integration ⏳
+- [x] Documentation for Jest integration ✅
 - [ ] Documentation for pytest integration ⏳
 - [ ] Migration guide from VCR to Magneto-Serge ⏳
 - [ ] Version bumped to 0.3.1

@@ -6,16 +6,17 @@ This document identifies remaining feature gaps between Magneto-Serge and indust
 
 ---
 
-## 📊 Current Status (Post-Hooks, Macro & RSpec)
+## 📊 Current Status (Post-Hooks, Macro, RSpec & Jest)
 
-### Magneto-Serge Score: **9.5/10** (was 9.2/10 before RSpec)
+### Magneto-Serge Score: **9.6/10** (was 9.5/10 before Jest)
 
 **Completed in this session**:
 - ✅ Hook system (RecordHook, ReplayHook)
 - ✅ #[magneto_test] proc macro for Rust
 - ✅ Built-in hooks (3)
 - ✅ MagnetoProxy API completion
-- ✅ RSpec integration (magneto-serge-rspec gem) - **NEW!**
+- ✅ RSpec integration (magneto-serge-rspec gem)
+- ✅ Jest integration (@magneto-serge/jest package) - **NEW!**
 
 ---
 
@@ -23,14 +24,14 @@ This document identifies remaining feature gaps between Magneto-Serge and indust
 
 ### 1. Test Framework Integration (Partial) ⚠️ **HIGH PRIORITY**
 
-**Status**: 67% complete (Rust ✅, RSpec ✅, Jest ⏳, pytest ⏳)
+**Status**: 75% complete (Rust ✅, RSpec ✅, Jest ✅, pytest ⏳)
 
 | Framework | Magneto-Serge | VCR | go-vcr | Priority | Status |
 |-----------|---------------|-----|--------|----------|--------|
 | **Rust** | ✅ `#[magneto_test]` | N/A | N/A | ✅ DONE | ✅ |
-| **RSpec (Ruby)** | ✅ `:magneto` tag | ✅ `:vcr` tag | N/A | ✅ DONE | ✅ **NEW!** |
+| **RSpec (Ruby)** | ✅ `:magneto` tag | ✅ `:vcr` tag | N/A | ✅ DONE | ✅ |
+| **Jest (JS)** | ✅ `magnetoTest()` | N/A | N/A | ✅ DONE | ✅ **NEW!** |
 | **PHPUnit (PHP)** | ❌ | ✅ php-vcr | N/A | 🔴 HIGH | ⏳ |
-| **Jest (JS)** | ❌ | N/A | N/A | 🔴 HIGH | ⏳ |
 | **pytest (Python)** | ❌ | N/A | N/A | 🟡 MEDIUM | ⏳ |
 | **JUnit (Java)** | ❌ | N/A | N/A | 🟢 LOW | ⏳ |
 | **Go testing** | ❌ | N/A | ✅ Middleware | 🟢 LOW | ⏳ |
@@ -104,7 +105,62 @@ end
 
 **Result**: ✅ **Full VCR API compatibility achieved for Ruby/RSpec**
 
-**Remaining**: Jest (2 days), pytest (2 days)
+**✅ Jest Integration - COMPLETE** (2025-10-25):
+
+**Implementation**:
+- ✅ `@magneto-serge/jest` npm package created
+- ✅ TypeScript implementation with full type definitions
+- ✅ `magnetoTest()` wrapper for automatic cassette management
+- ✅ `magnetoDescribe()` for suite-level cassettes
+- ✅ `useCassette()` for manual control
+- ✅ `configure()` global configuration API
+- ✅ `setupMagneto()` Jest environment setup
+- ✅ VCR-compatible record mode translation
+- ✅ Auto-generated cassette names from test names
+- ✅ Documentation (600+ lines)
+- ✅ Examples (basic + advanced)
+- ✅ Unit tests
+
+**Files Created**:
+- `bindings/javascript/packages/jest/src/index.ts` (400+ lines)
+- `bindings/javascript/packages/jest/src/index.test.ts` - Unit tests
+- `bindings/javascript/packages/jest/README.md` (600+ lines)
+- `bindings/javascript/packages/jest/examples/` (2 files, 300+ lines)
+- `bindings/javascript/packages/jest/package.json` - NPM config
+- `bindings/javascript/packages/jest/tsconfig.json` - TypeScript config
+
+**API Example**:
+```typescript
+import { magnetoTest, configure } from '@magneto-serge/jest';
+
+configure({
+  cassetteDir: '__cassettes__',
+  mode: 'auto',
+  record: 'new_episodes',
+});
+
+// Auto cassette name
+magnetoTest('fetches users', async () => {
+  // Cassette: __cassettes__/fetches_users.json
+  const response = await fetch('https://api.example.com/users');
+  expect(response.status).toBe(200);
+});
+
+// Custom options
+magnetoTest('test', { name: 'custom', mode: 'replay' }, async () => {
+  // Uses custom.json in replay mode
+});
+
+// Manual control
+import { useCassette } from '@magneto-serge/jest';
+await useCassette('manual', async () => {
+  // Cassette active for block
+});
+```
+
+**Result**: ✅ **Full Jest integration with TypeScript support**
+
+**Remaining**: PHPUnit (2 days), pytest (2 days)
 
 ---
 
