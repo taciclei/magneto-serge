@@ -1,29 +1,191 @@
-# matgto-serge configuration
+# Magneto-Serge Configuration
+# Version: 2.0
 
-[proxy]
+[magneto]
+# Directory where cassettes are stored
+cassette_dir = "./cassettes"
+
 # Default proxy port
-port = 8888
+proxy_port = 8888
 
-# Default mode: auto, record, replay, passthrough
+# Default mode: auto, record, replay, strict, hybrid, once, passthrough
 mode = "auto"
 
-[cassettes]
-# Cassette storage directory
-directory = "./cassettes"
-
-# Cassette format: json or msgpack
-format = "json"
-
-[recording]
-# Record request/response bodies
-record_bodies = true
-
-# Maximum body size to record (in bytes)
-max_body_size = 1048576  # 1MB
-
-[replay]
-# Strict matching (fail if no match found)
+# Strict mode: error on missing cassettes/interactions
 strict = false
 
-# Simulate network latency
-simulate_latency = false
+[recording]
+# Cassette format: json, msgpack
+format = "json"
+
+# Compress cassettes (gzip)
+compress = false
+
+[recording.filters]
+# Enable smart filtering (reduces cassette size by 70-95%)
+enabled = false  # Set to true to enable
+
+# Preset: web_assets, images, fonts, comprehensive, none
+preset = "web_assets"
+
+# Custom exclude extensions
+exclude_extensions = [
+    # JavaScript
+    ".js", ".mjs", ".cjs", ".jsx",
+    # CSS
+    ".css", ".scss", ".sass", ".less",
+    # Images
+    ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".ico", ".bmp",
+    # Fonts
+    ".woff", ".woff2", ".ttf", ".otf", ".eot",
+    # Media
+    ".mp4", ".webm", ".mp3", ".wav", ".ogg",
+    # Archives
+    ".zip", ".tar", ".gz", ".7z", ".rar",
+    # Documents
+    ".pdf", ".doc", ".docx", ".xls", ".xlsx",
+]
+
+# Custom exclude Content-Types (supports wildcards: image/*)
+exclude_content_types = [
+    "image/*",
+    "font/*",
+    "video/*",
+    "audio/*",
+    "text/css",
+    "application/javascript",
+    "application/x-javascript",
+    "application/octet-stream",
+]
+
+# Custom exclude URL patterns (glob style: /static/*)
+exclude_url_patterns = [
+    "/static/*",
+    "/assets/*",
+    "/_next/static/*",
+    "/public/*",
+    "/dist/*",
+    "/build/*",
+    "/media/*",
+]
+
+# Maximum body size to record (in KB)
+max_body_size_kb = 1024  # 1MB
+
+[matching]
+# Request matching strategy
+
+# Ignore these headers when matching requests
+ignore_headers = [
+    "user-agent",
+    "date",
+    "x-request-id",
+    "x-correlation-id",
+    "accept-encoding",
+]
+
+# Ignore these query parameters
+ignore_query_params = [
+    "timestamp",
+    "_t",
+    "cache_bust",
+]
+
+# URL matching mode: exact, regex, ignore_query, path_only
+url_mode = "exact"
+
+# Body matching mode: hash, ignore, json_path, size_only
+body_mode = "hash"
+
+[cookies]
+# Cookie preservation (v2.0+)
+
+# Enable cookie preservation
+enabled = true
+
+# Filter sensitive cookies from recording (regex patterns)
+filter_patterns = [
+    ".*_token$",
+    "secret_.*",
+    "api_key.*",
+]
+
+# Hash sensitive cookie values before storing
+hash_sensitive = false
+
+[replay]
+# Replay settings
+
+# Latency simulation: none, recorded, fixed, scaled
+latency_mode = "none"
+
+# Fixed latency in ms (if latency_mode = "fixed")
+fixed_latency_ms = 100
+
+# Scaling factor (if latency_mode = "scaled")
+# 100 = 1.0x (real-time), 50 = 0.5x (half-speed), 200 = 2.0x (double-speed)
+latency_scale_percent = 100
+
+[websocket]
+# WebSocket settings
+
+# Enable WebSocket recording/replay
+enabled = true
+
+# Timing precision: ms (milliseconds), us (microseconds)
+timing_precision = "ms"
+
+# Strict sequence validation
+strict_sequence = false
+
+[api]
+# REST API settings (Phase 1.3)
+
+# Enable REST API server
+enabled = false
+
+# API server host
+host = "127.0.0.1"
+
+# API server port
+port = 8889
+
+# Enable authentication
+auth_enabled = false
+
+# API key (if auth_enabled = true)
+api_key = "your-secret-key-here"
+
+[logging]
+# Logging configuration
+
+# Log level: trace, debug, info, warn, error
+level = "info"
+
+# Log format: text, json
+format = "text"
+
+# Log file path (optional, logs to stderr if not set)
+# file = "./magneto.log"
+
+# Log filter (RUST_LOG syntax)
+# filter = "magneto_serge=debug,tower_http=warn"
+
+# Example configurations:
+
+# === Development (record new cassettes) ===
+# mode = "record"
+# [recording.filters]
+# enabled = false  # Capture everything
+
+# === CI/CD (fast deterministic tests) ===
+# mode = "replay"
+# strict = true
+# [recording.filters]
+# enabled = true  # Small cassettes
+
+# === Auto mode (smart: replay existing, record new) ===
+# mode = "auto"
+# [recording.filters]
+# enabled = true
+# preset = "web_assets"

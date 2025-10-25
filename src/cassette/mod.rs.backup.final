@@ -23,7 +23,7 @@ pub struct Cassette {
     pub recorded_at: DateTime<Utc>,
 
     /// Cookies préservés pour replay (Phase 1.1 - Cookie Preservation)
-    #[serde(skip_serializing_if = "Option::is_none", default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cookies: Option<Vec<Cookie>>,
 
     /// List of recorded interactions
@@ -183,7 +183,7 @@ impl Cassette {
     /// Create a new empty cassette
     pub fn new(name: String) -> Self {
         Self {
-            version: "1.0".to_string(),
+            version: "1.0",
             name,
             recorded_at: Utc::now(),
             cookies: None,
