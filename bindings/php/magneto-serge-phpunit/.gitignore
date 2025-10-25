@@ -1,0 +1,5 @@
+/vendor/
+composer.lock
+.phpunit.result.cache
+tests/fixtures/cassettes/
+examples/cassettes/

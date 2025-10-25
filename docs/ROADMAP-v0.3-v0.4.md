@@ -415,14 +415,81 @@ def test_with_fixture(magneto_proxy):
     assert response.status_code == 200
 ```
 
+### Phase 5: PHP/PHPUnit Integration ✅ **COMPLETED** (2025-10-25)
+
+**Effort**: 2 days (actual: <1 day)
+
+- [x] Create Composer package: `magneto-serge/phpunit` ✅
+- [x] PHP 8 Attributes support (#[Cassette]) ✅
+- [x] MagnetoTestCase base class ✅
+- [x] MagnetoTrait for flexible integration ✅
+- [x] VCR-compatible record modes ✅
+- [x] Auto-generated cassette names ✅
+- [x] Manual cassette control (useCassette) ✅
+- [x] Documentation and examples ✅
+
+**Files Created**:
+- `bindings/php/magneto-serge-phpunit/src/MagnetoTestCase.php` (200+ lines)
+- `bindings/php/magneto-serge-phpunit/src/Cassette.php` - PHP 8 Attribute
+- `bindings/php/magneto-serge-phpunit/src/MagnetoTrait.php` (150+ lines)
+- `bindings/php/magneto-serge-phpunit/README.md` (600+ lines)
+- `bindings/php/magneto-serge-phpunit/examples/BasicExample.php`
+- `bindings/php/magneto-serge-phpunit/examples/AdvancedExample.php`
+- `bindings/php/magneto-serge-phpunit/tests/MagnetoTestCaseTest.php`
+- `bindings/php/magneto-serge-phpunit/composer.json` - Packagist config
+
+**API**:
+```php
+use MagnetoSerge\PHPUnit\MagnetoTestCase;
+use MagnetoSerge\PHPUnit\Cassette;
+
+class ApiTest extends MagnetoTestCase
+{
+    protected string $cassetteDir = 'tests/fixtures/cassettes';
+
+    #[Cassette('github_users')]
+    public function testFetchUsers(): void
+    {
+        // Cassette: tests/fixtures/cassettes/github_users.json
+        $response = file_get_contents('https://api.github.com/users');
+        $this->assertNotEmpty($response);
+    }
+
+    #[Cassette('force_record', record: 'all')]
+    public function testForceRecord(): void
+    {
+        // Always re-records
+    }
+
+    public function testManual(): void
+    {
+        $this->useCassette('manual', function() {
+            // Cassette active
+        });
+    }
+}
+```
+
+**Features**:
+- PHP 8+ Attributes (#[Cassette])
+- MagnetoTestCase extends PHPUnit\Framework\TestCase
+- MagnetoTrait for existing test hierarchies
+- Auto-generated cassette names from class/method
+- VCR-compatible record mode translation
+- useCassette() for manual control
+- Support for PHPUnit 9, 10, 11
+
+**Status**: ✅ Complete - php-vcr compatibility + modern PHP 8 features
+
 ### v0.3.1 Summary
 
-**Status**: 🟢 **75% COMPLETE** (3 of 4 phases done)
+**Status**: 🟢 **80% COMPLETE** (4 of 5 phases done)
 
 **Completed**:
 - ✅ Rust `#[magneto_test]` proc macro
 - ✅ Ruby RSpec integration (`magneto-serge-rspec` gem)
 - ✅ JavaScript Jest plugin (`@magneto-serge/jest`)
+- ✅ PHP PHPUnit integration (`magneto-serge/phpunit` package)
 
 **Remaining**:
 - ⏳ Python pytest plugin (pytest-magneto-serge)
@@ -431,6 +498,7 @@ def test_with_fixture(magneto_proxy):
 - [x] Rust macro implemented and tested ✅
 - [x] RSpec gem complete with examples and docs ✅
 - [x] Jest plugin complete with examples and docs ✅
+- [x] PHPUnit package complete with examples and docs ✅
 - [ ] pytest plugin complete ⏳
 - [ ] All integration tests passing ⏳
 - [ ] Version bumped to 0.3.1
@@ -443,8 +511,10 @@ def test_with_fixture(magneto_proxy):
 - [x] Jest plugin ready for npm ✅
 - [ ] pytest plugin ready for PyPI ⏳
 - [x] RSpec gem ready for RubyGems ✅
+- [x] PHPUnit package ready for Packagist ✅
 - [x] Documentation for RSpec integration ✅
 - [x] Documentation for Jest integration ✅
+- [x] Documentation for PHPUnit integration ✅
 - [ ] Documentation for pytest integration ⏳
 - [ ] Migration guide from VCR to Magneto-Serge ⏳
 - [ ] Version bumped to 0.3.1
