@@ -14,6 +14,7 @@
 //! use magneto_serge::cassette::{Interaction, InteractionKind};
 //! use magneto_serge::error::Result;
 //!
+//! #[derive(Debug)]
 //! struct SensitiveDataFilter;
 //!
 //! impl RecordHook for SensitiveDataFilter {
