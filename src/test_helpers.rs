@@ -310,7 +310,6 @@ pub fn assert_status_code_count(cassette: &Cassette, status: u16, expected: usiz
 /// ```rust
 /// use magneto_serge::assert_cassette;
 ///
-/// #[test]
 /// fn test_user_login() {
 ///     assert_cassette!("user-login", {
 ///         version: "1.0",

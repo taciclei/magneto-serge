@@ -8,6 +8,8 @@
 //! - `validate` - Validate cassette integrity
 //! - `clean`    - Remove old/large cassettes
 //! - `stats`    - Show cassette statistics
+
+#![allow(clippy::too_many_arguments)]
 //! - `export`   - Export cassettes to different formats
 //! - `serve`    - Start REST API server
 //! - `migrate`  - Migrate cassettes between versions
