@@ -67,11 +67,52 @@
 
 ## 📦 Installation
 
+### 🍺 Homebrew (macOS/Linux) - Recommended
+
+```bash
+# Add the tap
+brew tap taciclei/tap https://github.com/taciclei/magneto-serge
+
+# Install
+brew install magneto-serge
+
+# Verify
+magneto --version
+```
+
+### 🚀 One-Line Installer (curl)
+
+```bash
+curl -sSL https://raw.githubusercontent.com/taciclei/magneto-serge/main/install.sh | bash
+```
+
+### 📥 Pre-built Binaries
+
+Download from [GitHub Releases](https://github.com/taciclei/magneto-serge/releases):
+
+- **macOS**: `magneto-macos-amd64.tar.gz` (Intel) or `magneto-macos-arm64.tar.gz` (Apple Silicon)
+- **Linux**: `magneto-linux-amd64.tar.gz` or `magneto-linux-arm64.tar.gz`
+- **Windows**: `magneto-windows-amd64.exe.zip`
+
+```bash
+# Example for macOS ARM64
+curl -LO https://github.com/taciclei/magneto-serge/releases/latest/download/magneto-macos-arm64.tar.gz
+tar xzf magneto-macos-arm64.tar.gz
+chmod +x magneto
+mv magneto /usr/local/bin/
+```
+
 ### 🦀 Rust (Cargo)
 
 ```toml
 [dependencies]
-magneto-serge = "0.0.1"
+magneto-serge = "0.2.0"
+```
+
+Or install the CLI:
+
+```bash
+cargo install magneto-serge --features cli
 ```
 
 ### 🟨 JavaScript/TypeScript (npm)
