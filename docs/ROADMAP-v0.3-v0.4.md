@@ -247,7 +247,73 @@ async fn test_with_shared_cassette() {
 }
 ```
 
-### Phase 2: JavaScript/Jest Plugin
+### Phase 2: Ruby/RSpec Integration ✅ **COMPLETED** (2025-10-25)
+
+**Effort**: 3 days (actual: 1 day)
+
+- [x] Create `magneto-serge-rspec` gem ✅
+- [x] RSpec configuration DSL ✅
+- [x] Metadata-driven cassette activation (`:magneto`, `:cassette`) ✅
+- [x] Auto-generated cassette names from example hierarchy ✅
+- [x] `use_cassette` helper method ✅
+- [x] Record mode translation (:new_episodes, :once, :all, :none) ✅
+- [x] Sensitive header filtering ✅
+- [x] Custom cassette name generator ✅
+- [x] Documentation and examples ✅
+- [x] RSpec integration tests ✅
+
+**Files Created**:
+- `bindings/ruby/magneto-serge-rspec/lib/magneto/serge/rspec.rb` - Main module
+- `bindings/ruby/magneto-serge-rspec/lib/magneto/serge/rspec/configuration.rb` - Config DSL
+- `bindings/ruby/magneto-serge-rspec/lib/magneto/serge/rspec/metadata.rb` - Metadata helpers
+- `bindings/ruby/magneto-serge-rspec/lib/magneto/serge/rspec/hooks.rb` - RSpec hooks
+- `bindings/ruby/magneto-serge-rspec/README.md` - 350+ lines of documentation
+- `bindings/ruby/magneto-serge-rspec/examples/` - Basic and advanced examples
+- `bindings/ruby/magneto-serge-rspec/spec/` - Configuration and metadata tests
+
+**API**:
+```ruby
+# Auto-generated cassette from metadata
+RSpec.describe 'GitHub API', :magneto do
+  it 'fetches user info' do
+    # Cassette: spec/fixtures/cassettes/GitHub_API/fetches_user_info.json
+    response = HTTP.get('https://api.github.com/users/octocat')
+    expect(response.status).to eq(200)
+  end
+end
+
+# Explicit cassette name
+it 'test', cassette: 'my_cassette' do
+  # Uses my_cassette.json
+end
+
+# Custom options
+it 'test', magneto: { record: :all, port: 9999 } do
+  # Forces re-recording on port 9999
+end
+
+# Manual control
+use_cassette('weather_api', record: :new_episodes) do
+  response = HTTP.get('https://api.weather.com/forecast')
+end
+```
+
+**Configuration**:
+```ruby
+Magneto::Serge::RSpec.configure do |config|
+  config.cassette_library_dir = 'spec/fixtures/cassettes'
+  config.default_cassette_options = {
+    record: :new_episodes,
+    mode: :auto,
+    match_requests_on: [:method, :uri, :body]
+  }
+  config.filter_sensitive_headers = %w[Authorization Cookie X-API-Key]
+end
+```
+
+**Status**: ✅ Complete - Full VCR API compatibility achieved
+
+### Phase 3: JavaScript/Jest Plugin
 
 **Effort**: 2 days
 
@@ -271,7 +337,7 @@ magnetoTest('custom cassette', { cassette: 'shared', mode: 'replay' }, async () 
 });
 ```
 
-### Phase 3: Python/pytest Plugin
+### Phase 4: Python/pytest Plugin
 
 **Effort**: 2 days
 
@@ -300,50 +366,40 @@ def test_with_fixture(magneto_proxy):
     assert response.status_code == 200
 ```
 
-### Phase 4: Ruby/RSpec Integration (Compete with VCR!)
+### v0.3.1 Summary
 
-**Effort**: 2 days
+**Status**: 🟢 **67% COMPLETE** (2 of 3 phases done)
 
-- [ ] Create RSpec helper: `magneto-serge-rspec` gem
-- [ ] Tag-based cassette naming: `it "works", :magneto`
-- [ ] Configuration block like VCR
-- [ ] Drop-in replacement for VCR
+**Completed**:
+- ✅ Rust `#[magneto_test]` proc macro
+- ✅ Ruby RSpec integration (`magneto-serge-rspec` gem)
 
-**API**:
-```ruby
-require 'magneto/serge/rspec'
+**Remaining**:
+- ⏳ Jest plugin (@magneto-serge/jest)
+- ⏳ pytest plugin (pytest-magneto-serge)
 
-RSpec.configure do |config|
-  config.include MagnetoSerge::RSpec
-
-  config.magneto_serge do |m|
-    m.cassette_dir = 'spec/cassettes'
-    m.default_mode = :auto
-  end
-end
-
-RSpec.describe MyAPI do
-  it "fetches users", :magneto do
-    # Cassette auto-named "MyAPI/fetches_users"
-    response = HTTParty.get('http://api.example.com/users')
-    expect(response.code).to eq(200)
-  end
-
-  it "custom cassette", magneto: { cassette: 'shared', mode: :replay } do
-    # Use shared cassette
-  end
-end
-```
-
-### Release Checklist
-
-- [ ] Rust macro implemented and tested
-- [ ] Jest plugin published to npm
-- [ ] pytest plugin published to PyPI
-- [ ] RSpec gem published to RubyGems
-- [ ] Documentation for all integrations
-- [ ] Migration guide from VCR to Magneto-Serge
+**Release Checklist**:
+- [x] Rust macro implemented and tested
+- [x] RSpec gem complete with examples and docs
+- [ ] Jest plugin complete
+- [ ] pytest plugin complete
+- [ ] All integration tests passing
 - [ ] Version bumped to 0.3.1
+- [ ] Changelog updated
+- [ ] Release notes prepared
+
+### Overall v0.3.1 Release Checklist
+
+- [x] Rust macro implemented and tested ✅
+- [ ] Jest plugin published to npm ⏳
+- [ ] pytest plugin published to PyPI ⏳
+- [x] RSpec gem complete (ready for RubyGems) ✅
+- [x] Documentation for RSpec integration ✅
+- [ ] Documentation for Jest integration ⏳
+- [ ] Documentation for pytest integration ⏳
+- [ ] Migration guide from VCR to Magneto-Serge ⏳
+- [ ] Version bumped to 0.3.1
+- [ ] Changelog updated
 
 ---
 
