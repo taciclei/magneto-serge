@@ -260,6 +260,7 @@ mod tests {
             version: "1.0".to_string(),
             name: name.to_string(),
             recorded_at: Utc::now(),
+            cookies: None,
             interactions: vec![
                 Interaction {
                     recorded_at: Utc::now(),

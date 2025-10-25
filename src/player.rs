@@ -1,6 +1,7 @@
 //! Playing back recorded cassettes
 
 use crate::cassette::{Cassette, InteractionKind};
+use crate::cookies::CookieJar;
 use crate::error::{MatgtoError, Result};
 use crate::matching::{MatchingStrategy, RequestSignature as MatchingSignature};
 use std::collections::HashMap;
@@ -70,6 +71,9 @@ pub struct Player {
 
     /// Advanced matching strategy
     matching_strategy: MatchingStrategy,
+
+    /// Cookie jar for preserving cookies between requests (Phase 1.1)
+    cookie_jar: CookieJar,
 }
 
 impl Player {
@@ -82,6 +86,7 @@ impl Player {
             strict_mode: false,
             latency_mode: LatencyMode::None,
             matching_strategy: MatchingStrategy::default(),
+            cookie_jar: CookieJar::new(),
         }
     }
 
@@ -94,6 +99,7 @@ impl Player {
             strict_mode: true,
             latency_mode: LatencyMode::None,
             matching_strategy: MatchingStrategy::strict(),
+            cookie_jar: CookieJar::new(),
         }
     }
 
@@ -174,6 +180,14 @@ impl Player {
             }
         }
 
+        // Initialize cookie jar from cassette (Phase 1.1)
+        let mut cookie_jar = CookieJar::new();
+        if let Some(cookies) = &cassette.cookies {
+            for cookie in cookies {
+                cookie_jar.store(cookie.clone());
+            }
+        }
+
         if strict {
             tracing::info!(
                 "🔒 Loaded cassette '{}' in STRICT mode with {} interactions",
@@ -201,6 +215,7 @@ impl Player {
             strict_mode: strict,
             latency_mode: LatencyMode::None,
             matching_strategy,
+            cookie_jar,
         })
     }
 
@@ -322,6 +337,16 @@ impl Player {
     /// Get total number of replays across all interactions
     pub fn replay_count(&self) -> usize {
         self.replay_count.values().sum()
+    }
+
+    /// Get cookie jar (Phase 1.1)
+    pub fn cookie_jar(&self) -> &CookieJar {
+        &self.cookie_jar
+    }
+
+    /// Get mutable cookie jar (Phase 1.1)
+    pub fn cookie_jar_mut(&mut self) -> &mut CookieJar {
+        &mut self.cookie_jar
     }
 }
 

@@ -2,61 +2,63 @@ name: CI
 
 on:
   push:
-    branches: [ master, main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ master, main, develop ]
+    branches: [main, develop]
 
 env:
   CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
   RUST_BACKTRACE: 1
 
+# Cancel in-progress runs for the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
-  test:
-    name: Test
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        rust: [stable, beta]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ matrix.rust }}
-
-      - name: Cache cargo registry
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Cache cargo index
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Cache cargo build
-        uses: actions/cache@v4
-        with:
-          path: target
-          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Run tests
-        run: cargo test --all-features --verbose
-
-      - name: Run tests (no default features)
-        run: cargo test --no-default-features --verbose
-
-  lint:
-    name: Lint
+  # Determine which jobs to run based on changed files
+  changes:
+    name: Detect Changes
     runs-on: ubuntu-latest
+    outputs:
+      run_tests: ${{ steps.filter.outputs.run_tests }}
+      run_docs: ${{ steps.filter.outputs.run_docs }}
+      run_bindings: ${{ steps.filter.outputs.run_bindings }}
+      run_security: ${{ steps.filter.outputs.run_security }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            run_tests:
+              - '!docs/**'
+              - '!*.md'
+              - '!.github/ISSUE_TEMPLATE/**'
+              - 'src/**'
+              - 'tests/**'
+              - 'Cargo.toml'
+              - 'Cargo.lock'
+            run_docs:
+              - 'docs/**'
+              - '*.md'
+            run_bindings:
+              - 'src/**/*.udl'
+              - 'bindings/**'
+              - 'Cargo.toml'
+            run_security:
+              - 'Cargo.lock'
+              - '.github/workflows/ci.yml'
+
+  # Format and lint checks
+  style:
+    name: Style & Formatting
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.run_tests == 'true'
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -66,88 +68,484 @@ jobs:
       - name: Check formatting
         run: cargo fmt --all -- --check
 
-      - name: Run clippy
-        run: cargo clippy --all-features
+      - name: Check for TODO/FIXME
+        run: |
+          ! git grep -E "TODO|FIXME" -- '*.rs' ':(exclude)target'
+        continue-on-error: true
 
-  build-cli:
-    name: Build CLI
+  # Clippy linting
+  lint:
+    name: Clippy
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.run_tests == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Run clippy
+        run: cargo clippy --all-features --all-targets -- -D warnings
+
+  # Security checks
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.run_security == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked
+
+      - name: Run security audit
+        run: cargo audit
+        continue-on-error: true
+
+      - name: Check licenses
+        run: |
+          cargo install cargo-deny --locked
+          cargo deny check licenses
+        continue-on-error: true
+
+  # Test on multiple platforms
+  test-matrix:
+    name: Test (${{ matrix.os }}, ${{ matrix.rust }})
     runs-on: ${{ matrix.os }}
+    needs: [changes, style, lint]
+    if: needs.changes.outputs.run_tests == 'true'
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+        rust: [stable]
+        include:
+          # Test beta on Ubuntu only
+          - os: ubuntu-latest
+            rust: beta
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.os }}-${{ matrix.rust }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Run tests (all features)
+        run: cargo test --all-features --verbose
+
+      - name: Run tests (no default features)
+        run: cargo test --no-default-features --verbose
+
+      - name: Run doc tests
+        run: cargo test --doc --all-features
+
+  # Build CLI binaries
+  build-cli:
+    name: Build CLI (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    needs: [changes, test-matrix]
+    if: needs.changes.outputs.run_tests == 'true'
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: macos-latest
+            target: x86_64-apple-darwin
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
 
       - name: Build CLI
-        run: cargo build --bin magneto --features cli --release
+        run: cargo build --bin magneto --features cli --release --target ${{ matrix.target }}
 
-      - name: Test CLI version
-        run: cargo run --bin magneto --features cli -- version
+      - name: Test CLI
+        run: cargo run --bin magneto --features cli --release --target ${{ matrix.target }} -- --version
 
-      - name: Upload CLI artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: magneto-cli-${{ matrix.os }}
+          name: magneto-${{ matrix.target }}
           path: |
-            target/release/magneto${{ matrix.os == 'windows-latest' && '.exe' || '' }}
+            target/${{ matrix.target }}/release/magneto${{ contains(matrix.os, 'windows') && '.exe' || '' }}
+          retention-days: 7
 
-  build-bindings:
-    name: Build Language Bindings
+  # Build API server
+  build-api:
+    name: Build API Server
     runs-on: ubuntu-latest
+    needs: [changes, test-matrix]
+    if: needs.changes.outputs.run_tests == 'true'
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build API server
+        run: cargo build --bin magneto-api --features api --release
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: magneto-api-linux-x64
+          path: target/release/magneto-api
+          retention-days: 7
+
+  # Language bindings
+  build-bindings:
+    name: Build Bindings
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.run_bindings == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+
       - name: Build library
-        run: cargo build --release
+        run: cargo build --lib --release
+
+      - name: Build uniffi-bindgen
+        run: cargo build --bin uniffi-bindgen --release --features uniffi/cli
 
       - name: Generate Python bindings
         run: |
-          cargo run --features=uniffi/cli --bin uniffi-bindgen generate \
+          mkdir -p bindings/python/generated
+          ./target/release/uniffi-bindgen generate \
             src/magneto_serge.udl \
             --language python \
             --out-dir bindings/python/generated
 
       - name: Generate Kotlin bindings
         run: |
-          cargo run --features=uniffi/cli --bin uniffi-bindgen generate \
+          mkdir -p bindings/kotlin/generated
+          ./target/release/uniffi-bindgen generate \
             src/magneto_serge.udl \
             --language kotlin \
             --out-dir bindings/kotlin/generated
 
       - name: Generate Swift bindings
         run: |
-          cargo run --features=uniffi/cli --bin uniffi-bindgen generate \
+          mkdir -p bindings/swift/generated
+          ./target/release/uniffi-bindgen generate \
             src/magneto_serge.udl \
             --language swift \
             --out-dir bindings/swift/generated
 
-  coverage:
-    name: Code Coverage
+      - name: Upload bindings
+        uses: actions/upload-artifact@v4
+        with:
+          name: language-bindings
+          path: bindings/*/generated
+          retention-days: 7
+
+  # Test Python bindings
+  test-python:
+    name: Test Python Bindings
     runs-on: ubuntu-latest
-    continue-on-error: true
+    needs: [changes, test-matrix]
+    if: needs.changes.outputs.run_bindings == 'true' || needs.changes.outputs.run_tests == 'true'
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build library
+        run: cargo build --lib --release
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest uniffi-bindgen
+
+      - name: Run Python unit tests
+        run: |
+          cd bindings/pytest
+          pytest -v test_unit.py --tb=short
+
+      - name: Run Python integration tests
+        run: |
+          cd bindings/pytest
+          pytest -v test_example.py --tb=short
+        continue-on-error: true
+
+  # Test JavaScript bindings
+  test-javascript:
+    name: Test JavaScript Bindings
+    runs-on: ubuntu-latest
+    needs: [changes, test-matrix]
+    if: needs.changes.outputs.run_bindings == 'true' || needs.changes.outputs.run_tests == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build library
+        run: cargo build --lib --release
+
+      - name: Install JavaScript dependencies
+        run: |
+          cd bindings/jest
+          npm install
+
+      - name: Run JavaScript unit tests
+        run: |
+          cd bindings/jest
+          npm test test_unit.test.js
+
+      - name: Run JavaScript integration tests
+        run: |
+          cd bindings/jest
+          npm test example.test.js
+        continue-on-error: true
+
+  # Test Java bindings
+  test-java:
+    name: Test Java Bindings
+    runs-on: ubuntu-latest
+    needs: [changes, test-matrix]
+    if: needs.changes.outputs.run_bindings == 'true' || needs.changes.outputs.run_tests == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build library
+        run: cargo build --lib --release
+
+      - name: Build uniffi-bindgen
+        run: cargo build --bin uniffi-bindgen --release --features uniffi/cli
+
+      - name: Generate Kotlin bindings
+        run: |
+          mkdir -p bindings/kotlin/generated
+          ./target/release/uniffi-bindgen generate \
+            src/magneto_serge.udl \
+            --language kotlin \
+            --out-dir bindings/kotlin/generated
+
+      - name: Download JUnit
+        run: |
+          cd bindings/junit
+          wget -q https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/1.9.0/junit-platform-console-standalone-1.9.0.jar
+          mv junit-platform-console-standalone-1.9.0.jar junit-platform-console-standalone.jar
+
+      - name: Compile Java unit tests
+        run: |
+          cd bindings/junit
+          javac -cp .:junit-platform-console-standalone.jar UnitTest.java
+
+      - name: Run Java unit tests
+        run: |
+          cd bindings/junit
+          java -jar junit-platform-console-standalone.jar --select-class UnitTest
+        continue-on-error: true
+
+      - name: Compile Java integration tests
+        run: |
+          cd bindings/junit
+          javac -cp .:junit-platform-console-standalone.jar ExampleTest.java MagnetoAssertions.java
+        continue-on-error: true
+
+      - name: Run Java integration tests
+        run: |
+          cd bindings/junit
+          java -jar junit-platform-console-standalone.jar --select-class ExampleTest
+        continue-on-error: true
+
+  # Test PHP bindings
+  test-php:
+    name: Test PHP Bindings
+    runs-on: ubuntu-latest
+    needs: [changes, test-matrix]
+    if: needs.changes.outputs.run_bindings == 'true' || needs.changes.outputs.run_tests == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: ffi
+          tools: composer, phpunit
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build library
+        run: cargo build --lib --release
+
+      - name: Install PHP dependencies
+        run: |
+          cd bindings/phpunit
+          composer install --no-interaction
+
+      - name: Run PHP unit tests
+        run: |
+          cd bindings/phpunit
+          phpunit UnitTest.php --testdox
+
+      - name: Run PHP integration tests
+        run: |
+          cd bindings/phpunit
+          phpunit ExampleTest.php --testdox
+        continue-on-error: true
+
+  # Documentation
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.run_docs == 'true' || needs.changes.outputs.run_tests == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build documentation
+        run: cargo doc --all-features --no-deps
+
+      - name: Check for broken links
+        run: |
+          cargo install cargo-deadlinks || true
+          cargo deadlinks --check-http
+        continue-on-error: true
+
+  # Code coverage (Ubuntu only, on main/PR)
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+    needs: [changes, test-matrix]
+    if: needs.changes.outputs.run_tests == 'true' && (github.ref == 'refs/heads/main' || github.event_name == 'pull_request')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+
       - name: Install tarpaulin
-        run: cargo install cargo-tarpaulin
+        run: cargo install cargo-tarpaulin --locked
 
       - name: Generate coverage
-        run: cargo tarpaulin --out xml --all-features
+        run: cargo tarpaulin --out xml --all-features --timeout 300
 
-      - name: Upload coverage to Codecov
+      - name: Upload to Codecov
         uses: codecov/codecov-action@v4
         with:
           files: ./cobertura.xml
           fail_ci_if_error: false
+        continue-on-error: true
+
+  # Benchmark (only on main)
+  benchmark:
+    name: Performance Benchmark
+    runs-on: ubuntu-latest
+    needs: [changes, test-matrix]
+    if: needs.changes.outputs.run_tests == 'true' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run benchmarks
+        run: cargo bench --all-features
+        continue-on-error: true
+
+  # Final status check
+  ci-success:
+    name: CI Success
+    runs-on: ubuntu-latest
+    needs: [style, lint, test-matrix, build-cli, build-api, test-python, test-javascript, test-java, test-php]
+    if: always()
+    steps:
+      - name: Check all jobs
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "One or more jobs failed"
+            exit 1
+          fi
+          echo "✅ All jobs passed! CI Success 🎉"

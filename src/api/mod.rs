@@ -3,9 +3,13 @@
 //! This module provides an HTTP REST API to control the proxy remotely,
 //! allowing you to start, stop, and monitor the proxy server via HTTP requests.
 
+pub mod cassettes;
+pub mod handlers;
 pub mod openapi;
 pub mod server;
 
+pub use cassettes::CassetteManager;
+pub use handlers::{build_router, build_router as create_router};
 pub use openapi::{generate_openapi_spec, OpenApiSpec};
 pub use server::ApiServer;
 

@@ -7,7 +7,7 @@
 [![CI](https://github.com/taciclei/magneto-serge/workflows/CI/badge.svg)](https://github.com/taciclei/magneto-serge/actions)
 [![Rust](https://img.shields.io/badge/rust-1.75%2B-orange.svg?logo=rust)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-68%20passing-brightgreen.svg)](#-development)
+[![Tests](https://img.shields.io/badge/tests-92%20passing-brightgreen.svg)](#-development)
 [![Issues](https://img.shields.io/github/issues/taciclei/magneto-serge)](https://github.com/taciclei/magneto-serge/issues)
 
 *VCR for the modern web - Record HTTP/HTTPS and WebSocket traffic, replay it deterministically*

@@ -65,21 +65,11 @@ impl Recorder {
                 );
                 return;
             }
-
-            // Apply transformations
-            let filtered_request = filters.apply_to_request(request);
-            let filtered_response = filters.apply_to_response(response);
-
-            let interaction = InteractionKind::Http {
-                request: filtered_request,
-                response: filtered_response,
-            };
-            self.cassette.add_interaction(interaction);
-        } else {
-            // No filters, record as-is
-            let interaction = InteractionKind::Http { request, response };
-            self.cassette.add_interaction(interaction);
         }
+
+        // Record the interaction (filters passed or not configured)
+        let interaction = InteractionKind::Http { request, response };
+        self.cassette.add_interaction(interaction);
     }
 
     /// Record an HTTP error (timeout, DNS failure, connection refused, etc.)
@@ -92,17 +82,8 @@ impl Recorder {
             error
         );
 
-        // Apply filters to request if configured
-        let filtered_request = if let Some(filters) = &self.filters {
-            filters.apply_to_request(request)
-        } else {
-            request
-        };
-
-        let interaction = InteractionKind::HttpError {
-            request: filtered_request,
-            error,
-        };
+        // Record the error (filters don't apply to errors currently)
+        let interaction = InteractionKind::HttpError { request, error };
 
         self.cassette.add_interaction(interaction);
     }

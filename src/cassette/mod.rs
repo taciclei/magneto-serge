@@ -1,7 +1,8 @@
-//! Cassette format definitions and types
+// ! Cassette format definitions and types
 
 pub mod storage;
 
+use crate::cookies::Cookie;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -20,6 +21,10 @@ pub struct Cassette {
 
     /// Recording timestamp
     pub recorded_at: DateTime<Utc>,
+
+    /// Cookies préservés pour replay (Phase 1.1 - Cookie Preservation)
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub cookies: Option<Vec<Cookie>>,
 
     /// List of recorded interactions
     pub interactions: Vec<Interaction>,
@@ -181,6 +186,7 @@ impl Cassette {
             version: "1.0".to_string(),
             name,
             recorded_at: Utc::now(),
+            cookies: None,
             interactions: Vec::new(),
         }
     }

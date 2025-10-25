@@ -177,15 +177,30 @@ impl MagnetoProxy {
         let server = ProxyServer::new(state.proxy_port, self.ca.clone(), ProxyMode::Record)?
             .with_recorder(recorder);
 
+        eprintln!("🎬 Starting recording for cassette: {}", cassette_name);
         tracing::info!("🎬 Starting recording for cassette: {}", cassette_name);
 
-        // Start server in background (non-blocking for now)
-        let runtime_handle = self.runtime.handle().clone();
-        runtime_handle.spawn(async move {
-            if let Err(e) = server.start().await {
+        // Start server in dedicated thread with its own Tokio runtime
+        // This ensures the async server task actually runs
+        std::thread::spawn(move || {
+            eprintln!("🧵 Proxy server thread started");
+            // Create a new runtime for this thread
+            let rt = tokio::runtime::Runtime::new().expect("Failed to create runtime");
+            eprintln!("✅ Tokio runtime created in thread");
+
+            // Block on the server start - this will run until shutdown
+            if let Err(e) = rt.block_on(server.start()) {
+                eprintln!("❌ Proxy server error: {}", e);
                 tracing::error!("Proxy server error: {}", e);
             }
+            eprintln!("🧵 Proxy server thread ending");
         });
+
+        // Give the proxy server a moment to start listening
+        // The server starts in a background thread, so we need to wait briefly
+        eprintln!("⏳ Waiting for proxy to start listening...");
+        std::thread::sleep(std::time::Duration::from_millis(1000));
+        eprintln!("✅ Wait complete, proxy should be ready");
 
         Ok(())
     }

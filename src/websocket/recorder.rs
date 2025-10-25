@@ -29,6 +29,7 @@ impl WebSocketRecorder {
                 version: "1.0".to_string(),
                 name: cassette_name,
                 recorded_at: Utc::now(),
+                cookies: None,
                 interactions: Vec::new(),
             },
             current_url: None,
