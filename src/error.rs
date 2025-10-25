@@ -69,6 +69,14 @@ pub enum MatgtoError {
     /// Configuration error
     #[error("Configuration error: {0}")]
     Config(String),
+
+    /// Regex compilation error
+    #[error("Regex error: {0}")]
+    Regex(#[from] regex::Error),
+
+    /// URL parsing error
+    #[error("URL parsing error: {0}")]
+    UrlParse(#[from] url::ParseError),
 }
 
 impl<T> From<tokio::sync::mpsc::error::SendError<T>> for MatgtoError {

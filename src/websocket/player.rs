@@ -4,6 +4,7 @@
 
 use crate::cassette::{Cassette, CloseFrame, InteractionKind, WebSocketMessage};
 use crate::error::{MatgtoError, Result};
+use crate::player::LatencyMode;
 use std::collections::HashMap;
 use std::path::Path;
 use tracing::{debug, info};
@@ -18,6 +19,8 @@ pub struct WebSocketPlayer {
     replay_positions: HashMap<String, usize>,
     /// Total number of replays
     replay_count: usize,
+    /// Latency simulation mode
+    latency_mode: LatencyMode,
 }
 
 impl WebSocketPlayer {
@@ -28,6 +31,41 @@ impl WebSocketPlayer {
             ws_index: HashMap::new(),
             replay_positions: HashMap::new(),
             replay_count: 0,
+            latency_mode: LatencyMode::None,
+        }
+    }
+
+    /// Set latency simulation mode
+    pub fn with_latency(mut self, mode: LatencyMode) -> Self {
+        self.latency_mode = mode;
+        self
+    }
+
+    /// Get current latency mode
+    pub fn latency_mode(&self) -> LatencyMode {
+        self.latency_mode
+    }
+
+    /// Calculate delay for a message based on latency mode and timestamp
+    ///
+    /// For WebSocket messages, we use relative timestamps (timestamp_ms) to calculate delays.
+    /// - LatencyMode::None: No delay, messages sent instantly
+    /// - LatencyMode::Recorded: Use recorded timestamp_ms as delay
+    /// - LatencyMode::Fixed(ms): Fixed delay for all messages
+    /// - LatencyMode::Scaled(percentage): Scale recorded timestamps
+    pub fn calculate_message_delay(&self, timestamp_ms: u64, base_timestamp: u64) -> Option<u64> {
+        match self.latency_mode {
+            LatencyMode::None => None,
+            LatencyMode::Recorded => {
+                // Use relative timestamp (current - base)
+                Some(timestamp_ms.saturating_sub(base_timestamp))
+            }
+            LatencyMode::Fixed(ms) => Some(ms),
+            LatencyMode::Scaled(percentage) => {
+                // Scale the relative timestamp
+                let relative = timestamp_ms.saturating_sub(base_timestamp);
+                Some((relative * percentage) / 100)
+            }
         }
     }
 
@@ -222,6 +260,7 @@ mod tests {
             version: "1.0".to_string(),
             name: name.to_string(),
             recorded_at: Utc::now(),
+            cookies: None,
             interactions: vec![
                 Interaction {
                     recorded_at: Utc::now(),
@@ -373,5 +412,96 @@ mod tests {
         // Can replay again
         let result = player.replay_session("ws://example.com/socket");
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_latency_mode_none() {
+        let player = WebSocketPlayer::new();
+        assert_eq!(player.latency_mode(), LatencyMode::None);
+
+        // With None mode, no delay should be returned
+        let delay = player.calculate_message_delay(5000, 1000);
+        assert_eq!(delay, None);
+    }
+
+    #[test]
+    fn test_latency_mode_recorded() {
+        let player = WebSocketPlayer::new().with_latency(LatencyMode::Recorded);
+        assert_eq!(player.latency_mode(), LatencyMode::Recorded);
+
+        // Recorded mode uses relative timestamps
+        let delay = player.calculate_message_delay(5000, 1000);
+        assert_eq!(delay, Some(4000)); // 5000 - 1000 = 4000ms
+
+        // First message (base timestamp)
+        let delay = player.calculate_message_delay(1000, 1000);
+        assert_eq!(delay, Some(0)); // No delay for first message
+    }
+
+    #[test]
+    fn test_latency_mode_fixed() {
+        let player = WebSocketPlayer::new().with_latency(LatencyMode::Fixed(100));
+        assert_eq!(player.latency_mode(), LatencyMode::Fixed(100));
+
+        // Fixed mode always returns same delay
+        let delay1 = player.calculate_message_delay(1000, 1000);
+        assert_eq!(delay1, Some(100));
+
+        let delay2 = player.calculate_message_delay(5000, 1000);
+        assert_eq!(delay2, Some(100));
+    }
+
+    #[test]
+    fn test_latency_mode_scaled() {
+        let player = WebSocketPlayer::new().with_latency(LatencyMode::Scaled(50));
+        assert_eq!(player.latency_mode(), LatencyMode::Scaled(50));
+
+        // Scaled mode scales relative timestamps
+        // 50% = half speed (2x faster)
+        let delay = player.calculate_message_delay(5000, 1000);
+        assert_eq!(delay, Some(2000)); // (5000 - 1000) * 50 / 100 = 2000ms
+
+        // 200% = double speed (2x slower)
+        let player_slow = WebSocketPlayer::new().with_latency(LatencyMode::Scaled(200));
+        let delay_slow = player_slow.calculate_message_delay(5000, 1000);
+        assert_eq!(delay_slow, Some(8000)); // (5000 - 1000) * 200 / 100 = 8000ms
+    }
+
+    #[test]
+    fn test_latency_mode_with_load() {
+        let temp_dir = TempDir::new().unwrap();
+        let cassette = create_test_cassette("test-latency-load");
+
+        let cassette_path = temp_dir.path().join("test-latency-load.json");
+        let json = serde_json::to_string_pretty(&cassette).unwrap();
+        std::fs::write(&cassette_path, json).unwrap();
+
+        // Create player with latency mode
+        let mut player = WebSocketPlayer::new().with_latency(LatencyMode::Recorded);
+
+        // Load cassette
+        player.load(temp_dir.path(), "test-latency-load").unwrap();
+
+        // Latency mode should be preserved after load
+        assert_eq!(player.latency_mode(), LatencyMode::Recorded);
+    }
+
+    #[test]
+    fn test_instant_mode_for_blockchain() {
+        // Simulate blockchain test case from issue #5
+        // Blocks arrive every 6000ms, but we want instant replay
+        let player = WebSocketPlayer::new().with_latency(LatencyMode::None);
+
+        // Message 1 at 0ms (connection start)
+        let delay1 = player.calculate_message_delay(0, 0);
+        assert_eq!(delay1, None); // Instant
+
+        // Message 2 at 6000ms (first block)
+        let delay2 = player.calculate_message_delay(6000, 0);
+        assert_eq!(delay2, None); // Instant, no 6 second wait
+
+        // Message 3 at 12000ms (second block)
+        let delay3 = player.calculate_message_delay(12000, 0);
+        assert_eq!(delay3, None); // Instant, no 12 second wait
     }
 }

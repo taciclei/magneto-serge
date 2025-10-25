@@ -1,0 +1,164 @@
+# PATCH pour src/player.rs - Intégration CookieJar
+# Appliquer ces modifications au fichier src/player.rs existant
+
+# ============================================================
+# 1. AJOUTER IMPORT (ligne ~8, après les autres imports)
+# ============================================================
+
+use crate::cookies::{Cookie, CookieJar};
+
+# ============================================================
+# 2. AJOUTER CHAMP AU STRUCT Player (ligne ~68)
+# ============================================================
+
+/// Plays back recorded interactions from cassettes
+#[derive(Debug)]
+pub struct Player {
+    /// Loaded cassette
+    cassette: Option<Cassette>,
+
+    /// Index of interactions for fast lookup
+    interactions_index: HashMap<RequestSignature, usize>,
+
+    /// Count how many times each interaction has been replayed
+    replay_count: HashMap<usize, usize>,
+
+    /// Strict mode: fail fast on missing interactions
+    strict_mode: bool,
+
+    /// Latency simulation mode
+    latency_mode: LatencyMode,
+
+    /// Advanced matching strategy
+    matching_strategy: MatchingStrategy,
+
+    /// Cookie jar for session preservation [NOUVEAU]
+    cookie_jar: CookieJar,
+}
+
+# ============================================================
+# 3. INITIALISER CookieJar dans Player::new() (ligne ~76)
+# ============================================================
+
+impl Player {
+    /// Create a new player (empty)
+    pub fn new() -> Self {
+        Self {
+            cassette: None,
+            interactions_index: HashMap::new(),
+            replay_count: HashMap::new(),
+            strict_mode: false,
+            latency_mode: LatencyMode::None,
+            matching_strategy: MatchingStrategy::default(),
+            cookie_jar: CookieJar::new(),  // [NOUVEAU]
+        }
+    }
+
+    /// Create a new player in strict mode
+    pub fn new_strict() -> Self {
+        Self {
+            cassette: None,
+            interactions_index: HashMap::new(),
+            replay_count: HashMap::new(),
+            strict_mode: true,
+            latency_mode: LatencyMode::None,
+            matching_strategy: MatchingStrategy::strict(),
+            cookie_jar: CookieJar::new(),  // [NOUVEAU]
+        }
+    }
+
+# ============================================================
+# 4. AJOUTER MÉTHODE load_cassette_with_cookies (après load_cassette existante)
+# ============================================================
+
+    /// Load a cassette and restore cookies
+    pub fn load_cassette_with_cookies(&mut self, path: impl AsRef<Path>) -> Result<()> {
+        // Load cassette normally
+        self.load_cassette(path)?;
+
+        // Restore cookies from cassette (v2.0+)
+        if let Some(cassette) = &self.cassette {
+            if !cassette.cookies.is_empty() {
+                tracing::info!("Restoring {} cookies from cassette", cassette.cookies.len());
+                for cookie in &cassette.cookies {
+                    self.cookie_jar.store(cookie.clone());
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Get cookie jar for inspection/modification
+    pub fn cookie_jar(&self) -> &CookieJar {
+        &self.cookie_jar
+    }
+
+    /// Get mutable cookie jar
+    pub fn cookie_jar_mut(&mut self) -> &mut CookieJar {
+        &mut self.cookie_jar
+    }
+
+# ============================================================
+# 5. MODIFIER match_interaction pour extraire Set-Cookie
+# ============================================================
+
+# Dans la méthode qui retourne une interaction matchée, ajouter:
+
+    // Extract Set-Cookie headers from response and store in jar
+    if let Some(set_cookie) = response.headers.get("set-cookie") {
+        // Set-Cookie can have multiple values
+        for cookie_str in set_cookie.split('\n') {
+            let cookie_str = cookie_str.trim();
+            if !cookie_str.is_empty() {
+                match Cookie::parse(cookie_str) {
+                    Ok(cookie) => {
+                        tracing::debug!(
+                            "Storing cookie from response: {} (domain: {:?}, path: {:?})",
+                            cookie.name,
+                            cookie.domain,
+                            cookie.path
+                        );
+                        self.cookie_jar.store(cookie);
+                    }
+                    Err(e) => {
+                        tracing::warn!("Failed to parse Set-Cookie header: {}", e);
+                    }
+                }
+            }
+        }
+    }
+
+# ============================================================
+# 6. MODIFIER match_request pour injecter Cookie header
+# ============================================================
+
+# Au début de la fonction qui matche une requête, AVANT le matching, ajouter:
+
+    // Inject cookies for this URL
+    if let Some(cookie_header) = self.cookie_jar.get_header_value(&request.url) {
+        tracing::debug!(
+            "Injecting Cookie header for {}: {}",
+            request.url,
+            cookie_header
+        );
+        // Insert or update Cookie header
+        request.headers.insert("cookie".to_string(), cookie_header);
+    }
+
+# ============================================================
+# NOTES D'IMPLÉMENTATION
+# ============================================================
+
+# Les modifications exactes dépendent de votre structure actuelle de Player.
+# Points d'injection principaux:
+# 
+# 1. Dans la méthode qui RETOURNE une réponse (après match):
+#    → Extraire Set-Cookie et stocker dans cookie_jar
+#
+# 2. Dans la méthode qui MATCHE une requête (avant match):
+#    → Récupérer cookies et injecter dans request.headers
+#
+# 3. Purger cookies expirés périodiquement:
+#    → Ajouter self.cookie_jar.purge_expired() dans load_cassette()
+

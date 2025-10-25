@@ -201,6 +201,175 @@ cargo build --examples
 cargo test
 ```
 
+## 🌐 Exemples API REST
+
+Magneto-Serge fournit une API REST complète avec support Hydra/JSON-LD et OpenAPI 3.0 pour contrôler le proxy à distance.
+
+### Démarrage du Serveur API
+
+```bash
+# Démarrer le serveur API
+magneto api
+
+# Avec authentification
+magneto api --auth --api-key votre-clé-secrète
+
+# Avec host/port personnalisés
+magneto api --host 0.0.0.0 --port 8889
+```
+
+### Exemples de Clients API
+
+Trois exemples complets sont fournis :
+
+#### Python (`api_client.py`)
+```bash
+./api_client.py
+```
+
+Démontre :
+- Démarrage/arrêt du proxy via l'API
+- Vérification du statut
+- Liste des cassettes
+- Navigation hypermedia avec liens Hydra
+
+#### JavaScript/Node.js (`api_client.js`)
+```bash
+./api_client.js
+```
+
+Utilise `fetch` natif de Node.js 18+ pour interagir avec l'API.
+
+#### Bash/curl (`api_client.sh`)
+```bash
+./api_client.sh
+```
+
+Exemple simple utilisant `curl` et `jq` pour tester l'API.
+
+### Endpoints Principaux
+
+- `GET /` - Racine de l'API avec liens Hydra
+- `GET /openapi.json` - Spécification OpenAPI 3.0
+- `GET /health` - Vérification de santé
+- `POST /proxy/start` - Démarrer le proxy
+- `POST /proxy/stop` - Arrêter le proxy
+- `GET /proxy/status` - Statut du proxy
+- `GET /cassettes` - Liste des cassettes
+- `DELETE /cassettes/{name}` - Supprimer une cassette
+
+### Exemple d'Utilisation avec curl
+
+```bash
+# Démarrer le proxy en mode auto
+curl -X POST http://localhost:8889/proxy/start \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mode": "auto",
+    "cassette_name": "my-test",
+    "port": 8888
+  }'
+
+# Vérifier le statut
+curl http://localhost:8889/proxy/status
+
+# Arrêter le proxy
+curl -X POST http://localhost:8889/proxy/stop
+```
+
+### Hypermedia (HATEOAS)
+
+L'API suit les principes HATEOAS avec Hydra/JSON-LD. Chaque réponse inclut des liens vers les ressources liées :
+
+```json
+{
+  "@context": "https://www.w3.org/ns/hydra/core",
+  "@type": "hydra:Resource",
+  "success": true,
+  "data": { ... },
+  "hydra:link": [
+    {
+      "@type": "hydra:Link",
+      "hydra:target": "http://localhost:8889/proxy/status",
+      "title": "Check Proxy Status"
+    }
+  ]
+}
+```
+
+### Documentation Complète
+
+Voir [docs/API.md](../docs/API.md) pour la documentation complète de l'API.
+
+## 🌐 Clients Hydra pour l'API
+
+Magneto-Serge expose une API Hydra/JSON-LD complète. Deux approches sont fournies pour la consommer :
+
+### 1. Client Angular avec Alcaeus (Démonstration)
+
+**Localisation**: `angular-client/`
+
+Client Angular 19 standalone qui utilise **Alcaeus** directement dans le browser pour consommer l'API Hydra.
+
+```bash
+cd angular-client
+npm install
+npm start
+# → http://localhost:4200
+```
+
+**Fonctionnalités:**
+- ✅ Navigation Hydra automatique (zéro URL hardcodée)
+- ✅ Découverte dynamique des endpoints
+- ✅ Parsing JSON-LD complet
+- ✅ Interface complète (statut proxy, cassettes, etc.)
+
+**Note**: Cette approche nécessite des polyfills Node.js car Alcaeus est conçu pour Node.js. Voir `angular-client/README.md` pour les détails.
+
+### 2. Backend Node.js/Express avec Alcaeus (RECOMMANDÉ pour production)
+
+**Localisation**: `nodejs-backend/`
+
+Backend Node.js qui wrappe Alcaeus et expose une API REST simplifiée pour les clients frontend.
+
+```bash
+cd nodejs-backend
+npm install
+npm start
+# → http://localhost:3000
+```
+
+**Architecture:**
+```
+Angular/React/Vue
+      ↓ REST API (JSON simple)
+Node.js Backend (Alcaeus)
+      ↓ Hydra/JSON-LD
+Magneto-Serge API
+```
+
+**Avantages:**
+- ✅ Alcaeus fonctionne nativement (zéro polyfill)
+- ✅ Cache serveur partagé entre tous les clients
+- ✅ API REST simplifiée (pas de RDF côté client)
+- ✅ Performance optimale
+- ✅ Build léger côté frontend
+
+**Documentation:**
+- `nodejs-backend/README.md` - Guide complet avec exemples
+- `nodejs-backend/ARCHITECTURE.md` - Architecture de production détaillée
+
+### Comparaison des Approches
+
+| Aspect | Angular + Alcaeus Direct | Angular + Backend Node.js |
+|--------|--------------------------|---------------------------|
+| Complexité | ⚠️ Élevée (types RDF) | ✅ Simple (JSON) |
+| Build size | ⚠️ +100kb polyfills | ✅ Léger |
+| Performance | ⚠️ Parsing client | ✅ Cache serveur |
+| Production | ⚠️ Démonstration | ✅ Recommandé |
+
+**Recommandation**: Utilisez le backend Node.js pour la production. Le client Angular direct avec Alcaeus est fourni à titre de démonstration des capacités Hydra.
+
 ## 🚀 Prochains Exemples (À venir)
 
 - [ ] `websocket_record.rs` - Enregistrement WebSocket

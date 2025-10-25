@@ -1,0 +1,151 @@
+# ============================================================================
+# Magneto-Serge - Docker Image Alpine Multi-Service
+# ============================================================================
+# Image complète incluant :
+# - CLI Magneto-Serge (Rust)
+# - API REST Hydra/JSON-LD (port 8889)
+# - Backend Node.js (port 3000)
+# - Interface Angular (port 4201)
+# - Proxy HTTP/HTTPS/WebSocket configurable
+
+# ============================================================================
+# Stage 1: Build Rust CLI + API
+# ============================================================================
+FROM rust:alpine AS rust-builder
+
+WORKDIR /build
+
+# Install build dependencies
+RUN apk add --no-cache \
+    musl-dev \
+    openssl-dev \
+    openssl-libs-static \
+    pkgconfig \
+    gcc \
+    g++ \
+    make
+
+# Copy Cargo files
+COPY Cargo.toml Cargo.lock ./
+COPY src ./src
+COPY build.rs ./
+COPY benches ./benches
+
+# Build native binary for Alpine
+RUN cargo build --release --bin magneto
+
+# Verify binary
+RUN ls -lh target/release/magneto
+
+# ============================================================================
+# Stage 2: Build Node.js Backend
+# ============================================================================
+FROM node:20-alpine AS node-backend-builder
+
+WORKDIR /build
+
+# Copy backend source
+COPY examples/nodejs-backend/package*.json ./
+RUN npm ci --only=production
+
+COPY examples/nodejs-backend ./
+
+# ============================================================================
+# Stage 3: Frontend (Management Interface)
+# ============================================================================
+FROM alpine:3.19 AS frontend-builder
+
+WORKDIR /build
+
+# Copy frontend files
+COPY docker/frontend ./dist
+
+# ============================================================================
+# Stage 4: Final Alpine Runtime Image
+# ============================================================================
+FROM alpine:3.19
+
+LABEL maintainer="Magneto-Serge Team <sga@magneto-serge.dev>"
+LABEL description="Magneto-Serge: HTTP/WebSocket Proxy with API and Web UI"
+LABEL version="0.2.0"
+
+# Install runtime dependencies
+RUN apk add --no-cache \
+    ca-certificates \
+    nodejs \
+    npm \
+    curl \
+    iptables \
+    ip6tables \
+    nginx \
+    supervisor \
+    bash \
+    tzdata
+
+# Create application directories
+RUN mkdir -p \
+    /app/bin \
+    /app/cassettes \
+    /app/backend \
+    /app/frontend \
+    /app/logs \
+    /var/log/supervisor \
+    /etc/supervisor/conf.d
+
+# Copy Rust binary
+COPY --from=rust-builder /build/target/release/magneto /app/bin/magneto
+RUN chmod +x /app/bin/magneto
+
+# Copy Node.js backend
+COPY --from=node-backend-builder /build /app/backend
+
+# Copy frontend (Management Interface)
+COPY --from=frontend-builder /build/dist /app/frontend
+
+# Copy nginx configuration
+COPY docker/nginx.conf /etc/nginx/nginx.conf
+COPY docker/default.conf /etc/nginx/http.d/default.conf
+
+# Copy supervisor configuration
+COPY docker/supervisord.conf /etc/supervisord.conf
+
+# Copy entrypoint script
+COPY docker/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+# Create nginx user if not exists
+RUN addgroup -g 101 -S nginx 2>/dev/null || true && \
+    adduser -S -D -H -u 101 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx 2>/dev/null || true
+
+# Set environment variables
+ENV NODE_ENV=production \
+    RUST_LOG=info \
+    CASSETTE_DIR=/app/cassettes \
+    API_PORT=8889 \
+    BACKEND_PORT=3000 \
+    FRONTEND_PORT=4201 \
+    PROXY_PORT=8888 \
+    PATH="/app/bin:${PATH}"
+
+# Expose ports
+# 8889: API REST Magneto-Serge
+# 3000: Backend Node.js
+# 4201: Interface Angular
+# 8888: Proxy HTTP/HTTPS/WebSocket (configurable)
+EXPOSE 8889 3000 4201 8888
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8889/health || exit 1
+
+# Set working directory
+WORKDIR /app
+
+# Volume for cassettes persistence
+VOLUME ["/app/cassettes"]
+
+# Entrypoint
+ENTRYPOINT ["/app/entrypoint.sh"]
+
+# Default command: start all services
+CMD ["all"]

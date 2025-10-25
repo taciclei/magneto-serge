@@ -1,0 +1,33 @@
+{
+    "name": "magneto-serge/phpunit-assertions",
+    "description": "PHPUnit assertions for Magnéto-Serge cassette testing",
+    "type": "library",
+    "keywords": ["phpunit", "testing", "http", "vcr", "cassette", "magneto-serge"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Magnéto-Serge Contributors"
+        }
+    ],
+    "require": {
+        "php": ">=8.0",
+        "phpunit/phpunit": "^9.0 || ^10.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "MagnetoSerge\\PHPUnit\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "MagnetoSerge\\PHPUnit\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "minimum-stability": "stable"
+}

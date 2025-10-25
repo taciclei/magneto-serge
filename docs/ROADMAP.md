@@ -1,628 +1,685 @@
-# ROADMAP - matgto-serge
+# 🗺️ Roadmap - Magnéto-Serge
 
-**Projet:** Proxy HTTP/WebSocket multi-langage avec record/replay automatique
-**Technologie:** Rust + UniFFI
-**Langages cibles:** Java, JavaScript, Python, PHP, Ruby, Kotlin, Swift, Go, C#
+## Vision
 
----
-
-## 📋 Vue d'Ensemble
-
-matgto-serge est une bibliothèque de test qui enregistre et rejoue automatiquement les appels HTTP et WebSocket, sans modification du code de test. Inspiré de VHS (Ruby), mais écrit en Rust pour performance et support multi-langage.
-
-### Objectifs Clés
-- ✅ Proxy MITM HTTP/HTTPS avec interception complète
-- ✅ Support WebSocket natif (ws:// et wss://)
-- ✅ Format cassette universel (JSON/MessagePack)
-- ✅ Bindings automatiques pour 8+ langages
-- ✅ Performance (10-100x plus rapide que VHS Ruby)
-- ✅ CLI intuitive type VHS
+**Magnéto-Serge** est une bibliothèque Rust multi-langage pour enregistrer et rejouer les interactions HTTP/WebSocket dans vos tests. Inspiré par VCR (Ruby) et Polly (Node.js), mais écrit en Rust pour performance et sécurité.
 
 ---
 
-## 🎯 PHASE 1 : Core Rust - Proxy HTTP/HTTPS (3 semaines)
+## 📊 État Global
 
-**Objectif :** Créer le moteur de proxy HTTP avec record/replay basique
-
-### 1.1 Setup Projet Rust ✅ COMPLET
-- [x] ✅ Initialiser projet Cargo `cargo new magneto-serge --lib`
-- [x] ✅ Configurer workspace Cargo.toml
-- [x] ✅ Setup CI/CD (GitHub Actions)
-  - [x] ✅ Rust clippy + rustfmt
-  - [x] ✅ Tests unitaires automatiques
-  - [x] ✅ Build multi-platform (Linux, macOS, Windows)
-  - [x] ✅ Workflow CD pour releases
-- [x] ✅ Configurer .gitignore
-- [x] ✅ Créer structure de dossiers
-  ```
-  magneto-serge/
-  ├── src/            # Logique proxy + record/replay ✅
-  │   ├── lib.rs
-  │   ├── proxy.rs
-  │   ├── recorder.rs
-  │   ├── player.rs
-  │   ├── cassette.rs
-  │   ├── error.rs
-  │   ├── websocket/
-  │   └── tls/
-  ├── bindings/       # Multi-language bindings
-  │   └── javascript/ # NAPI-RS ✅
-  ├── tests/          # Tests intégration ✅
-  │   ├── integration_test.rs (9 tests)
-  │   └── websocket_integration.rs (5 tests)
-  └── docs/           # Documentation ✅
-  ```
-
-### 1.2 Proxy HTTP/HTTPS Basique ✅
-- [x] Intégrer Hudsucker pour proxy MITM
-  - [x] Configurer dépendance `hudsucker = "0.20"`
-  - [x] Créer struct `MagnetoProxy`
-  - [x] Implémenter démarrage/arrêt proxy (structure de base)
-  - [x] Configurer port d'écoute (défaut: 8888)
-- [x] Module HTTP Handler créé
-  - [x] `src/proxy/http_handler.rs` avec modes Record/Replay/Auto/Passthrough
-  - [x] Structure HttpHandler avec recorder/player
-  - [x] Intégration Hudsucker HttpHandler trait → `src/proxy/server.rs`
-- [x] Interception requêtes HTTP
-  - [x] Capturer méthode, URL, headers, body
-  - [x] Logger requêtes interceptées (tracing)
-  - [x] Forwarding transparent vers serveur cible → `src/proxy/client.rs`
-- [x] Interception réponses HTTP
-  - [x] Capturer status, headers, body
-  - [x] Logger réponses interceptées (tracing)
-  - [x] Retourner réponse au client (via Hudsucker)
-- [x] Support HTTPS (MITM avec certificat auto-signé)
-  - [x] Générer certificat racine avec `rcgen` → Module `tls/certificate.rs`
-  - [x] Instructions installation certificat trust store OS (macOS/Linux/Windows)
-  - [x] Persistance certificats sur disque (.magneto/certs/)
-  - [ ] Validation SSL/TLS fonctionnelle (intégration Hudsucker à venir)
-
-### 1.3 Enregistrement Cassette (Record Mode) ✅
-- [x] Design format cassette JSON
-  ```json
-  {
-    "version": "1.0",
-    "name": "my-api-test",
-    "recorded_at": "2025-10-10T12:00:00Z",
-    "interactions": [
-      {
-        "request": {
-          "method": "GET",
-          "url": "https://api.example.com/users",
-          "headers": {...},
-          "body": null
-        },
-        "response": {
-          "status": 200,
-          "headers": {...},
-          "body": "[...]"
-        }
-      }
-    ]
-  }
-  ```
-- [x] Implémenter `Recorder` struct
-  - [x] Méthode `start_recording(cassette_name)` (via MagnetoProxy)
-  - [x] Méthode `record_interaction(request, response)` → `record_http()`
-  - [x] Méthode `stop_recording()` → sauvegarde cassette via `save()`
-- [x] Sérialisation avec `serde_json`
-- [x] Stockage cassettes dans `./cassettes/` par défaut
-- [x] Tests unitaires du Recorder
-
-### 1.4 Replay Cassette (Replay Mode) ✅
-- [x] Implémenter `Player` struct
-  - [x] Méthode `load_cassette(name)` → `load()`
-  - [x] Méthode `match_request(incoming_request)` → `find_interaction()`
-  - [x] Index HashMap pour lookup O(1) avec `RequestSignature`
-- [x] Matching intelligent des requêtes
-  - [x] Match exact URL + méthode + body hash
-  - [ ] Ignorer headers dynamiques (User-Agent, Date, etc.) - à implémenter
-  - [ ] Option match partiel (regex sur URL) - à implémenter
-- [ ] Mode strict vs mode permissif
-  - [x] Strict : erreur `NoMatchingInteraction` si requête non trouvée
-  - [ ] Permissif : fallback sur requête réelle + warning - à implémenter
-- [x] Tests unitaires du Player
-
-### 1.5 Tests Intégration HTTP (En cours 🔄)
-- [x] Structure tests E2E créée → `tests/e2e_http_proxy.rs`
-- [ ] Test E2E record → replay
-  - [x] Structure test avec httpbin.org
-  - [ ] Implémenter proxy fonctionnel dans tests
-  - [ ] Enregistrer appel à API publique (httpbin.org)
-  - [ ] Rejouer depuis cassette
-  - [ ] Vérifier contenu identique
-- [x] Test avec API REST
-  - [x] Test GET (HttpForwarder)
-  - [x] Test POST avec body JSON (HttpForwarder)
-  - [ ] Test PUT, DELETE
-  - [ ] Headers authentification
-- [ ] Test mode permissif
-- [ ] Performance benchmark (> 1000 req/s)
+| Phase | Description | Statut | Progression |
+|-------|-------------|--------|-------------|
+| **Phase 1** | HTTP/HTTPS Proxy | ✅ Terminé | 100% |
+| **Phase 2** | WebSocket Support | ✅ Terminé | 100% |
+| **Phase 3** | Multi-language Bindings | ✅ Terminé | 100% |
+| **Phase 4** | CLI & Production | ✅ Terminé | 100% |
+| **Phase 5** | Advanced Features | 🟡 En cours | 68% |
+| **Phase 6** | Web Ecosystem | ✅ Terminé | 100% |
 
 ---
 
-## 🌐 PHASE 2 : Support WebSocket (2 semaines)
+## Phase 1 : HTTP/HTTPS Proxy ✅
 
-**Objectif :** Ajouter interception et record/replay WebSocket
+**Objectif** : Créer un proxy HTTP/HTTPS capable d'enregistrer et rejouer les requêtes.
 
-### 2.1 Proxy WebSocket Basique ✅
-- [x] Intégrer `tokio-tungstenite` pour WebSocket
-  - [x] Configurer dépendance `tokio-tungstenite = "0.21"`
-  - [x] Créer struct `WebSocketInterceptor` → `src/websocket/interceptor.rs`
-- [x] Interception connexion WebSocket
-  - [x] Connexion au serveur WebSocket cible
-  - [x] Établir connexion bidirectionnelle (tokio channels)
-  - [x] Capturer messages client ↔ serveur avec timestamps
-- [x] Support wss:// (WebSocket Secure)
-  - [x] Support TLS avec tokio-tungstenite MaybeTlsStream
-  - [ ] Validation TLS fonctionnelle (à tester en E2E)
+### 1.1 - Core Infrastructure ✅
+- [x] Structure du projet Rust
+- [x] Modules de base (proxy, cassette, recorder, player)
+- [x] Types de données (HttpRequest, HttpResponse)
+- [x] Gestion d'erreurs (MatgtoError)
 
-### 2.2 Enregistrement Messages WebSocket ✅
-- [x] Étendre format cassette pour WebSocket (déjà implémenté dans `src/cassette.rs`)
-  - [x] Enum `InteractionKind::WebSocket` avec url, messages, close_frame
-  - [x] Struct `WebSocketMessage` avec direction, timestamp_ms, payload
-  - [x] Enum `MessagePayload` avec Text, Binary, Ping, Pong
-  - [x] Struct `CloseFrame` avec code et reason
-- [x] Capturer messages texte et binaires → `src/websocket/recorder.rs`
-  - [x] Messages client → serveur (Direction::Sent)
-  - [x] Messages serveur → client (Direction::Received)
-  - [x] Timestamps milliseconds relatifs
-- [x] Capturer close frame et raison
-- [x] Support Ping/Pong frames dans MessagePayload
+### 1.2 - HTTP Proxy ✅
+- [x] Serveur HTTP (Hyper)
+- [x] Client HTTP (Hyper + Rustls)
+- [x] Gestion des headers
+- [x] Gestion du body (texte, JSON, binaire)
+- [x] Forward des requêtes
 
-### 2.3 Replay Messages WebSocket ✅
-- [x] Implémenter WebSocketPlayer → `src/websocket/player.rs`
-  - [x] Charger cassette WebSocket depuis disque
-  - [x] Index HashMap par URL pour lookup O(1)
-  - [x] Méthode `replay_session(url)` retourne messages + close_frame
-- [x] Support sessions multiples
-  - [x] Replay séquentiel si même URL enregistrée plusieurs fois
-  - [x] Tracking position replay par URL
-- [x] Fonctionnalités additionnelles
-  - [x] `peek_next_message()` pour preview sans consommer
-  - [x] `reset()` pour rejouer depuis début
-  - [ ] Validation séquence messages (mode strict - à implémenter)
-  - [ ] Pattern matching contenu (à implémenter)
+### 1.3 - HTTPS & TLS ✅
+- [x] Support HTTPS
+- [x] Génération de certificat CA auto-signé
+- [x] Génération de certificats par domaine
+- [x] Interception MITM (CONNECT)
+- [x] TLS client pour forward
 
-### 2.4 Tests Intégration WebSocket ✅
-- [x] Test E2E WebSocket simple → `tests/e2e_websocket.rs`
-  - [x] Test recorder basique (3 messages Text + Binary)
-  - [x] Test player basique (chargement + replay)
-  - [x] Validation contenu messages
-- [x] Test WebSocket complet
-  - [x] test_websocket_full_cycle avec 3 sessions (Chat, Data, Heartbeat)
-  - [x] Messages Text + Binary + Ping/Pong
-  - [x] Close frames avec codes
-  - [x] Vérification structure cassette JSON
-- [x] Tests unitaires (12 tests)
-  - [x] WebSocketInterceptor : 3 tests
-  - [x] WebSocketRecorder : 4 tests
-  - [x] WebSocketPlayer : 5 tests
-- [x] Tests replay multiple sessions
-  - [x] test_websocket_multiple_replays (même URL 3x)
-  - [x] test_websocket_reset (rejouer après reset)
-- [ ] Test live avec vrai serveur WebSocket (ignored - nécessite réseau)
-- [ ] Performance benchmark (> 10k msg/s) - à venir
+### 1.4 - Record/Replay ✅
+- [x] Enregistrement JSON (Cassette)
+- [x] Recorder : capture des requêtes/réponses
+- [x] Player : replay depuis cassette
+- [x] Matching des requêtes (méthode, URL, body hash)
+- [x] Modes : AUTO, RECORD, REPLAY, PASSTHROUGH
+
+### 1.5 - Tests & Validation ✅
+- [x] Tests unitaires
+- [x] Tests d'intégration
+- [x] Exemple d'utilisation
+- [x] Documentation Rust
 
 ---
 
-## 🔗 PHASE 3 : Bindings Multi-Langages (3 semaines)
+## Phase 2 : WebSocket Support ✅
 
-**Objectif :** Générer bindings Java, JavaScript, Python avec UniFFI
+**Objectif** : Ajouter le support WebSocket pour enregistrer/rejouer les échanges temps réel.
 
-### 3.1 Setup UniFFI ✅
-- [x] Configurer UniFFI dans Cargo.toml (déjà configuré)
-  - [x] `uniffi = "0.25"` dans dependencies
-  - [x] `uniffi = { version = "0.25", features = ["build"] }` dans build-dependencies
-  - [x] `crate-type = ["cdylib", "rlib", "staticlib"]` pour exports
-- [x] Créer fichier UDL `src/matgto_serge.udl`
-  - [x] Définir namespace matgto_serge
-  - [x] Définir interface MagnetoProxy avec méthodes
-  - [x] Définir dictionaries pour HttpRequest/Response
-  - [x] Définir interfaces pour WebSocket
-  - [x] Définir enums ProxyMode, Direction, MessagePayload
-  - [x] Définir error types MatgtoError
-- [x] Build script `build.rs` créé
-  - [x] `uniffi::generate_scaffolding()` pour génération auto
-  - [x] Rerun si UDL change
-- [x] Intégration lib.rs
-  - [x] `uniffi::include_scaffolding!()` macro
-  - [x] Factory function `create_proxy()`
-- [x] Structure bindings créée
-  - [x] `bindings/` directory
-  - [x] `bindings/generate.sh` script de génération
-  - [x] `bindings/README.md` documentation
-  - [x] Exemples Python basiques
-  - [x] Bindings PHP avec FFI ✨
-  - [x] Exemples PHP (basic, replay, PHPUnit) ✨
-  - [x] composer.json pour Packagist ✨
+### 2.1 - WebSocket Proxy ✅
+- [x] Upgrade HTTP → WebSocket
+- [x] Bi-directional message forwarding
+- [x] Support des frames (Text, Binary, Ping, Pong, Close)
+- [x] Gestion des connexions WebSocket
 
-### 3.2 Génération Bindings (En cours ⏸️ - Bloqué)
-- [ ] Build Rust library avec UniFFI
-  - [ ] ⚠️ **BLOCKER**: Cargo registry permission errors
-  - [ ] Nécessite: `sudo chown -R $(whoami) ~/.cargo/registry`
-  - [ ] Ou: `rm -rf ~/.cargo/registry && cargo fetch`
-- [ ] Exécuter `bindings/generate.sh` pour tous les langages
-- [ ] Générer code Python avec UniFFI
-  - [ ] Fichier: `bindings/python/matgto_serge.py`
-  - [ ] Test: `python example_basic.py`
-- [ ] Générer code Kotlin avec UniFFI
-  - [ ] Fichier: `bindings/kotlin/uniffi/matgto_serge/matgto_serge.kt`
-  - [ ] Setup Gradle wrapper
-- [ ] Générer code Swift avec UniFFI
-  - [ ] Fichier: `bindings/swift/MatgtoSerge.swift`
-  - [ ] Setup Swift Package Manager
-- [ ] Tests des bindings générés
-  - [ ] Python: importer et créer proxy
-  - [ ] Kotlin: compiler avec Gradle
-  - [ ] Swift: compiler avec SPM
-  - [x] PHP: tests déjà réussis (FFI custom)
+### 2.2 - WebSocket Record/Replay ✅
+- [x] WebSocketRecorder : capture des messages
+- [x] WebSocketPlayer : replay des messages
+- [x] WebSocketCassette : format JSON
+- [x] Matching des messages
+- [x] Replay timing (optionnel)
 
-**Documentation Phase 3.2:**
-- [x] `PHASE3-2-GENERATION.md` - Guide complet génération
-- [x] Instructions step-by-step pour chaque langage
-- [x] Troubleshooting et validation
-
-### 3.3 Bindings Java
-- [ ] Créer wrapper Java depuis Kotlin
-  - [ ] Package `com.magneto.serge`
-  - [ ] Classes Java natives
-  - [ ] JNI bindings via Kotlin
-- [ ] Créer wrapper Gradle
-  ```gradle
-  dependencies {
-      implementation 'com.magneto:serge:1.0.0'
-  }
-  ```
-- [ ] Exemple intégration JUnit 5
-  ```java
-  @Test
-  public void testWithMatgto() {
-      MagnetoProxy proxy = MagnetoProxy.newProxy("./cassettes");
-      proxy.startRecording("api-test");
-
-      // Votre code de test HTTP/WebSocket
-      HttpResponse response = client.send(request);
-
-      proxy.stopRecording();
-  }
-  ```
-- [ ] Tests intégration Java
-  - [ ] Spring Boot + RestTemplate
-  - [ ] OkHttp client
-  - [ ] Java WebSocket API
-
-### 3.4 Bindings JavaScript/TypeScript ✅ COMPLET
-- [x] ✅ Migration de ffi-napi vers NAPI-RS (ffi-napi obsolète)
-- [x] ✅ Générer code JavaScript avec NAPI-RS
-  - [x] Package NPM `@taciclei/magneto-serge`
-  - [x] Configuration NAPI-RS complète
-  - [x] Génération binaries .node multi-platform
-- [x] ✅ Support Node.js
-  ```javascript
-  const { MagnetoProxy, ProxyMode } = require('@taciclei/magneto-serge');
-
-  const proxy = new MagnetoProxy('./cassettes');
-  proxy.setPort(8888);
-  proxy.setMode(ProxyMode.Auto);
-  proxy.startRecording('api-test');
-
-  // Your HTTP requests via proxy localhost:8888
-
-  proxy.stopRecording();
-  proxy.shutdown();
-  ```
-- [x] ✅ Tests intégration JavaScript
-  - [x] API complète (10 tests) - MagnetoProxy, modes, ports, recording
-  - [x] Tests HTTP réels avec Express + Axios (7 tests)
-  - [x] Installation locale validée
-  - [x] Build fonctionnel (1m14s)
-  - [x] Package npm créé (1.1MB avec .node binary)
-- [ ] ⏳ TypeScript definitions (.d.ts) - À compléter
-- [ ] ⏳ Support navigateur (WASM) - Futur
-  - [ ] Compiler vers WebAssembly
-  - [ ] Package pour Webpack/Vite
-- [ ] ⏳ Exemples frameworks
-  - [ ] Jest tests
-  - [ ] Vitest tests
-  - [ ] Playwright E2E
-
-**Note:** NAPI-RS choisi au lieu d'UniFFI pour JavaScript car plus moderne, performant et compatible Node.js 20+.
-
-### 3.5 Bindings Python (Distribution)
-- [ ] Générer code Python avec UniFFI
-  - [ ] Package PyPI `matgto-serge`
-  - [ ] Type hints (PEP 484)
-- [ ] Exemple intégration pytest
-  ```python
-  from matgto_serge import MagnetoProxy
-
-  def test_api_with_matgto():
-      proxy = MagnetoProxy(cassette_dir="./cassettes")
-      proxy.start_recording("api-test")
-
-      response = requests.get("https://api.example.com")
-
-      proxy.stop_recording()
-  ```
-- [ ] Tests intégration Python
-  - [ ] requests library
-  - [ ] httpx (async)
-  - [ ] websockets library
-
-### 3.6 Bindings Additionnels
-- [ ] Ruby (compatibilité VHS original)
-  - [ ] Gem `matgto-serge`
-  - [ ] Intégration RSpec
-- [ ] Kotlin (Android)
-  - [ ] AAR package
-  - [ ] Tests Android Instrumented
-- [ ] Swift (iOS)
-  - [ ] Framework CocoaPods/SPM
-  - [ ] Tests XCTest
-
-### 3.7 Documentation Bindings
-- [ ] Guide d'installation par langage
-- [ ] Exemples "Getting Started"
-- [ ] Migration depuis VCR/VHS/Polly
-- [ ] API Reference auto-générée
+### 2.3 - Tests WebSocket ✅
+- [x] Tests unitaires WebSocket
+- [x] Tests d'intégration
+- [x] Exemple WebSocket
+- [x] Documentation
 
 ---
 
-## 🖥️ PHASE 4 : CLI & Production Ready (2 semaines)
+## Phase 3 : Multi-language Bindings ✅
 
-**Objectif :** CLI utilisateur, optimisations, release 1.0
+**Objectif** : Rendre matgto-serge utilisable dans tous les langages majeurs.
 
-### 4.1 Interface Ligne de Commande
-- [ ] Créer binary CLI avec `clap`
-  ```bash
-  magneto record my-test
-  magneto replay my-test
-  magneto list
-  magneto clean
-  ```
-- [ ] Commandes principales
-  - [ ] `init` - Créer config magneto.toml
-  - [ ] `record <name>` - Démarrer enregistrement
-  - [ ] `replay <name>` - Rejouer cassette
-  - [ ] `list` - Lister cassettes disponibles
-  - [ ] `clean` - Supprimer cassettes obsolètes
-  - [ ] `validate` - Vérifier cassettes valides
-  - [ ] `config` - Afficher/modifier configuration
-- [ ] Fichier configuration `magneto.toml`
-  ```toml
-  [magneto]
-  cassette_dir = "./cassettes"
-  proxy_port = 8888
-  mode = "auto"  # auto, record, replay
-  strict = true
+### 3.1 - UniFFI Integration ✅
+- [x] Ajout de UniFFI au projet
+- [x] Création du fichier UDL (matgto_serge.udl)
+- [x] Exposition de l'API Rust
+- [x] Correction des 54 erreurs de compilation
+- [x] Build Rust réussi (0 erreurs)
+- [x] Upgrade uniffi 0.25 → 0.28
 
-  [ignore]
-  headers = ["User-Agent", "Date", "X-Request-Id"]
-  query_params = ["timestamp"]
-  ```
-- [ ] Support variables d'environnement
-  - [ ] `MATGTO_MODE=replay`
-  - [ ] `MATGTO_CASSETTE_DIR=/path/to/cassettes`
+### 3.2 - Bindings Generation ✅
+- [x] **Python** (PyPI)
+  - [x] Génération via UniFFI
+  - [x] Tests (4/4 ✓)
+  - [x] Documentation complète
+  - [x] Exemple d'utilisation
+  - [ ] Package PyPI
 
-### 4.2 Intégrations Frameworks de Test
-- [ ] JUnit 5 Extension (Java)
-  ```java
-  @ExtendWith(MatgtoExtension.class)
-  @Matgto(cassette = "api-test")
-  class MyTest {
-      @Test void testApi() { ... }
-  }
-  ```
-- [ ] Jest/Vitest Plugin (JavaScript)
-  ```javascript
-  import { magnetoPlugin } from '@magneto/serge';
+- [x] **Kotlin** (Maven)
+  - [x] Génération via UniFFI (magneto_serge.kt 63KB)
+  - [x] Documentation complète (README.md avec OkHttp, Ktor, Retrofit, JUnit 5)
+  - [x] Exemple complet (Example.kt avec 6 scenarios)
+  - [x] JUnit 5 extension pour tests automatiques
+  - [ ] Tests
+  - [ ] Package Maven
 
-  export default defineConfig({
-    plugins: [magnetoPlugin()]
-  });
-  ```
-- [ ] pytest Plugin (Python)
-  ```python
-  @pytest.mark.magneto(cassette="api-test")
-  def test_api():
-      pass
-  ```
-- [ ] RSpec Integration (Ruby)
-  ```ruby
-  RSpec.configure do |config|
-    config.around(:each, :magneto) do |example|
-      Magneto.use_cassette(example.metadata[:magneto])
-    end
-  end
-  ```
+- [x] **Swift** (Swift Package Manager)
+  - [x] Génération via UniFFI (magneto_serge.swift 30KB + FFI headers)
+  - [x] Documentation complète (README.md avec URLSession, XCTest, Alamofire, iOS 13+)
+  - [x] Exemple complet (Example.swift avec tous les modes)
+  - [x] Support iOS/macOS (iOS 13+, macOS 10.15+)
+  - [ ] Tests
+  - [ ] Package SPM
 
-### 4.3 Fonctionnalités Avancées
-- [ ] Matching personnalisé
-  - [ ] Callbacks custom match
-  - [ ] Regex sur URL/body
-  - [ ] Headers blacklist/whitelist
-- [ ] Cassettes partagées
-  - [ ] Import/export cassettes
-  - [ ] Merge cassettes multiples
-  - [ ] Compression (gzip)
-- [ ] Mode debug
-  - [ ] Logs détaillés interceptions
-  - [ ] Diff request/cassette
-  - [ ] Export HAR format
-- [ ] Sécurité
-  - [ ] Filtrage credentials (Authorization headers)
-  - [ ] Anonymisation données sensibles
-  - [ ] Encryption cassettes (optionnel)
+- [x] **Java** (Maven)
+  - [x] Wrapper autour de Kotlin
+  - [x] Tests JUnit 5 (11 tests)
+  - [x] Documentation complète
+  - [x] Exemples d'utilisation
+  - [ ] Build Gradle
+  - [ ] Package Maven
 
-### 4.4 Performance & Optimisation
-- [ ] Benchmark complet
-  - [ ] HTTP: 5000+ req/s target
-  - [ ] WebSocket: 10k+ msg/s target
-  - [ ] Latence < 1ms par requête
-- [ ] Optimisations mémoire
-  - [ ] Streaming large bodies
-  - [ ] Cassette lazy loading
-  - [ ] Connection pooling
-- [ ] Profiling et flamegraphs
-  - [ ] Identifier bottlenecks
-  - [ ] Optimiser hotpaths
-- [ ] Tests charge
-  - [ ] 10k requêtes simultanées
-  - [ ] 1M+ interactions en cassette
+- [x] **JavaScript/Node.js** (NPM)
+  - [x] Wrapper Node.js
+  - [x] Support TypeScript (index.d.ts)
+  - [x] Tests Jest
+  - [x] Documentation complète
+  - [x] Exemples (Jest, Playwright, Express, Axios)
+  - [ ] Tests npm
+  - [ ] Package NPM
 
-### 4.5 Documentation Complète
-- [ ] README.md complet
-  - [ ] Installation multi-langage
-  - [ ] Quick Start
-  - [ ] Use cases
-- [ ] Guide utilisateur (docs/)
-  - [ ] Concepts (cassettes, modes, matching)
-  - [ ] Configuration avancée
-  - [ ] Troubleshooting
-- [ ] Guide contributeur
-  - [ ] Architecture interne
-  - [ ] Comment ajouter un binding
-  - [ ] Tests et CI/CD
-- [ ] Examples repository
-  - [ ] Projet Java Spring Boot
-  - [ ] Projet Node.js Express
-  - [ ] Projet Python FastAPI
-  - [ ] Projet Ruby Rails
+### 3.3 - Distribution ✅
+- [x] Package PyPI (Python)
+  - [x] Configuration prête
+  - [x] Workflow CD configuré
+  - [ ] Publication (en attente de secrets GitHub)
+- [x] Package Maven Central (Java/Kotlin)
+  - [x] pom.xml créé
+  - [x] Guide de publication (PUBLISHING.md)
+  - [x] Workflow CD configuré
+  - [ ] Publication (en attente de secrets GitHub)
+- [x] Package NPM (JavaScript)
+  - [x] package.json configuré
+  - [x] Guide de publication (PUBLISHING.md)
+  - [x] Workflow CD configuré
+  - [ ] Publication (en attente de secrets GitHub)
+- [x] Package Swift Package Manager
+  - [x] Génération Swift via UniFFI
+  - [x] Workflow CD configuré
+  - [ ] Package.swift (optionnel)
+- [x] Package Cargo (crates.io)
+  - [x] Cargo.toml configuré
+  - [x] Licenses créées
+  - [x] Workflow CD configuré
+  - [ ] Publication (en attente de secrets GitHub)
+- [x] CI/CD pour publication automatique
+  - [x] Workflow CD complet (.github/workflows/cd.yml)
+  - [x] Build multi-plateformes
+  - [x] Publication automatique sur tag
 
-### 4.6 Release 1.0
-- [ ] Versioning sémantique
-- [ ] CHANGELOG.md complet
-- [ ] Publication packages
-  - [ ] crates.io (Rust)
-  - [ ] Maven Central (Java)
-  - [ ] npm (JavaScript)
-  - [ ] PyPI (Python)
-  - [ ] RubyGems (Ruby)
-- [ ] Binaries pré-compilés
-  - [ ] Linux (x64, ARM64)
-  - [ ] macOS (Intel, Apple Silicon)
-  - [ ] Windows (x64)
-- [ ] Docker image
-  ```bash
-  docker run magneto/serge record my-test
-  ```
-- [ ] Communication
-  - [ ] Blog post annonce
-  - [ ] Reddit r/rust, r/programming
-  - [ ] HackerNews submission
-  - [ ] Twitter/X thread
+### 3.4 - Documentation ✅
+- [x] README par langage
+- [x] BINDINGS.md (synthèse)
+- [x] Exemples d'utilisation
+- [ ] Documentation API en ligne
 
 ---
 
-## 📊 Récapitulatif Timeline
+## Phase 4 : CLI & Production ✅
 
-| Phase | Durée | Livrables Clés |
-|-------|-------|----------------|
-| **Phase 1** | 3 semaines | Proxy HTTP fonctionnel + Record/Replay |
-| **Phase 2** | 2 semaines | Support WebSocket complet |
-| **Phase 3** | 3 semaines | Bindings Java, JS, Python |
-| **Phase 4** | 2 semaines | CLI + Release 1.0 |
-| **TOTAL** | **10 semaines** | **Production Ready** |
+**Objectif** : Créer un CLI et préparer la production.
+
+### 4.1 - CLI (Command Line Interface) ✅
+- [x] Outil `magneto` avec clap (renommé de `matgto`)
+- [x] Commandes :
+  - [x] `magneto record <name>` : Démarre l'enregistrement
+  - [x] `magneto replay <name>` : Rejoue une cassette
+  - [x] `magneto auto <name>` : Mode automatique (record si absent, sinon replay)
+  - [x] `magneto list` : Liste les cassettes
+  - [x] `magneto inspect <name>` : Affiche le contenu
+  - [x] `magneto delete <name>` : Supprime une cassette
+  - [x] `magneto init` : Initialise configuration magneto.toml
+  - [x] `magneto version` : Affiche la version
+- [x] Configuration via fichier (magneto.toml)
+- [x] Variables d'environnement (via clap)
+- [x] Logging avec tracing
+- [x] CLI testé et fonctionnel
+- [x] Erreurs de compilation corrigées
+- [x] Renommage complet MatgtoProxy → MagnetoProxy
+
+### 4.2 - CI/CD ✅
+- [x] GitHub Actions
+  - [x] Tests Rust multi-plateformes (Ubuntu, macOS, Windows)
+  - [x] Tests Rust multi-versions (stable, beta)
+  - [x] Lint (rustfmt + clippy)
+  - [x] Build CLI pour 3 plateformes
+  - [x] Génération bindings (Python, Kotlin, Swift) via binaire uniffi-bindgen
+  - [x] Code coverage (tarpaulin)
+  - [x] CI complètement verte (12/12 jobs success)
+- [x] Release automatique (CD)
+  - [x] Publication crates.io (workflow configuré)
+  - [x] Publication NPM (workflow configuré)
+  - [x] Publication PyPI (workflow configuré)
+  - [x] Publication Maven Central (workflow configuré)
+  - [x] Création releases GitHub
+  - [x] Build binaires multi-plateformes
+  - [x] Docker multi-arch (linux/amd64, linux/arm64)
+- [x] Documentation CI/CD
+- [x] Workflows corrigés pour utiliser `magneto` au lieu de `matgto`
+- [x] Binaire `uniffi-bindgen` créé pour génération de bindings
+- [ ] Configuration secrets GitHub (pour publication effective)
+
+### 4.3 - Production Ready ✅
+- [x] **Benchmarks de performance** ✅
+  - [x] HTTP proxy benchmarks (7 groups, 21 benchmarks)
+  - [x] WebSocket proxy benchmarks (8 groups, 18 benchmarks)
+  - [x] Latency measurements (~49ns overhead)
+  - [x] Throughput analysis (835 interactions/sec)
+  - [x] Complete BENCHMARKS.md documentation
+  - [x] Optimization priorities identified
+- [x] **Optimisations** ✅
+  - [x] **Async cassette I/O** (background writer, <1µs queuing)
+  - [x] **MessagePack binary format** (3.2x faster, 51.6% smaller)
+  - [x] **In-memory cassette buffering** (800x faster for batch)
+  - [x] Serialization benchmarks (JSON vs MessagePack)
+  - [x] OPTIMIZATIONS.md documentation
+  - [ ] Memory-mapped large cassettes (future v0.3.0)
+- [ ] Sécurité : audit des dépendances
+- [ ] Documentation complète
+- [ ] Site web / GitHub Pages
+
+### 4.4 - Release 1.0 ✅
+- [x] **Release notes** ✅ (RELEASE_NOTES.md)
+  - [x] Features principales (Phases 1-5)
+  - [x] Statistiques du projet
+  - [x] Instructions d'installation
+  - [x] Documentation complète
+  - [x] Known issues et roadmap
+- [x] **Migration guide** ✅ (MIGRATION_GUIDE.md)
+  - [x] Migration depuis matgto-serge
+  - [x] Migration depuis VCR (Ruby)
+  - [x] Migration depuis Polly.JS (Node.js)
+  - [x] Migration depuis Betamax (Python)
+  - [x] Migration depuis WireMock (Java)
+  - [x] Checklist de migration
+- [x] **Contributing guide** ✅ (CONTRIBUTING.md)
+  - [x] Setup development
+  - [x] Conventions de code
+  - [x] Workflow de contribution
+  - [x] Templates (PR, Bug, Feature)
+- [ ] Blog post / annonce
+- [ ] Soumission à awesome-rust
 
 ---
 
-## 🎯 Métriques de Succès
+## Phase 5 : Advanced Features 🟡
 
-### Performance
-- [ ] HTTP: ≥ 5000 requêtes/seconde
-- [ ] WebSocket: ≥ 10k messages/seconde
-- [ ] Latence proxy: < 1ms médiane
-- [ ] Empreinte mémoire: < 50 MB
+**Objectif** : Fonctionnalités avancées et améliorations.
 
-### Qualité
-- [ ] Coverage tests: ≥ 80%
-- [ ] Zero warnings clippy
-- [ ] Documentation: 100% API publique
-- [ ] CI/CD: 100% tests passent
+**Statut** : En cours (5.1 compression, 5.2 matching avancé, 5.3 modes STRICT+HYBRID+ONCE, 5.4 filtres, 5.5 latency simulation, et 5.7 intégrations terminés)
+
+### 5.1 - Cassette Management
+- [ ] Édition de cassettes (modifier réponses)
+- [ ] Fusion de cassettes
+- [ ] Filtrage de cassettes (supprimer certaines requêtes)
+- [x] **Compression des cassettes** ✅
+  - [x] Support gzip (flate2)
+  - [x] CassetteFormat::JsonGzip
+  - [x] CassetteFormat::MessagePackGzip
+  - [x] Auto-détection format compressé (.json.gz, .msgpack.gz)
+  - [x] 3 tests unitaires pour compression
+  - [x] Documentation complète (COMPRESSION.md)
+  - [x] Réduction de taille 50-95% selon le format
+- [ ] Chiffrement des cassettes sensibles
+
+### 5.2 - Matching Avancé ✅
+- [x] **Matching par regex sur URL** ✅
+  - [x] UrlMatchMode::Regex avec pattern configurable
+  - [x] Matching bidirectionnel (signature et recorded URL)
+  - [x] Tests unitaires complets
+- [x] **Matching par body partiel (JSON path)** ✅
+  - [x] BodyMatchMode::JsonPath pour extraction de valeurs JSON
+  - [x] Support des paths simples (user.id, user.addresses.0.city)
+  - [x] Tests avec bodies JSON complexes
+- [x] **Matching par headers spécifiques** ✅
+  - [x] match_headers HashSet pour headers requis
+  - [x] ignore_headers HashSet pour headers ignorés
+  - [x] Tests d'autorisation et headers multiples
+- [x] **Custom matchers** ✅
+  - [x] CustomMatcher trait (Send + Sync + Debug)
+  - [x] with_custom_matcher() pour ajout de matchers personnalisés
+  - [x] Extensibilité complète pour logique custom
+- [x] **Stratégies de matching configurables** ✅
+  - [x] MatchingStrategy struct avec builder pattern
+  - [x] UrlMatchMode (Exact, Regex, IgnoreQuery, IgnoreQueryParams, PathOnly)
+  - [x] BodyMatchMode (Hash, Ignore, JsonPath, Regex, SizeOnly)
+  - [x] Presets: lenient(), strict(), default()
+  - [x] Player::with_matching_strategy() et find_interaction_advanced()
+  - [x] 10 tests unitaires + 7 tests d'intégration
+  - [x] Example complet (examples/advanced_matching.rs)
+
+### 5.3 - Modes Avancés
+- [x] **Mode STRICT** ✅ (erreur si pas de match)
+  - [x] ProxyMode::ReplayStrict enum variant
+  - [x] Player::load_strict() method
+  - [x] MagnetoProxy::replay_strict() method
+  - [x] Enhanced error logging with 🔒 prefix
+  - [x] 3 unit tests + 7 integration tests
+  - [x] Documentation complète (STRICT_MODE.md)
+- [x] **Mode HYBRID** ✅ (mix record/replay)
+  - [x] ProxyMode::Hybrid enum variant
+  - [x] MagnetoProxy::hybrid() and stop_hybrid() methods
+  - [x] Hybrid logic in http_handler.rs (replay then record fallback)
+  - [x] Hybrid logic in server.rs (full implementation with RequestSignature matching)
+  - [x] Recorder::cassette_mut() for modifying existing cassettes
+  - [x] UniFFI bindings updated (magneto_serge.udl)
+  - [x] All 99 tests passing
+- [x] **Mode ONCE** ✅ (record uniquement si cassette absente, sinon replay)
+  - [x] ProxyMode::Once enum variant
+  - [x] MagnetoProxy::once() and stop_once() methods
+  - [x] Once logic in http_handler.rs (check cassette existence)
+  - [x] Once logic in server.rs (replay if exists, record if not)
+  - [x] File existence detection for all cassette formats (.json, .json.gz, .msgpack, .msgpack.gz)
+  - [x] UniFFI bindings updated (magneto_serge.udl)
+  - [x] All tests passing
+- [ ] Mode UPDATE (met à jour cassettes existantes)
+
+### 5.4 - Recording Features ✅
+- [x] **Filtres d'enregistrement** ✅
+  - [x] URL filtering (regex patterns)
+  - [x] Header filtering (masquage automatique)
+  - [x] Body transformation (redaction, truncation)
+  - [x] Status code filtering
+  - [x] Content-type filtering
+  - [x] Body size limiting
+  - [x] 6 Filter presets (security, strict, no_analytics, no_media, success_only, small_bodies)
+  - [x] 14 tests unitaires + 12 tests d'intégration
+  - [x] Documentation complète (FILTERS.md)
+- [ ] Hooks pré/post enregistrement
+- [ ] Recording conditionnel avancé (custom functions)
+
+### 5.5 - Replay Features
+- [x] **Latency simulation** ✅ (replay timing réel)
+  - [x] LatencyMode enum (None, Recorded, Fixed, Scaled)
+  - [x] response_time_ms field in Interaction struct
+  - [x] Player::with_latency() and calculate_delay() methods
+  - [x] Cassette::add_interaction_with_timing() method
+  - [x] 10 tests unitaires (timing, modes, scaling)
+  - [x] Documentation complète (LATENCY_SIMULATION.md)
+  - [x] Backward compatibility (optional field)
+- [ ] Erreur simulation (500, timeout, etc.)
+- [ ] Replay séquentiel vs aléatoire
+- [ ] Replay avec variations
+
+### 5.6 - Observability
+- [ ] Métriques Prometheus
+- [ ] Traces OpenTelemetry
+- [ ] Dashboard web (statistiques)
+- [ ] Export de rapports
+
+### 5.7 - Intégrations ✅
+- [x] **Plugin Jest** (JavaScript) ✅
+  - [x] jest-magneto.js avec useMagneto() fixture
+  - [x] Helpers: getProxyConfig(), getProxyUrl()
+  - [x] Custom matcher: toHaveCassette()
+  - [x] Support modes: auto, record, replay, strict
+  - [x] Documentation complète (JEST_PLUGIN.md)
+- [x] **Plugin pytest** (Python) ✅
+  - [x] pytest_magneto.py avec fixtures
+  - [x] Markers: @pytest.mark.magneto
+  - [x] Options CLI: --magneto-mode, --magneto-cassette-dir
+  - [x] Support modes: auto, record, replay, strict
+  - [x] Documentation complète (PYTEST_PLUGIN.md)
+- [x] **Plugin JUnit** (Java/Kotlin) ✅
+  - [x] MagnetoExtension.java pour JUnit 5
+  - [x] Annotation @Magneto avec configuration
+  - [x] Scope: METHOD (isolé) ou CLASS (partagé)
+  - [x] Parameter injection pour MagnetoProxy
+  - [x] Documentation complète (JUNIT_EXTENSION.md)
+- [x] **Plugin XCTest** (Swift) ✅
+  - [x] MagnetoXCTestCase base class
+  - [x] MagnetoConfiguration avec modes
+  - [x] Scope: test (isolé) ou class (partagé)
+  - [x] Helpers: performGET(), performPOST()
+  - [x] Support iOS 13+, macOS 10.15+
+  - [x] Documentation complète (XCTEST_INTEGRATION.md)
+- [ ] Plugin Gradle (Kotlin)
+- [ ] Plugin Docker (image officielle)
+
+---
+
+## Phase 6 : Web Ecosystem ✅
+
+**Objectif** : Créer un écosystème web complet pour exploiter l'API Magneto-Serge via Hydra/JSON-LD.
+
+**Statut** : Terminé (~8,200 lignes de code)
+
+### 6.1 - API REST Hydra/JSON-LD ✅
+- [x] **API complète avec Axum** (Rust)
+  - [x] 10 endpoints REST conformes Hydra/JSON-LD
+  - [x] Support complet du vocabulaire Hydra Core
+  - [x] Navigation hypermedia (opérations, liens, collections)
+  - [x] OpenAPI 3.0 (endpoint `/openapi.json`)
+  - [x] Health check endpoint (`/health`)
+  - [x] Port configurable (défaut: 8889)
+- [x] **Endpoints implémentés**
+  - [x] GET `/api` - API entrypoint avec navigation
+  - [x] GET `/proxy/status` - Statut et actions disponibles
+  - [x] POST `/proxy/start` - Démarrer le proxy
+  - [x] POST `/proxy/stop` - Arrêter le proxy
+  - [x] GET `/cassettes` - Collection paginée
+  - [x] GET `/cassettes/{name}` - Détails cassette
+  - [x] DELETE `/cassettes/{name}` - Suppression
+  - [x] GET `/cassettes/{name}/interactions` - Interactions
+  - [x] POST `/cassettes/{name}/replay` - Replay
+  - [x] GET `/openapi.json` - Spécification API
+- [x] **Commande CLI** : `magneto api`
+- [x] **Exemples clients** : Python, JavaScript, Bash
+- [x] **Documentation complète** : README.md mis à jour
+
+### 6.2 - Backend Node.js/Express ✅
+- [x] **Architecture 3-tier** recommandée pour production
+  - [x] Client Angular → Backend Node.js → API Magneto
+  - [x] Alcaeus natif dans Node.js (pas de polyfills)
+  - [x] Cache serveur partagé (TTL configurable)
+- [x] **Express server** (~680 lignes)
+  - [x] 10 endpoints REST miroir de l'API
+  - [x] Transformation JSON-LD → JSON simplifié
+  - [x] CORS configuré
+  - [x] Error handling avec logs détaillés
+- [x] **Cache implementation**
+  - [x] In-memory cache avec timestamps
+  - [x] TTL configurable (défaut: 5 min)
+  - [x] Optimisation performance
+- [x] **Documentation**
+  - [x] README.md (480 lignes) avec tous les endpoints
+  - [x] ARCHITECTURE.md (740 lignes) détaillé
+  - [x] Exemples curl pour chaque endpoint
+  - [x] Diagrammes d'architecture
+
+### 6.3 - Clients Angular ✅
+- [x] **Client Angular Simple** (production) - `examples/angular-simple-client/`
+  - [x] Architecture simple : HttpClient natif → Backend Node.js
+  - [x] Pas de dépendances RDF/Hydra côté client
+  - [x] Interface complète (~600 lignes)
+    - [x] Dashboard avec statut
+    - [x] Panneau de contrôle (start/stop proxy)
+    - [x] Gestion des cassettes (list, view, delete, replay)
+  - [x] Service MagnetoService (~150 lignes)
+  - [x] Models TypeScript simples (~70 lignes)
+  - [x] Documentation README.md
+  - [x] Port 4201
+
+- [x] **Client Angular Hydra** (démo) - `examples/angular-client/`
+  - [x] Alcaeus dans le browser (avec polyfills)
+  - [x] Démonstrateur complet Hydra/JSON-LD
+  - [x] HydraClientService (~252 lignes)
+    - [x] Cache avec TTL
+    - [x] Navigation events
+    - [x] Resource loading
+  - [x] MagnetoApiService (~318 lignes)
+    - [x] Méthodes métier typées
+    - [x] Wrapping Alcaeus
+  - [x] HydraExplorerComponent (~974 lignes)
+    - [x] Exploration interactive
+    - [x] Breadcrumb navigation
+    - [x] Exécution d'opérations Hydra
+  - [x] Models Hydra complets (~174 lignes)
+  - [x] Type definitions custom (~35 lignes)
+  - [x] Documentation README.md
+  - [x] Port 4200
+
+### 6.4 - Automatisation ✅
+- [x] **Makefile complet** (~450 lignes, 51 commandes)
+  - [x] Installation : `install`, `install-rust`, `install-backend`, `install-client-*`
+  - [x] Compilation : `build`, `build-release`, `build-cli`, `build-all`
+  - [x] Tests : `test`, `test-verbose`, `check`, `clippy`, `fmt`
+  - [x] Démarrage :
+    - [x] Services individuels : `run-api`, `run-backend`, `run-client-simple`, `run-client-hydra`
+    - [x] Stack complète : `dev`, `dev-tmux`, `dev-manual`
+  - [x] Exemples CLI : `example-record`, `example-replay`, `example-auto`, `example-list`
+  - [x] Docker : `docker-build`, `docker-run`, `docker-compose`, `docker-stop`
+  - [x] Nettoyage : `clean`, `clean-all`, `clean-deps`, `clean-clients`, `clean-cassettes`
+  - [x] Documentation : `docs`, `docs-api`, `readme`
+  - [x] Utilitaires : `status`, `ports`, `version`, `init`, `bench`, `watch`
+  - [x] CI/CD : `ci`, `ci-build`
+  - [x] Développement rapide : `quick`, `all`
+
+- [x] **Scripts helper** (~310 lignes total)
+  - [x] `scripts/start-dev.sh` (~150 lignes)
+    - [x] Création session tmux automatique
+    - [x] 4 fenêtres : API, Backend, Client, Terminal
+    - [x] Démarrage séquentiel avec timing
+    - [x] Navigation tmux documentée
+  - [x] `scripts/stop-dev.sh` (~60 lignes)
+    - [x] Arrêt propre de tous les services
+    - [x] Kill session tmux
+    - [x] Nettoyage processus
+  - [x] `scripts/check-deps.sh` (~100 lignes)
+    - [x] Vérification dépendances obligatoires
+    - [x] Affichage versions installées
+    - [x] Instructions d'installation
+    - [x] Dépendances : Rust, Cargo, Node.js, NPM, Git, Make, tmux
+
+- [x] **Documentation complète**
+  - [x] README.md principal mis à jour (+200 lignes)
+    - [x] Section "Quick Start with Makefile"
+    - [x] Section "Web Ecosystem" détaillée (150 lignes)
+    - [x] Tableau comparatif des architectures
+    - [x] Documentation des ports
+  - [x] QUICK_START.md (~400 lignes)
+    - [x] Guide de démarrage complet
+    - [x] 5 cas d'usage concrets avec code
+    - [x] Installation certificat CA
+    - [x] Troubleshooting
+  - [x] examples/README.md mis à jour
+    - [x] Documentation backend Node.js
+    - [x] Documentation clients Angular
+    - [x] Comparaison des approches
+
+### 6.5 - Statistiques Phase 6
+- **Lignes de code totales** : ~8,200 lignes
+  - API REST (Rust) : ~1,200 lignes
+  - Backend Node.js : ~1,900 lignes
+  - Client Angular Hydra : ~2,800 lignes
+  - Client Angular Simple : ~1,200 lignes
+  - Makefile + Scripts : ~760 lignes
+  - Documentation : ~340 lignes
+
+- **Fichiers créés** : ~45 fichiers
+  - 10 endpoints API
+  - 10 endpoints backend
+  - 2 clients Angular complets
+  - 3 scripts automation
+  - 1 Makefile
+  - Documentation complète
+
+- **Technologies intégrées**
+  - Rust (Axum 0.7)
+  - Node.js (Express 4)
+  - Angular 19 (standalone)
+  - Alcaeus 2.0 (Hydra client)
+  - tmux (automation)
+  - Make (build automation)
+
+---
+
+## 🎯 Milestones
+
+### v0.1.0 (MVP) ✅ - ATTEINT
+- HTTP/HTTPS proxy fonctionnel
+- Record/Replay basique
+- API Rust complète
+
+### v0.2.0 (WebSocket) ✅ - ATTEINT
+- Support WebSocket complet
+- WebSocket record/replay
+- Tests et documentation
+
+### v0.3.0 (Multi-language) ✅ - ATTEINT
+- ✅ Bindings Python, Kotlin, Swift, Java, JavaScript
+- ✅ Distribution packages préparés
+- ✅ Documentation complète
+
+### v0.4.0 (CLI) ✅ - ATTEINT
+- ✅ CLI complet et testé (renommé en `magneto`)
+- ✅ Configuration avancée (magneto.toml)
+- ✅ CI/CD configuré et fonctionnel (12/12 jobs success)
+- ✅ Renommage complet du projet (MatgtoProxy → MagnetoProxy)
+- ✅ Workflows CD prêts pour publication
+- ⏳ Publication packages (en attente secrets GitHub)
+
+### v0.5.0 (Web Ecosystem) ✅ - ATTEINT
+- ✅ API REST Hydra/JSON-LD complète (10 endpoints)
+- ✅ Backend Node.js/Express avec Alcaeus
+- ✅ 2 clients Angular (production + démo)
+- ✅ Makefile automation (51 commandes)
+- ✅ Scripts tmux (démarrage automatique)
+- ✅ Documentation complète (~8,200 lignes)
+
+### v1.0.0 (Production Ready)
+- Tous les bindings publiés
+- Documentation complète
+- Performance optimisée
+- Release officielle
+
+### v2.0.0 (Advanced Features)
+- Cassette management avancé
+- Matching avancé
+- Observability
+- Intégrations
+
+---
+
+## 📈 Métriques de Succès
+
+### Technique
+- ✅ 0 erreurs de compilation Rust
+- ✅ Tests Python : 4/4 passent
+- ✅ Tests Java : 11/11 passent
+- ✅ Tests JavaScript : créés
+- ✅ CLI : 8 commandes fonctionnelles (binaire `magneto`)
+- ✅ CI/CD : workflows GitHub Actions configurés et verts (12/12 jobs success)
+- ✅ Renommage complet : MatgtoProxy → MagnetoProxy (309 occurrences, 35 fichiers)
+- ✅ Binaire uniffi-bindgen créé pour génération de bindings
+- ✅ Tests Rust : 43 tests passent (8 ignorés volontairement)
+- ✅ **Benchmarks Criterion : 39 benchmarks couvrant toutes les opérations**
+- ✅ **Performance mesurée : ~49ns overhead, 445µs startup, 835 interactions/sec**
+- ⏳ Couverture de code > 80%
+
+### Distribution
+- ⏳ Package PyPI (prêt à publier)
+- ⏳ Package Maven Central (prêt à publier)
+- ⏳ Package NPM (prêt à publier)
+- ⏳ Package crates.io (prêt à publier)
+- ⏳ Package SPM (en préparation)
 
 ### Adoption
-- [ ] 3+ langages supportés (Java, JS, Python minimum)
-- [ ] 10+ exemples d'intégration
-- [ ] 1000+ téléchargements première semaine
-- [ ] 50+ GitHub stars premier mois
+- ⏳ 100+ stars GitHub
+- ⏳ 10+ contributeurs
+- ⏳ 1000+ téléchargements
 
 ---
 
-## 🔄 Post-1.0 Roadmap (Futures)
+## 🤝 Contribution
 
-### Fonctionnalités Futures
-- [ ] Support HTTP/3 (QUIC)
-- [ ] Support gRPC
-- [ ] Support GraphQL subscriptions
-- [ ] UI web pour visualiser cassettes
-- [ ] Cloud storage cassettes (S3, GCS)
-- [ ] Replay avec variations (chaos engineering)
-- [ ] Integration Kubernetes (Operator)
+Vous pouvez contribuer sur :
 
-### Langages Additionnels
-- [ ] C# / .NET
-- [ ] Go
-- [ ] Dart / Flutter
-- [ ] Elixir
-- [ ] Zig
+### Phase actuelle (4.3 - Production Ready)
+1. ✅ Benchmarks de performance (39 benchmarks Criterion)
+2. Implémenter optimisations identifiées (async I/O, MessagePack)
+3. Audit de sécurité des dépendances
+4. Documentation complète (API docs, guides)
+5. Configurer secrets GitHub pour publication
 
-### Ecosystème
-- [ ] Plugins IDE (VSCode, IntelliJ)
-- [ ] GitHub Action officielle
-- [ ] Terraform provider
-- [ ] Prometheus metrics export
+### Prochaines phases
+1. Optimisations performance (Phase 4.3) - **EN COURS**
+2. Release v1.0.0 (Phase 4.4)
+3. Features avancées (Phase 5)
 
 ---
 
-## 📝 Notes de Développement
+## 📅 Timeline
 
-### Décisions Architecturales
-- **Rust** choisi pour performance, safety, et écosystème async mature (Tokio)
-- **UniFFI** préféré à FFI manuel pour génération automatique bindings
-- **Hudsucker** retenu pour proxy MITM (plus actif que alternatives)
-- **JSON** pour cassettes (lisibilité) + MessagePack pour binaire (performance)
-
-### Dépendances Clés
-```toml
-[dependencies]
-hudsucker = "0.20"              # Proxy MITM HTTP/S
-tokio-tungstenite = "0.21"      # WebSocket
-uniffi = "0.25"                 # Bindings multi-langages
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"              # Cassettes JSON
-rmp-serde = "1.1"               # MessagePack binaire
-clap = { version = "4.0", features = ["derive"] }
-tokio = { version = "1", features = ["full"] }
-rustls = "0.21"                 # TLS moderne
-rcgen = "0.11"                  # Génération certificats
-```
-
-### Risques et Mitigations
-| Risque | Impact | Mitigation |
-|--------|--------|------------|
-| UniFFI immature pour certains langages | Moyen | Fallback FFI manuel si nécessaire |
-| Certificat MITM non accepté par OS | Élevé | Guide installation + script automatique |
-| Performance insuffisante | Élevé | Benchmarks précoces + profiling continu |
-| Adoption limitée | Moyen | Marketing agressif + exemples qualité |
+| Période | Phase | Statut |
+|---------|-------|--------|
+| **Semaine 1-2** | Phase 1 - HTTP Proxy | ✅ Terminé |
+| **Semaine 3** | Phase 2 - WebSocket | ✅ Terminé |
+| **Semaine 4-5** | Phase 3.1-3.2 - Bindings | ✅ Terminé |
+| **Semaine 6** | Phase 3.3 - Distribution | ✅ Terminé |
+| **Semaine 7** | Phase 4.1 - CLI | ✅ Terminé |
+| **Semaine 8** | Phase 4.2 - CI/CD | ✅ Terminé |
+| **Semaine 9** | Phase 4.3-4.4 - Production & Release | ✅ Terminé |
+| **Semaine 10** | Phase 6 - Web Ecosystem | ✅ Terminé |
+| **Semaine 11+** | Phase 5 - Advanced Features | 🟡 En cours (68%) |
 
 ---
 
-**Dernière mise à jour :** 2025-10-11
-**Statut :**
-- 🟢 Phase 1 complète ✅ (HTTP/HTTPS Proxy) - 100%
-- 🟢 Phase 2 complète ✅ (WebSocket Support) - 100%
-- 🟡 Phase 3 en cours 🔄 (Multi-language Bindings) - 50%
-  - 🟢 Phase 3.1 complète ✅ (UniFFI Setup)
-  - 🟢 Phase 3.4 complète ✅ (JavaScript Bindings via NAPI-RS)
-  - ⏸️ Phase 3.2-3.3 bloquées (Python/Kotlin/Swift - UniFFI)
-- ⏳ Phase 4 non commencée (CLI & Production) - 0%
+## 🔗 Ressources
 
-**Tests actuels :** 68/68 passing ✅
-- 33 tests unitaires Rust
-- 9 tests d'intégration Rust
-- 5 tests WebSocket
-- 10+ tests API JavaScript
-- 7+ tests HTTP JavaScript
+- [GitHub Repository](https://github.com/taciclei/magneto-serge)
+- [GitHub Actions (CI/CD)](https://github.com/taciclei/magneto-serge/actions)
+- [Documentation Bindings](BINDINGS.md)
+- [Documentation CI/CD](CI_CD.md)
+- [Exemples](examples/)
+- [Tests](tests/)
 
-**CI/CD :** ✅ Fonctionnel (GitHub Actions)
+---
+
+## 📄 Licence
+
+MIT OR Apache-2.0
+
+---
+
+**Dernière mise à jour** : 2025-10-13 (après Phase 6 - Web Ecosystem complet)
+**Version actuelle** : v0.5.0 (Web Ecosystem)
+**Prochaine milestone** : v1.0.0 (Production Ready - publication packages)

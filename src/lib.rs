@@ -8,23 +8,46 @@
 // Allow clippy warnings from UniFFI generated code
 #![allow(clippy::empty_line_after_doc_comments)]
 
+// Core modules (always available)
 pub mod cassette;
+pub mod cookies;
 pub mod error;
 pub mod filters;
+pub mod matching;
 pub mod player;
 pub mod proxy;
 pub mod recorder;
+pub mod test_helpers;
 pub mod tls;
 pub mod websocket;
 
+// Optional API module (requires 'api' feature)
+#[cfg(feature = "api")]
+pub mod api;
+
+// Core exports (always available)
 pub use error::{MatgtoError, Result};
 pub use filters::{FilterPresets, RecordingFilters};
+pub use matching::{
+    BodyMatchMode, CustomMatcher, MatchingStrategy, RequestSignature, UrlMatchMode,
+};
+pub use player::{LatencyMode, Player};
 pub use proxy::{MagnetoProxy, ProxyMode};
+pub use recorder::Recorder;
 pub use tls::CertificateAuthority;
 pub use websocket::{WebSocketInterceptor, WebSocketPlayer, WebSocketRecorder};
 
-// Re-export common types
+// Re-export cassette types
 pub use cassette::{Cassette, HttpRequest, HttpResponse, Interaction, WebSocketMessage};
+
+// Re-export cookie types
+pub use cookies::{Cookie, CookieJar, SameSite};
+
+// API exports (only when 'api' feature is enabled)
+#[cfg(feature = "api")]
+pub use api::{
+    ApiConfig, ApiResponse, ApiServer, ProxyStatus, StartProxyRequest, StopProxyRequest,
+};
 
 // UniFFI factory function
 /// Create a new MagnetoProxy instance (returns None on error)

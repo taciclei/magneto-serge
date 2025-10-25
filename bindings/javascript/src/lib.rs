@@ -3,6 +3,18 @@
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use magneto_serge::{MagnetoProxy as RustProxy, ProxyMode as RustProxyMode};
+use std::sync::Once;
+
+static INIT: Once = Once::new();
+
+/// Initialize tracing subscriber (called automatically on first use)
+fn init_tracing() {
+  INIT.call_once(|| {
+    tracing_subscriber::fmt()
+      .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+      .init();
+  });
+}
 
 #[napi]
 pub enum ProxyMode {
@@ -32,6 +44,8 @@ pub struct MagnetoProxy {
 impl MagnetoProxy {
   #[napi(constructor)]
   pub fn new(cassette_dir: String) -> Result<Self> {
+    init_tracing();
+    tracing::info!("Creating MagnetoProxy with cassette_dir: {}", cassette_dir);
     RustProxy::new_internal(&cassette_dir)
       .map(|inner| Self { inner })
       .map_err(|e| Error::from_reason(e.to_string()))
@@ -49,8 +63,14 @@ impl MagnetoProxy {
 
   #[napi]
   pub fn start_recording(&self, cassette_name: String) -> Result<()> {
-    self.inner.start_recording_internal(cassette_name)
-      .map_err(|e| Error::from_reason(e.to_string()))
+    tracing::info!("NAPI: start_recording called for cassette: {}", cassette_name);
+    let result = self.inner.start_recording_internal(cassette_name);
+    if result.is_err() {
+      tracing::error!("NAPI: start_recording failed: {:?}", result);
+    } else {
+      tracing::info!("NAPI: start_recording succeeded");
+    }
+    result.map_err(|e| Error::from_reason(e.to_string()))
   }
 
   #[napi]

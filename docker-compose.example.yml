@@ -1,0 +1,201 @@
+# Docker Compose Examples for magneto-serge
+#
+# Usage:
+#   docker-compose -f docker-compose.example.yml up example-explicit-proxy
+#   docker-compose -f docker-compose.example.yml up example-transparent-proxy
+#   docker-compose -f docker-compose.example.yml up example-integration-test
+
+version: '3.8'
+
+# ========================================
+# Example 1: Explicit Proxy (Simple)
+# ========================================
+# Your app explicitly uses HTTP_PROXY environment variables
+#
+services:
+  example-explicit-proxy:
+    image: ghcr.io/taciclei/magneto-serge:latest
+    command: replay api-cassette --port 8888
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./cassettes:/cassettes
+    networks:
+      - test-network
+    profiles:
+      - example-explicit-proxy
+
+  app-with-explicit-proxy:
+    image: curlimages/curl:latest
+    depends_on:
+      - example-explicit-proxy
+    environment:
+      HTTP_PROXY: http://example-explicit-proxy:8888
+      HTTPS_PROXY: http://example-explicit-proxy:8888
+      NO_PROXY: localhost,127.0.0.1
+    networks:
+      - test-network
+    command: ["curl", "-v", "http://httpbin.org/get"]
+    profiles:
+      - example-explicit-proxy
+
+# ========================================
+# Example 2: Transparent Proxy (Advanced)
+# ========================================
+# Uses iptables to intercept all traffic without app modification
+#
+  example-transparent-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile.transparent
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - ./cassettes:/cassettes
+    environment:
+      MAGNETO_MODE: replay
+      CASSETTE_NAME: transparent-test
+      MAGNETO_PORT: 8888
+      TRANSPARENT_PROXY: "true"
+    networks:
+      - test-network
+    profiles:
+      - example-transparent-proxy
+
+# ========================================
+# Example 3: Integration Test Suite
+# ========================================
+# Full integration test with backend + frontend + tests
+#
+  magneto-integration:
+    image: ghcr.io/taciclei/magneto-serge:latest
+    command: auto integration-cassette --port 8888
+    volumes:
+      - ./cassettes:/cassettes
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD", "netstat", "-an", "|", "grep", "8888"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    profiles:
+      - example-integration-test
+
+  backend-api:
+    image: node:18-alpine
+    depends_on:
+      magneto-integration:
+        condition: service_healthy
+    working_dir: /app
+    volumes:
+      - ./examples/backend:/app
+    environment:
+      HTTP_PROXY: http://magneto-integration:8888
+      HTTPS_PROXY: http://magneto-integration:8888
+      PORT: 3000
+    command: ["npm", "start"]
+    networks:
+      - test-network
+    profiles:
+      - example-integration-test
+
+  frontend-app:
+    image: node:18-alpine
+    depends_on:
+      - backend-api
+    working_dir: /app
+    volumes:
+      - ./examples/frontend:/app
+    environment:
+      API_URL: http://backend-api:3000
+    command: ["npm", "start"]
+    networks:
+      - test-network
+    profiles:
+      - example-integration-test
+
+  test-runner:
+    image: curlimages/curl:latest
+    depends_on:
+      - frontend-app
+    networks:
+      - test-network
+    command: ["curl", "-v", "http://frontend-app:3000/health"]
+    profiles:
+      - example-integration-test
+
+# ========================================
+# Example 4: Record Mode
+# ========================================
+# Record new cassette from real network traffic
+#
+  example-record:
+    image: ghcr.io/taciclei/magneto-serge:latest
+    command: record new-cassette --port 8888
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./cassettes:/cassettes
+    networks:
+      - test-network
+    profiles:
+      - example-record
+
+  app-recording:
+    image: curlimages/curl:latest
+    depends_on:
+      - example-record
+    environment:
+      HTTP_PROXY: http://example-record:8888
+      HTTPS_PROXY: http://example-record:8888
+    networks:
+      - test-network
+    command: |
+      sh -c "
+        echo 'Recording network interactions...'
+        curl -v http://httpbin.org/get
+        curl -v https://api.github.com/users/github
+        echo 'Recording complete. Check ./cassettes/new-cassette.json'
+      "
+    profiles:
+      - example-record
+
+# ========================================
+# Example 5: Auto Mode (Development)
+# ========================================
+# Automatically record if cassette missing, else replay
+#
+  example-auto:
+    image: ghcr.io/taciclei/magneto-serge:latest
+    command: auto dev-cassette --port 8888
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./cassettes:/cassettes
+    networks:
+      - test-network
+    profiles:
+      - example-auto
+
+  app-auto-mode:
+    image: curlimages/curl:latest
+    depends_on:
+      - example-auto
+    environment:
+      HTTP_PROXY: http://example-auto:8888
+      HTTPS_PROXY: http://example-auto:8888
+    networks:
+      - test-network
+    command: ["curl", "-v", "http://httpbin.org/get"]
+    profiles:
+      - example-auto
+
+# ========================================
+# Networks
+# ========================================
+networks:
+  test-network:
+    driver: bridge
+    # Optional: make network internal (no external access)
+    # internal: true

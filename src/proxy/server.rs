@@ -612,6 +612,16 @@ impl HudsuckerHttpHandler for MatgtoHttpHandler {
     }
 }
 
+/// Shutdown signal helper for graceful proxy termination
+async fn shutdown_signal() {
+    // Wait for Ctrl+C
+    tokio::signal::ctrl_c()
+        .await
+        .expect("Failed to install CTRL+C signal handler");
+
+    tracing::info!("🛑 Shutdown signal received");
+}
+
 /// Proxy server configuration
 pub struct ProxyServer {
     addr: SocketAddr,
@@ -643,27 +653,71 @@ impl ProxyServer {
 
     /// Start the proxy server
     ///
-    /// This will block until the server is shut down
+    /// This will run the proxy until a shutdown signal is received
+    /// For use in a spawned task - doesn't block the calling thread
     pub async fn start(self) -> Result<()> {
+        use hudsucker::{certificate_authority::RcgenAuthority, Proxy};
+        use rustls::{Certificate, PrivateKey};
+
+        eprintln!("🚀 Starting proxy server on {}", self.addr);
+        eprintln!("🔧 Mode: {:?}", self.handler.mode);
         tracing::info!("🚀 Starting proxy server on {}", self.addr);
-
-        // Note: The actual Hudsucker integration requires specific version compatibility
-        // For now, we provide the structure for integration
-
-        // The integration would look like:
-        // 1. Create RcgenAuthority from our CA
-        // 2. Build proxy with authority and handler
-        // 3. Start the server
-
-        tracing::warn!("⚠️  Full Hudsucker runtime integration pending");
-        tracing::info!("📝 Proxy structure ready, handler configured");
         tracing::info!("🔧 Mode: {:?}", self.handler.mode);
 
-        // Placeholder implementation
-        // In production, this would call the actual Hudsucker proxy.start()
-        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+        // 1. Create RcgenAuthority from our CA certificate
+        let ca_cert = self.ca.inner_certificate();
 
-        tracing::info!("✅ Proxy initialized successfully");
+        // Get private key as DER
+        let ca_key_der = ca_cert.serialize_private_key_der();
+        let private_key = PrivateKey(ca_key_der);
+
+        eprintln!("✅ CA certificate loaded");
+
+        // Get certificate as DER wrapped in rustls::Certificate
+        let ca_cert_der = ca_cert
+            .serialize_der()
+            .map_err(|e| MatgtoError::ProxyStartFailed {
+                reason: format!("Failed to get CA certificate DER: {}", e),
+            })?;
+        let certificate = Certificate(ca_cert_der);
+
+        // Create RcgenAuthority with our CA
+        let authority = RcgenAuthority::new(
+            private_key,
+            certificate,
+            1_000, // Cache up to 1000 certificates
+        )
+        .map_err(|e| MatgtoError::ProxyStartFailed {
+            reason: format!("Failed to create RcgenAuthority: {}", e),
+        })?;
+
+        eprintln!("✅ RcgenAuthority created");
+
+        // 2. Build and start the Hudsucker proxy
+        // with_rustls_client() creates a default HTTPS client automatically
+        let proxy = Proxy::builder()
+            .with_addr(self.addr)
+            .with_rustls_client()
+            .with_ca(authority)
+            .with_http_handler(self.handler)
+            .build();
+
+        eprintln!("✅ Proxy built, about to start listening...");
+        tracing::info!("✅ Proxy server ready on {}", self.addr);
+        tracing::info!("📝 Listening for incoming connections...");
+
+        // Start the proxy with a never-ending future instead of waiting for Ctrl+C
+        // This allows the proxy to run in the background without blocking
+        eprintln!("📡 Calling proxy.start()...");
+        proxy
+            .start(shutdown_signal())
+            .await
+            .map_err(|e| MatgtoError::ProxyStartFailed {
+                reason: format!("Proxy server failed: {}", e),
+            })?;
+
+        eprintln!("🛑 Proxy server stopped");
+        tracing::info!("🛑 Proxy server stopped");
 
         Ok(())
     }

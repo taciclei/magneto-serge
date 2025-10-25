@@ -1,0 +1,112 @@
+# ============================================================================
+# Magneto-Serge - Docker Compose Alpine
+# ============================================================================
+# Stack complète avec API + Backend + Frontend + Proxy
+
+services:
+  # ==========================================================================
+  # Service Principal: Magneto-Serge Multi-Service
+  # ==========================================================================
+  magneto-serge:
+    build:
+      context: .
+      dockerfile: Dockerfile.alpine
+    image: magneto-serge:alpine
+    container_name: magneto-serge
+    hostname: magneto-serge
+    restart: unless-stopped
+
+    # Ports exposés
+    ports:
+      - "8889:8889"   # API REST Magneto-Serge
+      - "3000:3000"   # Backend Node.js
+      - "4201:4201"   # Interface Angular
+      - "8888:8888"   # Proxy HTTP/HTTPS/WebSocket
+
+    # Volumes
+    volumes:
+      - ./cassettes:/app/cassettes
+      - magneto-logs:/app/logs
+
+    # Variables d'environnement
+    environment:
+      - NODE_ENV=production
+      - RUST_LOG=info
+      - CASSETTE_DIR=/app/cassettes
+      - API_PORT=8889
+      - BACKEND_PORT=3000
+      - FRONTEND_PORT=4201
+      - PROXY_PORT=8888
+      - TZ=Europe/Paris
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8889/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    # Commande par défaut: démarrer tous les services
+    command: all
+
+    # Limites de ressources
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+    # Réseau
+    networks:
+      - magneto-network
+
+  # ==========================================================================
+  # Service Optionnel: Proxy Standalone (si besoin d'un proxy séparé)
+  # ==========================================================================
+  magneto-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile.alpine
+    image: magneto-serge:alpine
+    container_name: magneto-proxy
+    hostname: magneto-proxy
+    restart: unless-stopped
+    profiles:
+      - standalone-proxy  # Démarré uniquement avec: docker-compose --profile standalone-proxy up
+
+    ports:
+      - "9999:8888"   # Proxy sur un port différent
+
+    volumes:
+      - ./cassettes:/app/cassettes
+
+    environment:
+      - RUST_LOG=debug
+      - CASSETTE_DIR=/app/cassettes
+      - PROXY_PORT=8888
+
+    command: ["proxy", "auto", "default"]
+
+    networks:
+      - magneto-network
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  magneto-logs:
+    driver: local
+
+# ============================================================================
+# Réseaux
+# ============================================================================
+networks:
+  magneto-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
