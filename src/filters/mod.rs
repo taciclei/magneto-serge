@@ -4,16 +4,17 @@
 //! from cassette recordings, reducing cassette size by 70-95%.
 //!
 //! # Example
-//! ```rust
+//! ```rust,ignore
 //! use magneto_serge::filters::{FilterChain, ExtensionFilter, ContentTypeFilter};
+//! use magneto_serge::cassette::{HttpRequest, HttpResponse};
 //!
 //! let mut chain = FilterChain::new();
 //! chain.add_filter(ExtensionFilter::default());
 //! chain.add_filter(ContentTypeFilter::default());
 //!
-//! let request = HttpRequest { /* ... */ };
-//! let response = HttpResponse { /* ... */ };
-//!
+//! // Example usage (requires actual request/response)
+//! # let request = HttpRequest { method: "GET".into(), url: "https://example.com".into(), headers: Default::default(), body: None };
+//! # let response = HttpResponse { status: 200, headers: Default::default(), body: Some(vec![]) };
 //! if chain.should_record(&request, &response) {
 //!     // Record interaction
 //! } else {

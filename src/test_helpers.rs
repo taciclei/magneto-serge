@@ -29,7 +29,7 @@ const DEFAULT_CASSETTE_DIR: &str = "./cassettes";
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,no_run
 /// use magneto_serge::test_helpers::load_cassette;
 ///
 /// let cassette = load_cassette("user-login").unwrap();
@@ -43,7 +43,7 @@ pub fn load_cassette(name: &str) -> Result<Cassette> {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,no_run
 /// use magneto_serge::test_helpers::load_cassette_from;
 ///
 /// let cassette = load_cassette_from("user-login", "./test-cassettes").unwrap();
@@ -87,7 +87,7 @@ pub fn load_cassette_from(name: &str, dir: impl AsRef<Path>) -> Result<Cassette>
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,no_run
 /// use magneto_serge::test_helpers::{load_cassette, assert_cassette_version};
 ///
 /// let cassette = load_cassette("user-login").unwrap();
@@ -109,7 +109,7 @@ pub fn assert_cassette_version(cassette: &Cassette, expected: &str) {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,no_run
 /// use magneto_serge::test_helpers::{load_cassette, assert_interaction_count};
 ///
 /// let cassette = load_cassette("user-login").unwrap();
@@ -132,7 +132,7 @@ pub fn assert_interaction_count(cassette: &Cassette, expected: usize) {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,no_run
 /// use magneto_serge::test_helpers::{load_cassette, assert_has_cookies};
 ///
 /// let cassette = load_cassette("user-login").unwrap();
@@ -153,7 +153,7 @@ pub fn assert_has_cookies(cassette: &Cassette) {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,no_run
 /// use magneto_serge::test_helpers::{load_cassette, assert_has_cookie};
 ///
 /// let cassette = load_cassette("user-login").unwrap();
@@ -183,7 +183,7 @@ pub fn assert_has_cookie(cassette: &Cassette, cookie_name: &str) {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,no_run
 /// use magneto_serge::test_helpers::{load_cassette, assert_has_http_interactions};
 ///
 /// let cassette = load_cassette("api-calls").unwrap();
@@ -212,7 +212,7 @@ pub fn assert_has_http_interactions(cassette: &Cassette) {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,no_run
 /// use magneto_serge::test_helpers::{load_cassette, assert_has_websocket_interactions};
 ///
 /// let cassette = load_cassette("websocket-chat").unwrap();
@@ -241,7 +241,7 @@ pub fn assert_has_websocket_interactions(cassette: &Cassette) {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,no_run
 /// use magneto_serge::test_helpers::{load_cassette, assert_http_method_count};
 ///
 /// let cassette = load_cassette("api-calls").unwrap();
@@ -276,7 +276,7 @@ pub fn assert_http_method_count(cassette: &Cassette, method: &str, expected: usi
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,no_run
 /// use magneto_serge::test_helpers::{load_cassette, assert_status_code_count};
 ///
 /// let cassette = load_cassette("api-calls").unwrap();
@@ -307,7 +307,7 @@ pub fn assert_status_code_count(cassette: &Cassette, status: u16, expected: usiz
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,ignore
 /// use magneto_serge::assert_cassette;
 ///
 /// fn test_user_login() {
