@@ -109,7 +109,7 @@ class UnitTest extends TestCase
         $this->assertEquals($count, $httpCount);
     }
 
-    public function interactionCountProvider()
+    public static function interactionCountProvider()
     {
         return [
             [1],

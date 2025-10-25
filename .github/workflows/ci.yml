@@ -307,12 +307,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest maturin uniffi-bindgen
-
-      - name: Build Python package
-        run: |
-          cd bindings/python
-          pip install -e .
+          pip install pytest uniffi-bindgen
 
       - name: Run Python unit tests
         run: |
@@ -399,10 +394,16 @@ jobs:
             --language kotlin \
             --out-dir bindings/kotlin/generated
 
+      - name: Download JUnit
+        run: |
+          cd bindings/junit
+          wget -q https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/1.9.0/junit-platform-console-standalone-1.9.0.jar
+          mv junit-platform-console-standalone-1.9.0.jar junit-platform-console-standalone.jar
+
       - name: Compile Java unit tests
         run: |
           cd bindings/junit
-          javac -cp .:junit-5.9.0.jar UnitTest.java
+          javac -cp .:junit-platform-console-standalone.jar UnitTest.java
 
       - name: Run Java unit tests
         run: |
@@ -413,7 +414,7 @@ jobs:
       - name: Compile Java integration tests
         run: |
           cd bindings/junit
-          javac -cp .:junit-5.9.0.jar ExampleTest.java MagnetoAssertions.java
+          javac -cp .:junit-platform-console-standalone.jar ExampleTest.java MagnetoAssertions.java
         continue-on-error: true
 
       - name: Run Java integration tests
