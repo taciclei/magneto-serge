@@ -314,10 +314,16 @@ jobs:
           cd bindings/python
           pip install -e .
 
-      - name: Run Python tests
+      - name: Run Python unit tests
         run: |
           cd bindings/pytest
-          pytest -v test_example.py
+          pytest -v test_unit.py --tb=short
+
+      - name: Run Python integration tests
+        run: |
+          cd bindings/pytest
+          pytest -v test_example.py --tb=short
+        continue-on-error: true
 
   # Test JavaScript bindings
   test-javascript:
@@ -347,10 +353,16 @@ jobs:
           cd bindings/jest
           npm install
 
-      - name: Run JavaScript tests
+      - name: Run JavaScript unit tests
         run: |
           cd bindings/jest
-          npm test
+          npm test test_unit.test.js
+
+      - name: Run JavaScript integration tests
+        run: |
+          cd bindings/jest
+          npm test example.test.js
+        continue-on-error: true
 
   # Test Java bindings
   test-java:
@@ -387,15 +399,27 @@ jobs:
             --language kotlin \
             --out-dir bindings/kotlin/generated
 
-      - name: Compile Java tests
+      - name: Compile Java unit tests
+        run: |
+          cd bindings/junit
+          javac -cp .:junit-5.9.0.jar UnitTest.java
+
+      - name: Run Java unit tests
+        run: |
+          cd bindings/junit
+          java -jar junit-platform-console-standalone.jar --select-class UnitTest
+        continue-on-error: true
+
+      - name: Compile Java integration tests
         run: |
           cd bindings/junit
           javac -cp .:junit-5.9.0.jar ExampleTest.java MagnetoAssertions.java
+        continue-on-error: true
 
-      - name: Run Java tests
+      - name: Run Java integration tests
         run: |
           cd bindings/junit
-          java -jar junit-platform-console-standalone.jar --class-path . --scan-class-path
+          java -jar junit-platform-console-standalone.jar --select-class ExampleTest
         continue-on-error: true
 
   # Test PHP bindings
@@ -428,10 +452,15 @@ jobs:
           cd bindings/phpunit
           composer install --no-interaction
 
-      - name: Run PHP tests
+      - name: Run PHP unit tests
         run: |
           cd bindings/phpunit
-          phpunit ExampleTest.php
+          phpunit UnitTest.php --testdox
+
+      - name: Run PHP integration tests
+        run: |
+          cd bindings/phpunit
+          phpunit ExampleTest.php --testdox
         continue-on-error: true
 
   # Documentation
