@@ -1,6 +1,6 @@
 [package]
 name = "magneto-serge"
-version = "0.1.0"
+version = "2.2.0"
 edition = "2021"
 rust-version = "1.75"
 authors = ["Magnéto-Serge contributors <contact@taciclei.com>"]
@@ -33,6 +33,12 @@ path = "src/bin/uniffi-bindgen.rs"
 required-features = ["uniffi/cli"]
 
 [dependencies]
+axum = { version = "0.7", optional = true }
+tower = { version = "0.4", optional = true }
+tower-http = { version = "0.5", features = ["cors"], optional = true }
+
+cookie = "0.18"
+
 # === Proxy & HTTP ===
 hudsucker = "0.20"
 hyper = { version = "0.14", features = ["full"] }
@@ -119,6 +125,7 @@ reqwest = { version = "0.11", features = ["json"] }
 [features]
 default = ["cli", "msgpack", "compression"]
 cli = ["clap", "colored", "indicatif"]
+api = ["axum", "tower", "tower-http"]
 msgpack = ["rmp-serde"]
 compression = ["flate2"]
 

@@ -1,0 +1,626 @@
+openapi: 3.0.3
+info:
+  title: Magnéto-Serge Cassette Management API
+  description: |
+    REST API for managing HTTP/WebSocket test cassettes in Magnéto-Serge.
+
+    This API provides endpoints to list, inspect, validate, export, and delete cassettes
+    used for deterministic testing with the Magnéto-Serge proxy library.
+
+    ## Features
+    - 📋 List all cassettes with filtering and sorting
+    - 📊 Get detailed statistics (HTTP methods, status codes, body sizes)
+    - ✅ Validate cassette format and integrity
+    - 🗑️ Delete cassettes
+    - 📦 Export to multiple formats (JSON, MessagePack, YAML, HAR)
+    - 📈 Global statistics across all cassettes
+
+    ## Authentication
+    API key authentication is optional and can be enabled via configuration.
+
+  version: 1.0.0
+  contact:
+    name: Magnéto-Serge
+    url: https://github.com/your-org/magneto-serge
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://127.0.0.1:8889
+    description: Local development server
+  - url: http://localhost:8889
+    description: Localhost
+
+tags:
+  - name: cassettes
+    description: Cassette management operations
+  - name: statistics
+    description: Statistical information
+  - name: health
+    description: Service health monitoring
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Returns service health status and version information
+      operationId: getHealth
+      tags:
+        - health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /cassettes:
+    get:
+      summary: List all cassettes
+      description: Returns a list of all cassettes with optional filtering and sorting
+      operationId: listCassettes
+      tags:
+        - cassettes
+      parameters:
+        - name: sort_by
+          in: query
+          description: Sort field
+          schema:
+            type: string
+            enum: [name, size, age, interactions]
+            default: name
+        - name: order
+          in: query
+          description: Sort order
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+        - name: min_age_days
+          in: query
+          description: Filter by minimum age in days
+          schema:
+            type: integer
+            minimum: 0
+        - name: max_age_days
+          in: query
+          description: Filter by maximum age in days
+          schema:
+            type: integer
+            minimum: 0
+        - name: min_size_bytes
+          in: query
+          description: Filter by minimum size in bytes
+          schema:
+            type: integer
+            minimum: 0
+        - name: max_size_bytes
+          in: query
+          description: Filter by maximum size in bytes
+          schema:
+            type: integer
+            minimum: 0
+      responses:
+        '200':
+          description: List of cassettes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /cassettes/stats:
+    get:
+      summary: Get global statistics
+      description: Returns statistics aggregated across all cassettes
+      operationId: getGlobalStats
+      tags:
+        - statistics
+      responses:
+        '200':
+          description: Global statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GlobalStats'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /cassettes/{name}:
+    get:
+      summary: Get cassette metadata
+      description: Returns metadata for a specific cassette
+      operationId: getCassette
+      tags:
+        - cassettes
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: Cassette name (without extension)
+          schema:
+            type: string
+          example: authentification-admin
+      responses:
+        '200':
+          description: Cassette metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CassetteMetadata'
+        '404':
+          description: Cassette not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+    delete:
+      summary: Delete a cassette
+      description: Permanently deletes a cassette file
+      operationId: deleteCassette
+      tags:
+        - cassettes
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: Cassette name (without extension)
+          schema:
+            type: string
+          example: old-cassette
+      responses:
+        '204':
+          description: Cassette deleted successfully
+        '404':
+          description: Cassette not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /cassettes/{name}/stats:
+    get:
+      summary: Get cassette statistics
+      description: Returns detailed statistics for a specific cassette
+      operationId: getCassetteStats
+      tags:
+        - statistics
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: Cassette name (without extension)
+          schema:
+            type: string
+          example: authentification-admin
+      responses:
+        '200':
+          description: Cassette statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CassetteStats'
+        '404':
+          description: Cassette not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /cassettes/{name}/validate:
+    get:
+      summary: Validate a cassette
+      description: Validates cassette format, version, and integrity
+      operationId: validateCassette
+      tags:
+        - cassettes
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: Cassette name (without extension)
+          schema:
+            type: string
+          example: authentification-admin
+      responses:
+        '200':
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResult'
+        '404':
+          description: Cassette not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /cassettes/{name}/export:
+    post:
+      summary: Export a cassette
+      description: Exports a cassette in different formats (JSON, MessagePack, YAML, HAR)
+      operationId: exportCassette
+      tags:
+        - cassettes
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: Cassette name (without extension)
+          schema:
+            type: string
+          example: authentification-admin
+        - name: format
+          in: query
+          description: Export format
+          schema:
+            type: string
+            enum: [json, msgpack, yaml, har]
+            default: json
+      responses:
+        '200':
+          description: Export metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportResponse'
+        '404':
+          description: Cassette not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - version
+        - uptime_seconds
+      properties:
+        status:
+          type: string
+          example: healthy
+        version:
+          type: string
+          example: 1.0.0
+        uptime_seconds:
+          type: integer
+          format: int64
+          example: 3600
+
+    ApiError:
+      type: object
+      required:
+        - error
+        - message
+        - status
+      properties:
+        error:
+          type: string
+          description: Machine-readable error code
+          example: cassette_not_found
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Cassette 'test-cassette' not found"
+        status:
+          type: integer
+          description: HTTP status code
+          example: 404
+
+    ListResponse:
+      type: object
+      required:
+        - cassettes
+        - total
+      properties:
+        cassettes:
+          type: array
+          items:
+            $ref: '#/components/schemas/CassetteMetadata'
+        total:
+          type: integer
+          description: Total number of cassettes (after filtering)
+          example: 42
+
+    CassetteMetadata:
+      type: object
+      required:
+        - name
+        - path
+        - size_bytes
+        - size_human
+        - version
+        - recorded_at
+        - interaction_count
+        - age_days
+        - format
+      properties:
+        name:
+          type: string
+          description: Cassette name (without extension)
+          example: authentification-admin
+        path:
+          type: string
+          description: Full file path
+          example: /Users/sga/projects/cassettes/authentification-admin.json
+        size_bytes:
+          type: integer
+          format: int64
+          description: File size in bytes
+          example: 4398234
+        size_human:
+          type: string
+          description: Human-readable file size
+          example: 4.19 MB
+        version:
+          type: string
+          description: Cassette format version
+          example: "2.0"
+        recorded_at:
+          type: string
+          format: date-time
+          description: Recording timestamp (ISO 8601)
+          example: "2025-10-24T10:30:00Z"
+        interaction_count:
+          type: integer
+          description: Number of recorded interactions
+          example: 45
+        age_days:
+          type: integer
+          format: int64
+          description: Age in days since recording
+          example: 7
+        format:
+          type: string
+          description: File format
+          enum: [json, msgpack]
+          example: json
+
+    CassetteStats:
+      type: object
+      required:
+        - total_interactions
+        - http_count
+        - websocket_count
+        - http_error_count
+        - status_codes
+        - http_methods
+        - total_request_body_bytes
+        - total_response_body_bytes
+      properties:
+        total_interactions:
+          type: integer
+          description: Total number of interactions
+          example: 45
+        http_count:
+          type: integer
+          description: Number of HTTP interactions
+          example: 42
+        websocket_count:
+          type: integer
+          description: Number of WebSocket interactions
+          example: 3
+        http_error_count:
+          type: integer
+          description: Number of HTTP errors (timeouts, DNS failures)
+          example: 0
+        status_codes:
+          type: object
+          description: HTTP status code distribution
+          additionalProperties:
+            type: integer
+          example:
+            "200": 38
+            "201": 2
+            "401": 1
+            "404": 1
+        http_methods:
+          type: object
+          description: HTTP method distribution
+          additionalProperties:
+            type: integer
+          example:
+            "GET": 30
+            "POST": 10
+            "PUT": 2
+        total_request_body_bytes:
+          type: integer
+          format: int64
+          description: Total size of all request bodies
+          example: 45678
+        total_response_body_bytes:
+          type: integer
+          format: int64
+          description: Total size of all response bodies
+          example: 4352556
+        avg_response_time_ms:
+          type: number
+          format: double
+          nullable: true
+          description: Average response time in milliseconds
+          example: 125.5
+
+    ValidationResult:
+      type: object
+      required:
+        - valid
+        - errors
+        - warnings
+      properties:
+        valid:
+          type: boolean
+          description: Is the cassette valid?
+          example: true
+        errors:
+          type: array
+          description: Critical errors found
+          items:
+            type: string
+          example: []
+        warnings:
+          type: array
+          description: Non-critical warnings
+          items:
+            type: string
+          example:
+            - "Cassette is 95 days old (>90 days), consider re-recording"
+
+    GlobalStats:
+      type: object
+      required:
+        - total_count
+        - total_size_bytes
+        - total_size_human
+        - size_distribution
+        - age_distribution
+      properties:
+        total_count:
+          type: integer
+          description: Total number of cassettes
+          example: 42
+        total_size_bytes:
+          type: integer
+          format: int64
+          description: Total size of all cassettes in bytes
+          example: 185498234
+        total_size_human:
+          type: string
+          description: Human-readable total size
+          example: 176.89 MB
+        oldest_cassette:
+          $ref: '#/components/schemas/CassetteMetadata'
+          nullable: true
+        largest_cassette:
+          $ref: '#/components/schemas/CassetteMetadata'
+          nullable: true
+        size_distribution:
+          $ref: '#/components/schemas/SizeDistribution'
+        age_distribution:
+          $ref: '#/components/schemas/AgeDistribution'
+
+    SizeDistribution:
+      type: object
+      required:
+        - under_1mb
+        - mb_1_to_10
+        - over_10mb
+      properties:
+        under_1mb:
+          type: integer
+          description: Number of cassettes under 1 MB
+          example: 30
+        mb_1_to_10:
+          type: integer
+          description: Number of cassettes between 1-10 MB
+          example: 10
+        over_10mb:
+          type: integer
+          description: Number of cassettes over 10 MB
+          example: 2
+
+    AgeDistribution:
+      type: object
+      required:
+        - under_7_days
+        - days_7_to_30
+        - over_30_days
+      properties:
+        under_7_days:
+          type: integer
+          description: Number of cassettes under 7 days old
+          example: 15
+        days_7_to_30:
+          type: integer
+          description: Number of cassettes 7-30 days old
+          example: 20
+        over_30_days:
+          type: integer
+          description: Number of cassettes over 30 days old
+          example: 7
+
+    ExportResponse:
+      type: object
+      required:
+        - format
+        - size_bytes
+        - download_url
+      properties:
+        format:
+          type: string
+          description: Export format used
+          enum: [json, msgpack, yaml, har]
+          example: json
+        size_bytes:
+          type: integer
+          format: int64
+          description: Size of exported file
+          example: 4398234
+        download_url:
+          type: string
+          description: URL to download the exported file
+          example: /downloads/authentification-admin_1729767000.json
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: |
+        Optional API key authentication. Enable in configuration:
+        ```toml
+        [api]
+        auth_enabled = true
+        api_key = "your-secret-key-here"
+        ```
+
+# Apply API key auth to all endpoints (if enabled in config)
+security:
+  - ApiKeyAuth: []
+  - {} # Allow unauthenticated access if auth is disabled
