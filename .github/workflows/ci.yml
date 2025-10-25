@@ -245,10 +245,10 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Build library
-        run: cargo build --release
+        run: cargo build --lib --release
 
       - name: Build uniffi-bindgen
-        run: cargo build --bin uniffi-bindgen --release
+        run: cargo build --bin uniffi-bindgen --release --features uniffi/cli
 
       - name: Generate Python bindings
         run: |
@@ -302,7 +302,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Build library
-        run: cargo build --release
+        run: cargo build --lib --release
 
       - name: Install Python dependencies
         run: |
@@ -346,7 +346,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Build library
-        run: cargo build --release
+        run: cargo build --lib --release
 
       - name: Install JavaScript dependencies
         run: |
@@ -386,10 +386,10 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Build library
-        run: cargo build --release
+        run: cargo build --lib --release
 
       - name: Build uniffi-bindgen
-        run: cargo build --bin uniffi-bindgen --release
+        run: cargo build --bin uniffi-bindgen --release --features uniffi/cli
 
       - name: Generate Kotlin bindings
         run: |
@@ -445,7 +445,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Build library
-        run: cargo build --release
+        run: cargo build --lib --release
 
       - name: Install PHP dependencies
         run: |
