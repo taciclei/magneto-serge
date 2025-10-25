@@ -181,7 +181,7 @@ class TestMultipleCassettes:
         finally:
             import shutil
             for dir, _ in cassettes:
-                if os.exists(dir):
+                if os.path.exists(dir):
                     shutil.rmtree(dir)
 
 
