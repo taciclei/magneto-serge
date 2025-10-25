@@ -1,5 +1,7 @@
 //! Integration tests for REST API
 
+#![cfg(feature = "api")]
+
 use magneto_serge::{ApiConfig, ApiServer};
 use std::time::Duration;
 

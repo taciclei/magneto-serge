@@ -26,11 +26,21 @@ name = "magneto_serge"
 [[bin]]
 name = "magneto"
 path = "src/bin/cli.rs"
+required-features = ["cli"]
+
+[[bin]]
+name = "magneto-api"
+path = "src/bin/magneto-api.rs"
+required-features = ["api"]
 
 [[bin]]
 name = "uniffi-bindgen"
 path = "src/bin/uniffi-bindgen.rs"
 required-features = ["uniffi/cli"]
+
+[[example]]
+name = "api_server"
+required-features = ["api"]
 
 [dependencies]
 axum = { version = "0.7", optional = true }
