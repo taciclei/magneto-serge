@@ -1,0 +1,27 @@
+[package]
+name = "magneto-serge-test"
+version = "0.3.0"
+edition = "2021"
+rust-version = "1.75"
+authors = ["Magnéto-Serge contributors <contact@taciclei.com>"]
+license = "MIT OR Apache-2.0"
+description = "Test framework integration for magneto-serge - #[magneto_test] proc macro"
+readme = "README.md"
+homepage = "https://github.com/taciclei/magneto-serge"
+repository = "https://github.com/taciclei/magneto-serge"
+documentation = "https://docs.rs/magneto-serge-test"
+keywords = ["testing", "http", "websocket", "macro", "vcr"]
+categories = ["development-tools::testing"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "2.0", features = ["full", "parsing", "extra-traits"] }
+quote = "1.0"
+proc-macro2 = "1.0"
+
+[dev-dependencies]
+magneto-serge = { path = "..", version = "0.2.0" }
+tokio = { version = "1.35", features = ["full"] }
+reqwest = "0.12"

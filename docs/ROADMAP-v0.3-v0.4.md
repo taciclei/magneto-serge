@@ -152,6 +152,33 @@ impl RecordHook for TimestampNormalizer {
 }
 ```
 
+### Phase 1.5: MagnetoProxy API Additions (REQUIRED)
+
+**Effort**: 1 day
+**Priority**: BLOCKER for Phase 2-4
+
+The `#[magneto_test]` macro requires these new methods on `MagnetoProxy`:
+
+```rust
+impl MagnetoProxy {
+    // Mode control
+    pub fn set_mode(&self, mode: ProxyMode) -> Result<()>;
+    pub fn set_port(&mut self, port: u16) -> Result<()>;
+
+    // Recording control
+    pub fn start_recording(&self, cassette_name: impl AsRef<str>) -> Result<()>;
+    pub fn stop_recording(&self) -> Result<()>;
+
+    // Replay control
+    pub fn start_replay(&self, cassette_name: impl AsRef<str>) -> Result<()>;
+    pub fn stop_replay(&self) -> Result<()>;
+
+    // Passthrough mode
+    pub fn start_passthrough(&self) -> Result<()>;
+    pub fn stop_passthrough(&self) -> Result<()>;
+}
+```
+
 ### Release Checklist
 
 - [x] All hook traits implemented and tested
@@ -163,26 +190,46 @@ impl RecordHook for TimestampNormalizer {
 - [ ] Version bumped to 0.3.0
 - [ ] Release notes prepared
 
+### v0.3.1 Release Checklist
+
+- [x] `#[magneto_test]` macro implemented
+- [x] Attribute parsing complete
+- [x] Documentation written
+- [ ] MagnetoProxy API additions
+- [ ] Macro integration tests
+- [ ] Examples with real HTTP calls
+- [ ] Jest plugin
+- [ ] pytest plugin
+- [ ] RSpec integration
+- [ ] Version bumped to 0.3.1
+
 ---
 
 ## 🧪 v0.3.1 - Test Framework Integration
 
 **Target**: 2025-11-15 (1 week)
 **Priority**: HIGH
+**Status**: 🟡 **IN PROGRESS** (50% complete)
 
 ### Goals
 
 Make Magneto-Serge as easy to use in tests as VCR's RSpec integration.
 
-### Phase 1: Rust Macro
+### Phase 1: Rust Macro ✅ **COMPLETED** (2025-10-25)
 
-**Effort**: 2 days
+**Effort**: 2 days (actual: 1 day)
 
-- [ ] Create `#[magneto_test]` proc macro
-- [ ] Auto-start proxy with cassette name from test function name
-- [ ] Auto-stop and save cassette after test
-- [ ] Support cassette name override: `#[magneto_test(cassette = "custom")]`
-- [ ] Support mode override: `#[magneto_test(mode = "strict")]`
+- [x] Create `#[magneto_test]` proc macro ✅
+- [x] Auto-start proxy with cassette name from test function name ✅
+- [x] Auto-stop and save cassette after test ✅
+- [x] Support cassette name override: `#[magneto_test(cassette = "custom")]` ✅
+- [x] Support mode override: `#[magneto_test(mode = "replay")]` ✅
+- [x] Support port override: `#[magneto_test(port = 9000)]` ✅
+- [x] Support cassette_dir override ✅
+- [x] Syn 2.0 compatibility ✅
+- [x] Documentation and README ✅
+
+**Status**: ⚠️ Macro implemented but requires MagnetoProxy API additions (see below)
 
 **API**:
 ```rust

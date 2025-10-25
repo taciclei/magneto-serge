@@ -589,6 +589,34 @@ impl MagnetoProxy {
         });
     }
 
+    // ========== Aliases for test framework integration ==========
+
+    /// Alias for start_recording() - for #[magneto_test] macro compatibility
+    pub fn start_replay(&self, cassette_name: impl AsRef<str>) -> Result<()> {
+        self.replay_internal(cassette_name.as_ref().to_string())
+    }
+
+    /// Stop replay mode - for #[magneto_test] macro compatibility
+    /// Note: Currently a no-op since replay mode doesn't maintain state
+    pub fn stop_replay(&self) -> Result<()> {
+        // Replay doesn't need explicit stopping as it doesn't modify state
+        // But we provide this for API consistency
+        Ok(())
+    }
+
+    /// Alias for passthrough() - for #[magneto_test] macro compatibility
+    pub fn start_passthrough(&self) -> Result<()> {
+        self.passthrough();
+        Ok(())
+    }
+
+    /// Stop passthrough mode - for #[magneto_test] macro compatibility
+    pub fn stop_passthrough(&self) -> Result<()> {
+        // Passthrough doesn't need explicit stopping
+        // But we provide this for API consistency
+        Ok(())
+    }
+
     /// Shutdown the proxy (internal version with Result)
     pub fn shutdown_internal(&self) -> Result<()> {
         let mut state = self.state.lock().unwrap();

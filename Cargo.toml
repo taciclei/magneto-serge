@@ -165,3 +165,6 @@ harness = false
 [[bench]]
 name = "serialization_optim"
 harness = false
+
+[workspace]
+members = [".", "magneto-serge-test"]
