@@ -5,9 +5,9 @@
 //! This example shows various assertion helpers for testing cassettes.
 
 use chrono::Utc;
-use magneto_serge::cassette::InteractionKind;
+use magneto_serge::cassette::{Cassette, HttpRequest, HttpResponse, Interaction, InteractionKind};
+use magneto_serge::cookies::Cookie;
 use magneto_serge::test_helpers::*;
-use magneto_serge::{Cassette, Cookie, HttpRequest, HttpResponse, Interaction};
 use std::collections::HashMap;
 
 fn create_example_cassette() -> Cassette {
