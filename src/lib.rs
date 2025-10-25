@@ -13,6 +13,7 @@ pub mod cassette;
 pub mod cookies;
 pub mod error;
 pub mod filters;
+pub mod hooks;
 pub mod matching;
 pub mod player;
 pub mod proxy;
@@ -28,6 +29,7 @@ pub mod api;
 // Core exports (always available)
 pub use error::{MatgtoError, Result};
 pub use filters::{FilterPresets, RecordingFilters};
+pub use hooks::{RecordHook, RecordHooks, ReplayHook, ReplayHooks};
 pub use matching::{
     BodyMatchMode, CustomMatcher, MatchingStrategy, RequestSignature, UrlMatchMode,
 };

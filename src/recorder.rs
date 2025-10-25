@@ -1,8 +1,11 @@
 //! Recording HTTP/WebSocket interactions to cassettes
 
-use crate::cassette::{Cassette, HttpRequest, HttpResponse, InteractionKind, NetworkError};
+use crate::cassette::{
+    Cassette, HttpRequest, HttpResponse, Interaction, InteractionKind, NetworkError,
+};
 use crate::error::Result;
 use crate::filters::RecordingFilters;
+use crate::hooks::RecordHooks;
 use std::fs::File;
 use std::path::Path;
 
@@ -17,6 +20,9 @@ pub struct Recorder {
 
     /// Recording filters
     filters: Option<RecordingFilters>,
+
+    /// Record hooks
+    hooks: RecordHooks,
 }
 
 impl Recorder {
@@ -28,6 +34,7 @@ impl Recorder {
             cassette_name,
             cassette,
             filters: None,
+            hooks: RecordHooks::new(),
         }
     }
 
@@ -39,6 +46,7 @@ impl Recorder {
             cassette_name,
             cassette,
             filters: Some(filters),
+            hooks: RecordHooks::new(),
         }
     }
 
@@ -50,6 +58,16 @@ impl Recorder {
     /// Get current filters
     pub fn filters(&self) -> Option<&RecordingFilters> {
         self.filters.as_ref()
+    }
+
+    /// Add a record hook
+    pub fn add_hook<H: crate::hooks::RecordHook + 'static>(&mut self, hook: H) {
+        self.hooks.add(hook);
+    }
+
+    /// Get hooks
+    pub fn hooks(&self) -> &RecordHooks {
+        &self.hooks
     }
 
     /// Record an HTTP interaction
@@ -67,9 +85,26 @@ impl Recorder {
             }
         }
 
-        // Record the interaction (filters passed or not configured)
-        let interaction = InteractionKind::Http { request, response };
-        self.cassette.add_interaction(interaction);
+        // Create interaction
+        let mut interaction = Interaction {
+            kind: InteractionKind::Http { request, response },
+            recorded_at: chrono::Utc::now(),
+            response_time_ms: None,
+        };
+
+        // Call before_record hooks
+        if let Err(e) = self.hooks.before_record(&mut interaction) {
+            tracing::error!("Hook before_record failed: {}", e);
+            return;
+        }
+
+        // Add to cassette
+        self.cassette.interactions.push(interaction.clone());
+
+        // Call after_record hooks
+        if let Err(e) = self.hooks.after_record(&interaction) {
+            tracing::warn!("Hook after_record failed: {}", e);
+        }
     }
 
     /// Record an HTTP error (timeout, DNS failure, connection refused, etc.)
@@ -82,10 +117,26 @@ impl Recorder {
             error
         );
 
-        // Record the error (filters don't apply to errors currently)
-        let interaction = InteractionKind::HttpError { request, error };
+        // Create interaction
+        let mut interaction = Interaction {
+            kind: InteractionKind::HttpError { request, error },
+            recorded_at: chrono::Utc::now(),
+            response_time_ms: None,
+        };
 
-        self.cassette.add_interaction(interaction);
+        // Call before_record hooks
+        if let Err(e) = self.hooks.before_record(&mut interaction) {
+            tracing::error!("Hook before_record failed for error: {}", e);
+            return;
+        }
+
+        // Add to cassette
+        self.cassette.interactions.push(interaction.clone());
+
+        // Call after_record hooks
+        if let Err(e) = self.hooks.after_record(&interaction) {
+            tracing::warn!("Hook after_record failed for error: {}", e);
+        }
     }
 
     /// Save the cassette to disk
