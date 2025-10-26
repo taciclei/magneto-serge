@@ -54,6 +54,7 @@ pub mod context;
 pub mod documentation;
 pub mod error;
 pub mod operation;
+pub mod resources;
 pub mod response;
 pub mod vocabulary;
 
@@ -63,6 +64,7 @@ pub use context::JsonLdContext;
 pub use documentation::{ApiDocumentation, SupportedClass, SupportedProperty};
 pub use error::HydraError;
 pub use operation::HydraOperation;
+pub use resources::{CassetteResource, InteractionResource, TemplateResource};
 pub use response::HydraResponse;
 pub use vocabulary::{HydraClass, HydraLink, HydraProperty};
 
