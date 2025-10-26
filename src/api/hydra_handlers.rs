@@ -4,17 +4,18 @@
 //! Chaque endpoint retourne des ressources auto-descriptives avec liens de navigation.
 
 use axum::{
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::{HeaderMap, StatusCode},
     response::{IntoResponse, Response},
     routing::get,
     Json, Router,
 };
+use serde::Deserialize;
 use std::sync::Arc;
 
 #[cfg(feature = "hydra")]
 use crate::hydra::{
-    ApiDocumentation, CassetteResource, HydraCollection, JsonLdContext, SupportedClass,
+    ApiDocumentation, CassetteResource, HydraCollection, HydraView, JsonLdContext, SupportedClass,
     TemplateResource,
 };
 
@@ -72,6 +73,26 @@ impl ContentType {
             ContentType::RdfXml => "application/rdf+xml",
         }
     }
+}
+
+/// Paramètres de pagination pour les collections
+#[derive(Debug, Deserialize)]
+pub struct PaginationParams {
+    /// Numéro de page (commence à 1)
+    #[serde(default = "default_page")]
+    pub page: usize,
+
+    /// Nombre d'éléments par page
+    #[serde(default = "default_limit")]
+    pub limit: usize,
+}
+
+fn default_page() -> usize {
+    1
+}
+
+fn default_limit() -> usize {
+    20
 }
 
 /// GET /api
@@ -176,11 +197,15 @@ pub async fn api_entrypoint(State(state): State<HydraState>, headers: HeaderMap)
 /// }
 /// ```
 #[cfg(feature = "hydra")]
-pub async fn list_cassettes(State(state): State<HydraState>, headers: HeaderMap) -> Response {
+pub async fn list_cassettes(
+    State(state): State<HydraState>,
+    Query(params): Query<PaginationParams>,
+    headers: HeaderMap,
+) -> Response {
     let content_type = get_content_type(&headers);
 
     // Charger toutes les cassettes
-    let cassettes = match state.cassette_manager.list_cassettes() {
+    let all_cassettes = match state.cassette_manager.list_cassettes() {
         Ok(metadata_list) => {
             let mut resources = Vec::new();
             for metadata in metadata_list {
@@ -200,9 +225,48 @@ pub async fn list_cassettes(State(state): State<HydraState>, headers: HeaderMap)
         }
     };
 
+    let total = all_cassettes.len();
+
+    // Appliquer la pagination
+    let page = params.page.max(1); // Au moins page 1
+    let limit = params.limit.clamp(1, 100); // Entre 1 et 100
+    let offset = (page - 1) * limit;
+
+    let cassettes: Vec<_> = all_cassettes.into_iter().skip(offset).take(limit).collect();
+
     let collection_id = format!("{}/api/cassettes", state.base_url);
-    let total = cassettes.len();
-    let collection = HydraCollection::new(&collection_id, cassettes, total);
+    let mut collection = HydraCollection::new(&collection_id, cassettes, total);
+
+    // Ajouter HydraView pour la pagination
+    let total_pages = total.div_ceil(limit);
+    if total_pages > 1 {
+        collection.view = Some(HydraView {
+            id: format!("{}?page={}&limit={}", collection_id, page, limit),
+            type_: "hydra:PartialCollectionView".to_string(),
+            first: format!("{}?page=1&limit={}", collection_id, limit),
+            previous: if page > 1 {
+                Some(format!(
+                    "{}?page={}&limit={}",
+                    collection_id,
+                    page - 1,
+                    limit
+                ))
+            } else {
+                None
+            },
+            next: if page < total_pages {
+                Some(format!(
+                    "{}?page={}&limit={}",
+                    collection_id,
+                    page + 1,
+                    limit
+                ))
+            } else {
+                None
+            },
+            last: format!("{}?page={}&limit={}", collection_id, total_pages, limit),
+        });
+    }
 
     match content_type {
         ContentType::JsonLd | ContentType::Json => (
@@ -441,6 +505,165 @@ pub async fn vocabulary(State(state): State<HydraState>, headers: HeaderMap) -> 
     }
 }
 
+/// GET /api/cassettes/{name}/interactions
+///
+/// Liste toutes les interactions d'une cassette spécifique.
+///
+/// # Path Parameters
+/// - `name`: Nom de la cassette
+///
+/// # Query Parameters
+/// - `page` (optionnel): Numéro de page (défaut: 1)
+/// - `limit` (optionnel): Nombre d'éléments par page (défaut: 20)
+#[cfg(feature = "hydra")]
+pub async fn list_interactions(
+    State(state): State<HydraState>,
+    Path(name): Path<String>,
+    Query(params): Query<PaginationParams>,
+    headers: HeaderMap,
+) -> Response {
+    let content_type = get_content_type(&headers);
+
+    // Charger la cassette
+    let cassette = match state.cassette_manager.load_cassette(&name) {
+        Ok(c) => c,
+        Err(_) => {
+            return (
+                StatusCode::NOT_FOUND,
+                format!("Cassette '{}' not found", name),
+            )
+                .into_response();
+        }
+    };
+
+    let total = cassette.interactions.len();
+
+    // Appliquer la pagination
+    let page = params.page.max(1);
+    let limit = params.limit.clamp(1, 100);
+    let offset = (page - 1) * limit;
+
+    // Créer les ressources d'interactions
+    use crate::hydra::InteractionResource;
+    let all_interactions: Vec<_> = cassette
+        .interactions
+        .iter()
+        .enumerate()
+        .map(|(idx, interaction)| {
+            InteractionResource::from_interaction(interaction, &name, idx, &state.base_url)
+        })
+        .collect();
+
+    let interactions: Vec<_> = all_interactions
+        .into_iter()
+        .skip(offset)
+        .take(limit)
+        .collect();
+
+    let collection_id = format!("{}/api/cassettes/{}/interactions", state.base_url, name);
+    let mut collection = HydraCollection::new(&collection_id, interactions, total);
+
+    // Ajouter HydraView pour la pagination
+    let total_pages = total.div_ceil(limit);
+    if total_pages > 1 {
+        collection.view = Some(HydraView {
+            id: format!("{}?page={}&limit={}", collection_id, page, limit),
+            type_: "hydra:PartialCollectionView".to_string(),
+            first: format!("{}?page=1&limit={}", collection_id, limit),
+            previous: if page > 1 {
+                Some(format!(
+                    "{}?page={}&limit={}",
+                    collection_id,
+                    page - 1,
+                    limit
+                ))
+            } else {
+                None
+            },
+            next: if page < total_pages {
+                Some(format!(
+                    "{}?page={}&limit={}",
+                    collection_id,
+                    page + 1,
+                    limit
+                ))
+            } else {
+                None
+            },
+            last: format!("{}?page={}&limit={}", collection_id, total_pages, limit),
+        });
+    }
+
+    match content_type {
+        ContentType::JsonLd | ContentType::Json => (
+            StatusCode::OK,
+            [(axum::http::header::CONTENT_TYPE, content_type.mime_type())],
+            Json(collection),
+        )
+            .into_response(),
+        _ => (
+            StatusCode::NOT_IMPLEMENTED,
+            "Only JSON-LD and JSON are currently supported",
+        )
+            .into_response(),
+    }
+}
+
+/// GET /api/cassettes/{name}/interactions/{id}
+///
+/// Récupère une interaction spécifique d'une cassette.
+///
+/// # Path Parameters
+/// - `name`: Nom de la cassette
+/// - `id`: Index de l'interaction (commence à 0)
+#[cfg(feature = "hydra")]
+pub async fn get_interaction(
+    State(state): State<HydraState>,
+    Path((name, id)): Path<(String, usize)>,
+    headers: HeaderMap,
+) -> Response {
+    let content_type = get_content_type(&headers);
+
+    // Charger la cassette
+    let cassette = match state.cassette_manager.load_cassette(&name) {
+        Ok(c) => c,
+        Err(_) => {
+            return (
+                StatusCode::NOT_FOUND,
+                format!("Cassette '{}' not found", name),
+            )
+                .into_response();
+        }
+    };
+
+    // Vérifier que l'index existe
+    if id >= cassette.interactions.len() {
+        return (
+            StatusCode::NOT_FOUND,
+            format!("Interaction {} not found in cassette '{}'", id, name),
+        )
+            .into_response();
+    }
+
+    use crate::hydra::InteractionResource;
+    let interaction = &cassette.interactions[id];
+    let resource = InteractionResource::from_interaction(interaction, &name, id, &state.base_url);
+
+    match content_type {
+        ContentType::JsonLd | ContentType::Json => (
+            StatusCode::OK,
+            [(axum::http::header::CONTENT_TYPE, content_type.mime_type())],
+            Json(resource),
+        )
+            .into_response(),
+        _ => (
+            StatusCode::NOT_IMPLEMENTED,
+            "Only JSON-LD and JSON are currently supported",
+        )
+            .into_response(),
+    }
+}
+
 /// Construit le routeur Axum pour les endpoints Hydra
 ///
 /// # Exemple
@@ -461,6 +684,12 @@ pub fn build_hydra_router(state: HydraState) -> Router {
         // Cassette endpoints
         .route("/api/cassettes", get(list_cassettes))
         .route("/api/cassettes/:name", get(get_cassette))
+        // Interaction endpoints
+        .route("/api/cassettes/:name/interactions", get(list_interactions))
+        .route(
+            "/api/cassettes/:name/interactions/:id",
+            get(get_interaction),
+        )
         // Template endpoints
         .route("/api/templates", get(list_templates))
         // Vocabulary endpoint

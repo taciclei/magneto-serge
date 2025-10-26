@@ -5,8 +5,8 @@
 **Frontend:** Angular 17+ avec Heracles.ts / Alcaeus
 **Date de début:** 2025-10-26
 **Durée estimée:** 6-8 semaines
-**Status:** 🚧 En cours - Phase 1 Week 3 Handlers HTTP
-**Dernière mise à jour:** 2025-10-26 16:30
+**Status:** 🚧 En cours - Phase 1 Week 3 Handlers HTTP (Pagination ✅)
+**Dernière mise à jour:** 2025-10-26 17:45
 
 ---
 
@@ -19,23 +19,28 @@
 - ✅ Ressources Hypermedia (3 types, 798 lignes)
   - CassetteResource, InteractionResource, TemplateResource
   - Détection templates, navigation links, opérations CRUD
-- ✅ Handlers HTTP Axum (5 endpoints, 450 lignes)
+- ✅ Handlers HTTP Axum (7 endpoints, 650 lignes)
   - GET /api (ApiDocumentation)
-  - GET /api/cassettes (HydraCollection)
+  - GET /api/cassettes (HydraCollection + pagination)
   - GET /api/cassettes/{name} (CassetteResource)
+  - GET /api/cassettes/{name}/interactions (HydraCollection + pagination) 🆕
+  - GET /api/cassettes/{name}/interactions/{id} (InteractionResource) 🆕
   - GET /api/templates (helpers Handlebars)
   - GET /vocab (vocabulaire Magneto RDF)
+- ✅ Pagination HydraView (query params: page/limit)
+  - first, previous, next, last links
+  - Default: page=1, limit=20, max=100
 
 ### 🚧 En Cours
-- 🚧 Intégration router Axum
 - ⏳ Tests d'intégration endpoints
 - ⏳ Content negotiation Turtle/RDF-XML
+- ⏳ Intégration ApiServer principal
 
 ### 📈 Statistiques
-- **Total lignes:** ~2,800 lignes Rust
+- **Total lignes:** ~3,050 lignes Rust (+250 pour pagination)
 - **Modules créés:** 11 (hydra + resources + handlers)
-- **Tests:** 31 (29 Hydra + 2 handlers)
-- **Endpoints:** 5 HTTP REST
+- **Tests:** 31 (tous passent ✅)
+- **Endpoints:** 7 HTTP REST (+2 interactions)
 - **Feature flags:** `hydra` (optionnel)
 
 ---
