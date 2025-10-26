@@ -134,7 +134,11 @@ mod templates_integration {
         let response = HttpResponse {
             status: 201,
             headers: HashMap::new(),
-            body: Some(r#"{"resource_id":"{{ uuid }}","status":"created"}"#.as_bytes().to_vec()),
+            body: Some(
+                r#"{"resource_id":"{{ uuid }}","status":"created"}"#
+                    .as_bytes()
+                    .to_vec(),
+            ),
         };
 
         recorder.record_http(request.clone(), response);
@@ -216,10 +220,7 @@ mod templates_integration {
             let body = String::from_utf8(resp.body.unwrap()).unwrap();
 
             // Verify request headers were substituted
-            assert_eq!(
-                body,
-                r#"{"user_id":"user-12345","session":"sess-abcde"}"#
-            );
+            assert_eq!(body, r#"{"user_id":"user-12345","session":"sess-abcde"}"#);
         } else {
             panic!("Expected HTTP interaction");
         }
@@ -362,7 +363,11 @@ mod templates_integration {
         let response = HttpResponse {
             status: 200,
             headers: HashMap::new(),
-            body: Some(r#"{"custom":"{{ my_helper }}","standard":"{{ uuid }}"}"#.as_bytes().to_vec()),
+            body: Some(
+                r#"{"custom":"{{ my_helper }}","standard":"{{ uuid }}"}"#
+                    .as_bytes()
+                    .to_vec(),
+            ),
         };
 
         recorder.record_http(request.clone(), response);
@@ -434,7 +439,11 @@ mod templates_integration {
         let response2 = HttpResponse {
             status: 200,
             headers: HashMap::new(),
-            body: Some(r#"{"value":"{{ env "ENV_VAR_2" }}","id":"{{ uuid }}"}"#.as_bytes().to_vec()),
+            body: Some(
+                r#"{"value":"{{ env "ENV_VAR_2" }}","id":"{{ uuid }}"}"#
+                    .as_bytes()
+                    .to_vec(),
+            ),
         };
 
         recorder.record_http(request2.clone(), response2);

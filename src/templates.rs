@@ -78,12 +78,11 @@ impl TemplateEngine {
                  _: &mut handlebars::RenderContext,
                  out: &mut dyn handlebars::Output|
                  -> handlebars::HelperResult {
-                    let param = h
-                        .param(0)
-                        .and_then(|v| v.value().as_str())
-                        .ok_or_else(|| {
-                            handlebars::RenderErrorReason::Other("env helper requires a parameter".to_string())
-                        })?;
+                    let param = h.param(0).and_then(|v| v.value().as_str()).ok_or_else(|| {
+                        handlebars::RenderErrorReason::Other(
+                            "env helper requires a parameter".to_string(),
+                        )
+                    })?;
 
                     let value = std::env::var(param).unwrap_or_else(|_| String::from(""));
                     out.write(&value)?;
@@ -231,7 +230,11 @@ impl TemplateEngine {
         Self
     }
 
-    pub fn render(&self, template: &str, _request: &crate::cassette::HttpRequest) -> crate::error::Result<String> {
+    pub fn render(
+        &self,
+        template: &str,
+        _request: &crate::cassette::HttpRequest,
+    ) -> crate::error::Result<String> {
         // When templates feature is disabled, just return the template as-is
         Ok(template.to_string())
     }
