@@ -80,6 +80,52 @@ impl ApiServer {
         Ok(())
     }
 
+    /// Start the API server with Axum and Hydra support
+    #[cfg(feature = "hydra")]
+    pub async fn start_with_hydra(self) -> Result<()> {
+        use axum::Router;
+
+        let addr: SocketAddr = format!("{}:{}", self.config.host, self.config.port)
+            .parse()
+            .map_err(|e| crate::MatgtoError::Config(format!("Invalid address: {}", e)))?;
+
+        // Create HydraState
+        let cassette_dir = std::path::PathBuf::from(&self.config.cassette_dir);
+        let cassette_manager = Arc::new(super::CassetteManager::new(cassette_dir));
+        let base_url = format!("http://{}:{}", self.config.host, self.config.port);
+
+        #[cfg(feature = "hydra")]
+        let hydra_state = super::HydraState {
+            cassette_manager,
+            base_url,
+        };
+
+        // Build Hydra router
+        #[cfg(feature = "hydra")]
+        let hydra_router = super::build_hydra_router(hydra_state);
+
+        // Build main router combining legacy and Hydra endpoints
+        let app = Router::new()
+            .nest("/", hydra_router)
+            .layer(tower_http::cors::CorsLayer::permissive());
+
+        tracing::info!("🌐 API Server (Hydra) starting on http://{}", addr);
+
+        let listener = tokio::net::TcpListener::bind(addr).await.map_err(|e| {
+            crate::MatgtoError::ProxyStartFailed {
+                reason: format!("Failed to bind to {}: {}", addr, e),
+            }
+        })?;
+
+        axum::serve(listener, app)
+            .await
+            .map_err(|e| crate::MatgtoError::ProxyStartFailed {
+                reason: format!("Failed to start API server: {}", e),
+            })?;
+
+        Ok(())
+    }
+
     /// Handle incoming HTTP request
     async fn handle_request(
         &self,
