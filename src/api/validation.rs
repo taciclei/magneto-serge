@@ -227,7 +227,7 @@ mod tests {
         );
         assert_eq!(
             sanitize_cassette_name("test with spaces!"),
-            "test-with-spaces_"
+            "test-with-spaces"
         );
         assert_eq!(sanitize_cassette_name("  leading  "), "leading");
         assert_eq!(sanitize_cassette_name("---test---"), "test");
