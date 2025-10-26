@@ -5,11 +5,18 @@
 
 pub mod cassettes;
 pub mod handlers;
+#[cfg(feature = "hydra")]
+pub mod hydra_handlers;
 pub mod openapi;
 pub mod server;
 
 pub use cassettes::CassetteManager;
 pub use handlers::{build_router, build_router as create_router};
+#[cfg(feature = "hydra")]
+pub use hydra_handlers::{
+    api_entrypoint, build_hydra_router, get_cassette, get_interaction, list_cassettes,
+    list_interactions, list_templates, vocabulary, HydraState,
+};
 pub use openapi::{generate_openapi_spec, OpenApiSpec};
 pub use server::ApiServer;
 

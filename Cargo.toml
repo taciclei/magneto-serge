@@ -42,6 +42,10 @@ required-features = ["uniffi/cli"]
 name = "api_server"
 required-features = ["api"]
 
+[[example]]
+name = "hydra_api_server"
+required-features = ["hydra"]
+
 [dependencies]
 axum = { version = "0.7", optional = true }
 tower = { version = "0.4", optional = true }
@@ -142,6 +146,7 @@ api = ["axum", "tower", "tower-http"]
 msgpack = ["rmp-serde"]
 compression = ["flate2"]
 templates = ["handlebars"]
+hydra = ["api"]  # Hydra requires API feature
 
 [build-dependencies]
 uniffi = { version = "0.28", features = ["build"] }
