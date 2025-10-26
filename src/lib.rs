@@ -27,6 +27,10 @@ pub mod websocket;
 #[cfg(feature = "api")]
 pub mod api;
 
+// Optional Hydra module (requires 'hydra' feature)
+#[cfg(feature = "hydra")]
+pub mod hydra;
+
 // Core exports (always available)
 pub use error::{MatgtoError, Result};
 pub use filters::{FilterPresets, RecordingFilters};
@@ -51,6 +55,14 @@ pub use cookies::{Cookie, CookieJar, SameSite};
 #[cfg(feature = "api")]
 pub use api::{
     ApiConfig, ApiResponse, ApiServer, ProxyStatus, StartProxyRequest, StopProxyRequest,
+};
+
+// Hydra exports (only when 'hydra' feature is enabled)
+#[cfg(feature = "hydra")]
+pub use hydra::{
+    ApiDocumentation, HydraClass, HydraCollection, HydraError, HydraLink, HydraOperation,
+    HydraProperty, HydraResponse, HydraSearch, HydraView, JsonLdContext, SupportedClass,
+    SupportedProperty,
 };
 
 // UniFFI factory function

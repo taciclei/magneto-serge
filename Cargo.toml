@@ -142,6 +142,7 @@ api = ["axum", "tower", "tower-http"]
 msgpack = ["rmp-serde"]
 compression = ["flate2"]
 templates = ["handlebars"]
+hydra = ["api"]  # Hydra requires API feature
 
 [build-dependencies]
 uniffi = { version = "0.28", features = ["build"] }
