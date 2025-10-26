@@ -417,6 +417,51 @@ impl CassetteManager {
             age_distribution: age_dist,
         })
     }
+
+    /// Check if a cassette exists
+    pub fn cassette_exists(&self, name: &str) -> bool {
+        let json_path = self.cassette_dir.join(format!("{}.json", name));
+        let msgpack_path = self.cassette_dir.join(format!("{}.msgpack", name));
+        json_path.exists() || msgpack_path.exists()
+    }
+
+    /// Save a cassette to disk
+    pub fn save_cassette(&self, cassette: &Cassette) -> Result<()> {
+        // Ensure cassette directory exists
+        if !self.cassette_dir.exists() {
+            fs::create_dir_all(&self.cassette_dir)?;
+        }
+
+        let path = self.cassette_dir.join(format!("{}.json", cassette.name));
+        let file = std::fs::File::create(&path)?;
+        serde_json::to_writer_pretty(file, cassette)?;
+
+        Ok(())
+    }
+
+    /// Create a new empty cassette
+    pub fn create_cassette(&self, name: &str) -> Result<Cassette> {
+        // Check if cassette already exists
+        if self.cassette_exists(name) {
+            return Err(MatgtoError::CassetteLoadFailed {
+                reason: format!("Cassette '{}' already exists", name),
+            });
+        }
+
+        // Create empty cassette
+        let cassette = Cassette {
+            version: "1.0".to_string(),
+            name: name.to_string(),
+            recorded_at: chrono::Utc::now(),
+            cookies: None,
+            interactions: vec![],
+        };
+
+        // Save to disk
+        self.save_cassette(&cassette)?;
+
+        Ok(cassette)
+    }
 }
 
 /// Global cassette statistics

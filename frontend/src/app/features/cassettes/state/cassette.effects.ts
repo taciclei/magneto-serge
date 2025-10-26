@@ -91,4 +91,105 @@ export class CassetteEffects {
       })
     )
   );
+
+  /**
+   * Effet: Créer une nouvelle cassette
+   */
+  createCassette$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(CassetteActions.createCassette),
+      switchMap(({ name, mode, description }) => {
+        const url = `/cassettes`;
+        const data = { name, mode: mode || 'auto', description };
+
+        return this.alcaeusService.createResource<CassetteResource>(url, data).pipe(
+          map(response => {
+            const cassette = response.root as CassetteResource;
+            return CassetteActions.createCassetteSuccess({ cassette });
+          }),
+          catchError(error =>
+            of(CassetteActions.createCassetteFailure({
+              error: error.message || `Failed to create cassette: ${name}`
+            }))
+          )
+        );
+      })
+    )
+  );
+
+  /**
+   * Effet: Rafraîchir la liste après création réussie
+   */
+  refreshAfterCreate$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(CassetteActions.createCassetteSuccess),
+      map(() => CassetteActions.loadCassettes({ params: {} }))
+    )
+  );
+
+  /**
+   * Effet: Mettre à jour une cassette
+   */
+  updateCassette$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(CassetteActions.updateCassette),
+      switchMap(({ name, description }) => {
+        const url = `/cassettes/${name}`;
+        const data = { description };
+
+        return this.alcaeusService.updateResource<CassetteResource>(url, data).pipe(
+          map(response => {
+            const cassette = response.root as CassetteResource;
+            return CassetteActions.updateCassetteSuccess({ cassette });
+          }),
+          catchError(error =>
+            of(CassetteActions.updateCassetteFailure({
+              error: error.message || `Failed to update cassette: ${name}`
+            }))
+          )
+        );
+      })
+    )
+  );
+
+  /**
+   * Effet: Rafraîchir la liste après mise à jour réussie
+   */
+  refreshAfterUpdate$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(CassetteActions.updateCassetteSuccess),
+      map(() => CassetteActions.loadCassettes({ params: {} }))
+    )
+  );
+
+  /**
+   * Effet: Supprimer une cassette
+   */
+  deleteCassette$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(CassetteActions.deleteCassette),
+      switchMap(({ name }) => {
+        const url = `/cassettes/${name}`;
+
+        return this.alcaeusService.deleteResource(url).pipe(
+          map(() => CassetteActions.deleteCassetteSuccess({ name })),
+          catchError(error =>
+            of(CassetteActions.deleteCassetteFailure({
+              error: error.message || `Failed to delete cassette: ${name}`
+            }))
+          )
+        );
+      })
+    )
+  );
+
+  /**
+   * Effet: Rafraîchir la liste après suppression réussie
+   */
+  refreshAfterDelete$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(CassetteActions.deleteCassetteSuccess),
+      map(() => CassetteActions.loadCassettes({ params: {} }))
+    )
+  );
 }

@@ -1,0 +1,33 @@
+<h2 mat-dialog-title class="delete-title">
+  <mat-icon color="warn">warning</mat-icon>
+  Delete Cassette
+</h2>
+
+<mat-dialog-content>
+  <p class="confirmation-message">
+    Are you sure you want to delete the cassette <strong>"{{ data.cassetteName }}"</strong>?
+  </p>
+
+  <div class="details" *ngIf="data.interactionCount !== undefined">
+    <p class="detail-item">
+      <mat-icon>info_outline</mat-icon>
+      <span>This cassette contains <strong>{{ data.interactionCount }}</strong> interaction(s).</span>
+    </p>
+  </div>
+
+  <p class="warning-message">
+    <mat-icon color="warn">error_outline</mat-icon>
+    This action cannot be undone. The cassette file will be permanently deleted from disk.
+  </p>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" type="button">Cancel</button>
+  <button
+    mat-raised-button
+    color="warn"
+    (click)="onConfirm()"
+    type="button">
+    Delete Cassette
+  </button>
+</mat-dialog-actions>

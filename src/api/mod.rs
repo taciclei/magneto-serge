@@ -9,6 +9,7 @@ pub mod handlers;
 pub mod hydra_handlers;
 pub mod openapi;
 pub mod server;
+pub mod validation;
 
 pub use cassettes::CassetteManager;
 pub use handlers::{build_router, build_router as create_router};
@@ -19,6 +20,7 @@ pub use hydra_handlers::{
 };
 pub use openapi::{generate_openapi_spec, OpenApiSpec};
 pub use server::ApiServer;
+pub use validation::{is_valid_cassette_name, sanitize_cassette_name, validate_cassette_name};
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

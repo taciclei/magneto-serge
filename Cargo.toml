@@ -126,6 +126,7 @@ handlebars = { version = "5.1", optional = true }
 # === Hashing ===
 sha2 = "0.10"
 base64 = "0.21"
+once_cell = "1.21.3"
 
 [dev-dependencies]
 tokio-test = "0.4"

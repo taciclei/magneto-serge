@@ -34,5 +34,21 @@ export const CassetteActions = createActionGroup({
     // Sélection de cassette
     'Select Cassette': props<{ name: string }>(),
     'Clear Selection': emptyProps(),
+
+    // CRUD Operations
+    // Create cassette
+    'Create Cassette': props<{ name: string; mode?: string; description?: string }>(),
+    'Create Cassette Success': props<{ cassette: CassetteResource }>(),
+    'Create Cassette Failure': props<{ error: string }>(),
+
+    // Update cassette
+    'Update Cassette': props<{ name: string; description?: string }>(),
+    'Update Cassette Success': props<{ cassette: CassetteResource }>(),
+    'Update Cassette Failure': props<{ error: string }>(),
+
+    // Delete cassette
+    'Delete Cassette': props<{ name: string }>(),
+    'Delete Cassette Success': props<{ name: string }>(),
+    'Delete Cassette Failure': props<{ error: string }>(),
   }
 });

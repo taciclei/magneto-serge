@@ -1,0 +1,56 @@
+<h2 mat-dialog-title>Create New Cassette</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="createForm" class="create-form">
+
+    <!-- Cassette Name -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Cassette Name</mat-label>
+      <input
+        matInput
+        formControlName="name"
+        placeholder="my-api-test"
+        autocomplete="off">
+      <mat-hint>Alphanumeric, hyphens, underscores only (1-100 chars)</mat-hint>
+      <mat-error *ngIf="createForm.get('name')?.invalid">
+        {{ getNameErrorMessage() }}
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Proxy Mode -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Proxy Mode</mat-label>
+      <mat-select formControlName="mode">
+        <mat-option *ngFor="let mode of modes" [value]="mode.value">
+          {{ mode.label }}
+        </mat-option>
+      </mat-select>
+      <mat-hint>Auto mode records if cassette is missing, otherwise replays</mat-hint>
+    </mat-form-field>
+
+    <!-- Description (Optional) -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Description (Optional)</mat-label>
+      <textarea
+        matInput
+        formControlName="description"
+        placeholder="API tests for user service"
+        rows="3"
+        autocomplete="off"></textarea>
+      <mat-hint>Optional description for documentation</mat-hint>
+    </mat-form-field>
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" type="button">Cancel</button>
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="onSubmit()"
+    [disabled]="createForm.invalid"
+    type="submit">
+    Create Cassette
+  </button>
+</mat-dialog-actions>

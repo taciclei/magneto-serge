@@ -1,0 +1,60 @@
+.delete-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #f44336;
+}
+
+mat-dialog-content {
+  min-width: 400px;
+  padding-top: 8px;
+}
+
+.confirmation-message {
+  margin-bottom: 16px;
+  font-size: 16px;
+}
+
+.details {
+  background-color: #f5f5f5;
+  border-left: 4px solid #2196f3;
+  padding: 12px;
+  margin: 16px 0;
+  border-radius: 4px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+
+  mat-icon {
+    color: #2196f3;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.warning-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background-color: #fff3e0;
+  border-left: 4px solid #ff9800;
+  padding: 12px;
+  margin: 16px 0 0 0;
+  border-radius: 4px;
+  font-size: 14px;
+
+  mat-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+}
+
+mat-dialog-actions {
+  padding: 16px 0 0 0;
+  margin-top: 8px;
+}

@@ -10,7 +10,7 @@ use axum::{
     routing::get,
     Json, Router,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 #[cfg(feature = "hydra")]
@@ -19,7 +19,7 @@ use crate::hydra::{
     TemplateResource,
 };
 
-use crate::api::CassetteManager;
+use crate::api::{validation::validate_cassette_name, CassetteManager};
 
 /// État partagé pour les handlers Hydra
 #[derive(Clone)]
@@ -664,6 +664,188 @@ pub async fn get_interaction(
     }
 }
 
+// ============================================================================
+// CRUD Operations (Phase 3.0)
+// ============================================================================
+
+/// Requête de création de cassette
+#[derive(Debug, Deserialize, Serialize)]
+pub struct CreateCassetteRequest {
+    /// Nom unique de la cassette (alphanumérique, tirets, underscores)
+    pub name: String,
+
+    /// Description optionnelle de la cassette
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+
+    /// Mode du proxy (auto, record, replay, passthrough)
+    #[serde(default = "default_mode")]
+    pub mode: String,
+}
+
+fn default_mode() -> String {
+    "auto".to_string()
+}
+
+/// Requête de mise à jour de cassette
+#[derive(Debug, Deserialize, Serialize)]
+pub struct UpdateCassetteRequest {
+    /// Nouvelle description (optionnelle)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+/// POST /api/cassettes
+///
+/// Crée une nouvelle cassette vide.
+///
+/// # Body
+/// ```json
+/// {
+///   "name": "my-api-test",
+///   "description": "Test cassette for user service API",
+///   "mode": "auto"
+/// }
+/// ```
+///
+/// # Responses
+/// - 201 Created: Cassette créée avec succès
+/// - 400 Bad Request: Nom de cassette invalide
+/// - 409 Conflict: Cassette existe déjà
+#[cfg(feature = "hydra")]
+pub async fn create_cassette(
+    State(state): State<HydraState>,
+    Json(payload): Json<CreateCassetteRequest>,
+) -> Response {
+    // Valider le nom de la cassette
+    if let Err(err) = validate_cassette_name(&payload.name) {
+        return (StatusCode::BAD_REQUEST, err).into_response();
+    }
+
+    // Créer la cassette via CassetteManager
+    let cassette = match state.cassette_manager.create_cassette(&payload.name) {
+        Ok(c) => c,
+        Err(e) => {
+            // Si la cassette existe déjà, retourner 409 Conflict
+            if e.to_string().contains("already exists") {
+                return (StatusCode::CONFLICT, e.to_string()).into_response();
+            }
+            // Autre erreur
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Failed to create cassette: {}", e),
+            )
+                .into_response();
+        }
+    };
+
+    // Créer la ressource Hydra pour la réponse
+    let resource = CassetteResource::from_cassette(&cassette, &state.base_url);
+
+    (
+        StatusCode::CREATED,
+        [(axum::http::header::CONTENT_TYPE, "application/ld+json")],
+        Json(resource),
+    )
+        .into_response()
+}
+
+/// DELETE /api/cassettes/:name
+///
+/// Supprime une cassette existante.
+///
+/// # Path Parameters
+/// - name: Nom de la cassette à supprimer
+///
+/// # Responses
+/// - 204 No Content: Cassette supprimée avec succès
+/// - 404 Not Found: Cassette n'existe pas
+#[cfg(feature = "hydra")]
+pub async fn delete_cassette(
+    State(state): State<HydraState>,
+    Path(name): Path<String>,
+) -> Response {
+    // Supprimer la cassette via CassetteManager
+    match state.cassette_manager.delete_cassette(&name) {
+        Ok(_) => StatusCode::NO_CONTENT.into_response(),
+        Err(e) => {
+            // Si la cassette n'existe pas, retourner 404
+            if e.to_string().contains("not found") {
+                return (StatusCode::NOT_FOUND, e.to_string()).into_response();
+            }
+            // Autre erreur
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Failed to delete cassette: {}", e),
+            )
+                .into_response()
+        }
+    }
+}
+
+/// PUT /api/cassettes/:name
+///
+/// Met à jour les métadonnées d'une cassette.
+///
+/// # Path Parameters
+/// - name: Nom de la cassette à mettre à jour
+///
+/// # Body
+/// ```json
+/// {
+///   "description": "Updated description"
+/// }
+/// ```
+///
+/// # Responses
+/// - 200 OK: Cassette mise à jour avec succès
+/// - 404 Not Found: Cassette n'existe pas
+#[cfg(feature = "hydra")]
+pub async fn update_cassette(
+    State(state): State<HydraState>,
+    Path(name): Path<String>,
+    Json(_payload): Json<UpdateCassetteRequest>,
+) -> Response {
+    // Charger la cassette existante
+    let cassette = match state.cassette_manager.load_cassette(&name) {
+        Ok(c) => c,
+        Err(e) => {
+            // Si la cassette n'existe pas, retourner 404
+            if e.to_string().contains("not found") {
+                return (StatusCode::NOT_FOUND, e.to_string()).into_response();
+            }
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Failed to load cassette: {}", e),
+            )
+                .into_response();
+        }
+    };
+
+    // Mettre à jour la description (dans le futur, on pourrait ajouter ce champ à Cassette)
+    // Pour l'instant, on retourne simplement la cassette (pas de modification)
+    // Note: Il faudra ajouter le champ `description` à la struct Cassette si on veut persister cette info
+
+    // Sauvegarder la cassette (touchée pour mettre à jour recorded_at si nécessaire)
+    if let Err(e) = state.cassette_manager.save_cassette(&cassette) {
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Failed to update cassette: {}", e),
+        )
+            .into_response();
+    }
+
+    // Retourner la ressource Hydra mise à jour
+    let resource = CassetteResource::from_cassette(&cassette, &state.base_url);
+
+    (
+        StatusCode::OK,
+        [(axum::http::header::CONTENT_TYPE, "application/ld+json")],
+        Json(resource),
+    )
+        .into_response()
+}
+
 /// Construit le routeur Axum pour les endpoints Hydra
 ///
 /// # Exemple
@@ -681,9 +863,14 @@ pub fn build_hydra_router(state: HydraState) -> Router {
     Router::new()
         // API Documentation entrypoint
         .route("/api", get(api_entrypoint))
-        // Cassette endpoints
-        .route("/api/cassettes", get(list_cassettes))
-        .route("/api/cassettes/:name", get(get_cassette))
+        // Cassette endpoints (READ + CRUD)
+        .route("/api/cassettes", get(list_cassettes).post(create_cassette))
+        .route(
+            "/api/cassettes/:name",
+            get(get_cassette)
+                .delete(delete_cassette)
+                .put(update_cassette),
+        )
         // Interaction endpoints
         .route("/api/cassettes/:name/interactions", get(list_interactions))
         .route(

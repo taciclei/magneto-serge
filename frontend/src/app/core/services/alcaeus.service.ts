@@ -107,4 +107,93 @@ export class AlcaeusService {
   lastPage<T extends Resource = Resource>(collection: Resource): Observable<HydraResponse<T>> | null {
     return this.followLink<T>(collection, 'last');
   }
+
+  /**
+   * Create a new resource using POST
+   *
+   * @param url URL endpoint for creation
+   * @param data Resource data to create
+   * @returns Observable of HydraResponse containing the created resource
+   */
+  createResource<T extends Resource = Resource>(url: string, data: any): Observable<HydraResponse<T>> {
+    const fullUrl = url.startsWith('http') ? url : `${environment.apiUrl}${url}`;
+
+    return from(
+      fetch(fullUrl, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/ld+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.text().then(text => {
+            throw new Error(text || `HTTP ${response.status}: ${response.statusText}`);
+          });
+        }
+        return response.json();
+      })
+      .then(json => this.client.loadResource(json['_links']?.self?.href || fullUrl))
+    ) as Observable<HydraResponse<T>>;
+  }
+
+  /**
+   * Update an existing resource using PUT
+   *
+   * @param url URL of the resource to update
+   * @param data Resource data to update
+   * @returns Observable of HydraResponse containing the updated resource
+   */
+  updateResource<T extends Resource = Resource>(url: string, data: any): Observable<HydraResponse<T>> {
+    const fullUrl = url.startsWith('http') ? url : `${environment.apiUrl}${url}`;
+
+    return from(
+      fetch(fullUrl, {
+        method: 'PUT',
+        headers: {
+          'Accept': 'application/ld+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.text().then(text => {
+            throw new Error(text || `HTTP ${response.status}: ${response.statusText}`);
+          });
+        }
+        return response.json();
+      })
+      .then(json => this.client.loadResource(json['_links']?.self?.href || fullUrl))
+    ) as Observable<HydraResponse<T>>;
+  }
+
+  /**
+   * Delete a resource using DELETE
+   *
+   * @param url URL of the resource to delete
+   * @returns Observable that completes when deletion is successful
+   */
+  deleteResource(url: string): Observable<void> {
+    const fullUrl = url.startsWith('http') ? url : `${environment.apiUrl}${url}`;
+
+    return from(
+      fetch(fullUrl, {
+        method: 'DELETE',
+        headers: {
+          'Accept': 'application/ld+json'
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.text().then(text => {
+            throw new Error(text || `HTTP ${response.status}: ${response.statusText}`);
+          });
+        }
+        return;
+      })
+    );
+  }
 }
