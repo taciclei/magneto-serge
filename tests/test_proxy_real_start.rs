@@ -25,32 +25,39 @@ fn test_proxy_starts_and_binds_port() {
 
     // Vérifier que le port écoute
     println!("🔍 Checking if port 18888 is listening...");
+
+    #[cfg(target_os = "windows")]
+    let port_check = std::process::Command::new("netstat")
+        .args(["-ano"])
+        .output()
+        .expect("Failed to run netstat");
+
+    #[cfg(not(target_os = "windows"))]
     let port_check = std::process::Command::new("lsof")
         .args(["-i", ":18888"])
         .output()
         .expect("Failed to run lsof");
 
     let output = String::from_utf8_lossy(&port_check.stdout);
-    println!("📊 lsof output:\n{}", output);
 
-    if output.contains("LISTEN") {
+    #[cfg(target_os = "windows")]
+    let port_listening = output
+        .lines()
+        .any(|line| line.contains(":18888") && line.contains("LISTENING"));
+
+    #[cfg(not(target_os = "windows"))]
+    let port_listening = output.contains("LISTEN");
+
+    if port_listening {
         println!("✅ SUCCESS: Port 18888 is listening!");
     } else {
         println!("❌ FAILURE: Port 18888 is NOT listening!");
-        println!("Stderr: {}", String::from_utf8_lossy(&port_check.stderr));
+        #[cfg(target_os = "windows")]
+        println!("📊 netstat output:\n{}", output);
+        #[cfg(not(target_os = "windows"))]
+        println!("📊 lsof output:\n{}", output);
 
-        // Afficher les processus Rust qui tournent
-        let ps_output = std::process::Command::new("ps")
-            .args(["aux"])
-            .output()
-            .expect("Failed to run ps");
-        let ps_str = String::from_utf8_lossy(&ps_output.stdout);
-        println!("\n📋 Rust processes:");
-        for line in ps_str.lines() {
-            if line.contains("test_proxy_real") || line.contains("magneto") {
-                println!("  {}", line);
-            }
-        }
+        println!("Stderr: {}", String::from_utf8_lossy(&port_check.stderr));
 
         panic!("Port not listening after 3 seconds");
     }
