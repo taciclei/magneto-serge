@@ -48,6 +48,7 @@ impl JsonLdContext {
     /// # Example
     ///
     /// ```rust
+    /// use magneto_serge::hydra::JsonLdContext;
     /// let context = JsonLdContext::new("http://localhost:8889");
     /// ```
     pub fn new(base_url: &str) -> Self {
@@ -169,6 +170,8 @@ impl JsonLdContext {
     /// # Example
     ///
     /// ```rust
+    /// use magneto_serge::hydra::JsonLdContext;
+    /// let mut context = JsonLdContext::new("http://localhost:8889");
     /// context.add_mapping("customProp", "http://example.com/vocab#custom");
     /// ```
     pub fn add_mapping(&mut self, key: &str, value: impl Into<serde_json::Value>) {
