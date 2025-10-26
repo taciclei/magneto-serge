@@ -5,8 +5,38 @@
 **Frontend:** Angular 17+ avec Heracles.ts / Alcaeus
 **Date de début:** 2025-10-26
 **Durée estimée:** 6-8 semaines
-**Status:** 🚧 En cours - Phase 1 Week 2 Complétée
-**Dernière mise à jour:** 2025-10-26
+**Status:** 🚧 En cours - Phase 1 Week 3 Handlers HTTP
+**Dernière mise à jour:** 2025-10-26 16:30
+
+---
+
+## 📊 Progression Actuelle
+
+### ✅ Complété (Semaines 1-3)
+- ✅ Infrastructure Hydra Core (7 modules, 1570 lignes, 29 tests)
+  - JsonLdContext, HydraOperation, HydraCollection, ApiDocumentation
+  - HydraError, HydraResponse, HydraLink, HydraClass
+- ✅ Ressources Hypermedia (3 types, 798 lignes)
+  - CassetteResource, InteractionResource, TemplateResource
+  - Détection templates, navigation links, opérations CRUD
+- ✅ Handlers HTTP Axum (5 endpoints, 450 lignes)
+  - GET /api (ApiDocumentation)
+  - GET /api/cassettes (HydraCollection)
+  - GET /api/cassettes/{name} (CassetteResource)
+  - GET /api/templates (helpers Handlebars)
+  - GET /vocab (vocabulaire Magneto RDF)
+
+### 🚧 En Cours
+- 🚧 Intégration router Axum
+- ⏳ Tests d'intégration endpoints
+- ⏳ Content negotiation Turtle/RDF-XML
+
+### 📈 Statistiques
+- **Total lignes:** ~2,800 lignes Rust
+- **Modules créés:** 11 (hydra + resources + handlers)
+- **Tests:** 31 (29 Hydra + 2 handlers)
+- **Endpoints:** 5 HTTP REST
+- **Feature flags:** `hydra` (optionnel)
 
 ---
 
