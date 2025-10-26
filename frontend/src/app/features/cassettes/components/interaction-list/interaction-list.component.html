@@ -1,0 +1,132 @@
+<!-- Loading Spinner -->
+<div *ngIf="loading" class="loading-container">
+  <mat-spinner></mat-spinner>
+  <p>Chargement des interactions...</p>
+</div>
+
+<!-- Error Message -->
+<div *ngIf="error" class="error-container">
+  <mat-icon color="warn">error</mat-icon>
+  <p>{{ error }}</p>
+  <button mat-raised-button color="primary" (click)="loadInteractions()">
+    Réessayer
+  </button>
+</div>
+
+<!-- Interactions List -->
+<div *ngIf="!loading && !error" class="interactions-container">
+  <ng-container *ngIf="(interactions$ | async) as interactions">
+    <div *ngIf="interactions.length === 0" class="no-interactions">
+      <mat-icon>inbox</mat-icon>
+      <p>Aucune interaction disponible</p>
+    </div>
+
+    <mat-accordion *ngIf="interactions.length > 0" multi>
+      <mat-expansion-panel *ngFor="let interaction of interactions; let i = index">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-chip-set>
+              <mat-chip [ngClass]="getInteractionTypeClass(interaction.interactionType)">
+                {{ interaction.interactionType }}
+              </mat-chip>
+            </mat-chip-set>
+            <span class="interaction-summary">
+              <ng-container *ngIf="interaction.interactionType === 'Http'">
+                <strong>{{ interaction.request?.method }}</strong>
+                {{ interaction.request?.url }}
+              </ng-container>
+              <ng-container *ngIf="interaction.interactionType === 'WebSocket'">
+                <strong>WebSocket</strong>
+                {{ interaction.url }}
+                ({{ interaction.messages?.length || 0 }} messages)
+              </ng-container>
+            </span>
+          </mat-panel-title>
+          <mat-panel-description>
+            <ng-container *ngIf="interaction.interactionType === 'Http'">
+              <mat-chip [ngClass]="getStatusClass(interaction.response?.status || 0)">
+                {{ interaction.response?.status }}
+              </mat-chip>
+            </ng-container>
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <!-- HTTP Interaction Details -->
+        <div *ngIf="interaction.interactionType === 'Http'" class="interaction-details">
+          <mat-tab-group>
+            <!-- Request Tab -->
+            <mat-tab label="Requête">
+              <div class="tab-content">
+                <div class="detail-section">
+                  <h4>Méthode et URL</h4>
+                  <div class="code-block">
+                    <strong>{{ interaction.request?.method }}</strong> {{ interaction.request?.url }}
+                  </div>
+                </div>
+
+                <div class="detail-section">
+                  <h4>Headers</h4>
+                  <pre class="code-block">{{ formatHeaders(interaction.request?.headers || {}) }}</pre>
+                </div>
+
+                <div class="detail-section" *ngIf="interaction.request?.body">
+                  <h4>Body</h4>
+                  <pre class="code-block">{{ formatBody(interaction.request?.body || null) }}</pre>
+                </div>
+              </div>
+            </mat-tab>
+
+            <!-- Response Tab -->
+            <mat-tab label="Réponse">
+              <div class="tab-content">
+                <div class="detail-section">
+                  <h4>Status</h4>
+                  <div class="code-block">
+                    <mat-chip [ngClass]="getStatusClass(interaction.response?.status || 0)">
+                      {{ interaction.response?.status }}
+                    </mat-chip>
+                  </div>
+                </div>
+
+                <div class="detail-section">
+                  <h4>Headers</h4>
+                  <pre class="code-block">{{ formatHeaders(interaction.response?.headers || {}) }}</pre>
+                </div>
+
+                <div class="detail-section" *ngIf="interaction.response?.body">
+                  <h4>Body</h4>
+                  <pre class="code-block">{{ formatBody(interaction.response?.body || null) }}</pre>
+                </div>
+              </div>
+            </mat-tab>
+          </mat-tab-group>
+        </div>
+
+        <!-- WebSocket Interaction Details -->
+        <div *ngIf="interaction.interactionType === 'WebSocket'" class="interaction-details">
+          <div class="detail-section">
+            <h4>URL WebSocket</h4>
+            <div class="code-block">{{ interaction.url }}</div>
+          </div>
+
+          <div class="detail-section">
+            <h4>Messages ({{ interaction.messages?.length || 0 }})</h4>
+            <div class="messages-list">
+              <div *ngFor="let message of interaction.messages" class="message-item">
+                <div class="message-header">
+                  <mat-chip [ngClass]="message.direction === 'Sent' ? 'direction-sent' : 'direction-received'">
+                    <mat-icon>{{ getDirectionIcon(message.direction) }}</mat-icon>
+                    {{ formatDirection(message.direction) }}
+                  </mat-chip>
+                  <span class="message-timestamp">{{ formatTimestamp(message.timestampMs) }}</span>
+                  <mat-chip class="message-type-chip">{{ message.msgType }}</mat-chip>
+                </div>
+                <pre class="message-content">{{ formatBody(message.data) }}</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </ng-container>
+</div>

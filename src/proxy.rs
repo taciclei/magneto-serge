@@ -220,16 +220,38 @@ impl MagnetoProxy {
             // Save the cassette
             if let Some(recorder) = state.recorder.take() {
                 let cassette_dir = state.cassette_dir.clone();
-                let runtime = self.runtime.clone();
-                // Drop the lock before blocking
+                // Drop the lock before saving
                 drop(state);
 
-                runtime.block_on(async move {
-                    let recorder_lock = recorder.lock().await;
-                    recorder_lock.save(&cassette_dir)
-                })?;
+                // Try to lock the recorder (should succeed immediately since we own the Arc)
+                // Use try_lock to avoid async context issues
+                let can_lock_immediately = recorder.try_lock().is_ok();
 
-                tracing::info!("✅ Cassette saved");
+                if can_lock_immediately {
+                    // Lock again (we know it will succeed)
+                    let recorder_guard = recorder.try_lock().unwrap();
+                    recorder_guard.save(&cassette_dir)?;
+                    tracing::info!("✅ Cassette saved");
+                } else {
+                    // If try_lock fails, fall back to spawning a thread
+                    let save_result = std::thread::spawn(move || {
+                        let rt =
+                            tokio::runtime::Runtime::new().expect("Failed to create save runtime");
+                        let result = rt.block_on(async move {
+                            let recorder_lock = recorder.lock().await;
+                            recorder_lock.save(&cassette_dir)
+                        });
+                        // Forget the runtime to avoid "drop in async context" error
+                        std::mem::forget(rt);
+                        result
+                    })
+                    .join()
+                    .map_err(|e| MatgtoError::RecordingFailed {
+                        reason: format!("Save thread panicked: {:?}", e),
+                    })?;
+                    save_result?;
+                    tracing::info!("✅ Cassette saved (via thread)");
+                }
             }
 
             Ok(())
@@ -565,6 +587,34 @@ impl MagnetoProxy {
                 tracing::error!("Proxy server error: {}", e);
             }
         });
+    }
+
+    // ========== Aliases for test framework integration ==========
+
+    /// Alias for start_recording() - for #[magneto_test] macro compatibility
+    pub fn start_replay(&self, cassette_name: impl AsRef<str>) -> Result<()> {
+        self.replay_internal(cassette_name.as_ref().to_string())
+    }
+
+    /// Stop replay mode - for #[magneto_test] macro compatibility
+    /// Note: Currently a no-op since replay mode doesn't maintain state
+    pub fn stop_replay(&self) -> Result<()> {
+        // Replay doesn't need explicit stopping as it doesn't modify state
+        // But we provide this for API consistency
+        Ok(())
+    }
+
+    /// Alias for passthrough() - for #[magneto_test] macro compatibility
+    pub fn start_passthrough(&self) -> Result<()> {
+        self.passthrough();
+        Ok(())
+    }
+
+    /// Stop passthrough mode - for #[magneto_test] macro compatibility
+    pub fn stop_passthrough(&self) -> Result<()> {
+        // Passthrough doesn't need explicit stopping
+        // But we provide this for API consistency
+        Ok(())
     }
 
     /// Shutdown the proxy (internal version with Result)

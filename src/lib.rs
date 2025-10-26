@@ -13,10 +13,12 @@ pub mod cassette;
 pub mod cookies;
 pub mod error;
 pub mod filters;
+pub mod hooks;
 pub mod matching;
 pub mod player;
 pub mod proxy;
 pub mod recorder;
+pub mod templates;
 pub mod test_helpers;
 pub mod tls;
 pub mod websocket;
@@ -25,15 +27,21 @@ pub mod websocket;
 #[cfg(feature = "api")]
 pub mod api;
 
+// Optional Hydra module (requires 'hydra' feature)
+#[cfg(feature = "hydra")]
+pub mod hydra;
+
 // Core exports (always available)
 pub use error::{MatgtoError, Result};
 pub use filters::{FilterPresets, RecordingFilters};
+pub use hooks::{RecordHook, RecordHooks, ReplayHook, ReplayHooks};
 pub use matching::{
     BodyMatchMode, CustomMatcher, MatchingStrategy, RequestSignature, UrlMatchMode,
 };
 pub use player::{LatencyMode, Player};
 pub use proxy::{MagnetoProxy, ProxyMode};
 pub use recorder::Recorder;
+pub use templates::TemplateEngine;
 pub use tls::CertificateAuthority;
 pub use websocket::{WebSocketInterceptor, WebSocketPlayer, WebSocketRecorder};
 
@@ -47,6 +55,14 @@ pub use cookies::{Cookie, CookieJar, SameSite};
 #[cfg(feature = "api")]
 pub use api::{
     ApiConfig, ApiResponse, ApiServer, ProxyStatus, StartProxyRequest, StopProxyRequest,
+};
+
+// Hydra exports (only when 'hydra' feature is enabled)
+#[cfg(feature = "hydra")]
+pub use hydra::{
+    ApiDocumentation, HydraClass, HydraCollection, HydraError, HydraLink, HydraOperation,
+    HydraProperty, HydraResponse, HydraSearch, HydraView, JsonLdContext, SupportedClass,
+    SupportedProperty,
 };
 
 // UniFFI factory function

@@ -1,9 +1,11 @@
 //! Playing back recorded cassettes
 
-use crate::cassette::{Cassette, InteractionKind};
+use crate::cassette::{Cassette, Interaction, InteractionKind};
 use crate::cookies::CookieJar;
 use crate::error::{MatgtoError, Result};
+use crate::hooks::ReplayHooks;
 use crate::matching::{MatchingStrategy, RequestSignature as MatchingSignature};
+use crate::templates::TemplateEngine;
 use std::collections::HashMap;
 use std::fs::File;
 use std::path::Path;
@@ -74,6 +76,12 @@ pub struct Player {
 
     /// Cookie jar for preserving cookies between requests (Phase 1.1)
     cookie_jar: CookieJar,
+
+    /// Replay hooks
+    hooks: ReplayHooks,
+
+    /// Template engine for dynamic response rendering
+    template_engine: TemplateEngine,
 }
 
 impl Player {
@@ -87,6 +95,8 @@ impl Player {
             latency_mode: LatencyMode::None,
             matching_strategy: MatchingStrategy::default(),
             cookie_jar: CookieJar::new(),
+            hooks: ReplayHooks::new(),
+            template_engine: TemplateEngine::new(),
         }
     }
 
@@ -100,6 +110,8 @@ impl Player {
             latency_mode: LatencyMode::None,
             matching_strategy: MatchingStrategy::strict(),
             cookie_jar: CookieJar::new(),
+            hooks: ReplayHooks::new(),
+            template_engine: TemplateEngine::new(),
         }
     }
 
@@ -216,7 +228,19 @@ impl Player {
             latency_mode: LatencyMode::None,
             matching_strategy,
             cookie_jar,
+            hooks: ReplayHooks::new(),
+            template_engine: TemplateEngine::new(),
         })
+    }
+
+    /// Add a replay hook
+    pub fn add_hook<H: crate::hooks::ReplayHook + 'static>(&mut self, hook: H) {
+        self.hooks.add(hook);
+    }
+
+    /// Get hooks
+    pub fn hooks(&self) -> &ReplayHooks {
+        &self.hooks
     }
 
     /// Check if a cassette is loaded
@@ -334,6 +358,32 @@ impl Player {
         self.cassette.as_ref()?.interactions.get(idx)
     }
 
+    /// Get an interaction by index with hooks applied (creates a clone)
+    pub fn get_interaction_with_hooks(&self, idx: usize) -> Result<Interaction> {
+        let interaction = self
+            .cassette
+            .as_ref()
+            .and_then(|c| c.interactions.get(idx))
+            .ok_or_else(|| {
+                MatgtoError::Config(format!("Interaction index {} out of bounds", idx))
+            })?;
+
+        // Clone the interaction for mutation
+        let mut interaction_clone = interaction.clone();
+
+        // Apply before_replay hooks
+        self.hooks.before_replay(&mut interaction_clone)?;
+
+        Ok(interaction_clone)
+    }
+
+    /// Mark an interaction as replayed and call after_replay hooks
+    pub fn mark_replayed(&self, interaction: &Interaction) -> Result<()> {
+        // Call after_replay hooks
+        self.hooks.after_replay(interaction)?;
+        Ok(())
+    }
+
     /// Get total number of replays across all interactions
     pub fn replay_count(&self) -> usize {
         self.replay_count.values().sum()
@@ -347,6 +397,35 @@ impl Player {
     /// Get mutable cookie jar (Phase 1.1)
     pub fn cookie_jar_mut(&mut self) -> &mut CookieJar {
         &mut self.cookie_jar
+    }
+
+    /// Get template engine
+    pub fn template_engine(&self) -> &TemplateEngine {
+        &self.template_engine
+    }
+
+    /// Get mutable template engine (for registering custom helpers)
+    pub fn template_engine_mut(&mut self) -> &mut TemplateEngine {
+        &mut self.template_engine
+    }
+
+    /// Render templates in an HTTP response body (if templates feature is enabled)
+    #[cfg(feature = "templates")]
+    pub fn render_templates_in_response(
+        &self,
+        request: &crate::cassette::HttpRequest,
+        response: &mut crate::cassette::HttpResponse,
+    ) -> Result<()> {
+        // Only render if body contains template syntax
+        if let Some(body) = &response.body {
+            if let Ok(body_str) = std::str::from_utf8(body) {
+                if TemplateEngine::has_templates(body_str) {
+                    let rendered = self.template_engine.render(body_str, request)?;
+                    response.body = Some(rendered.into_bytes());
+                }
+            }
+        }
+        Ok(())
     }
 }
 

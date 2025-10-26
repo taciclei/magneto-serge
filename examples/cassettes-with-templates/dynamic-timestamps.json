@@ -1,0 +1,50 @@
+{
+  "version": "1.0",
+  "name": "dynamic-timestamps",
+  "recorded_at": "2025-10-26T00:00:00Z",
+  "interactions": [
+    {
+      "kind": {
+        "Http": {
+          "request": {
+            "method": "GET",
+            "url": "https://api.example.com/v1/time/current",
+            "headers": {},
+            "body": null
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "content-type": "application/json"
+            },
+            "body": "{\"iso8601\":\"{{ now }}\",\"unix_epoch\":{{ now_timestamp }},\"timezone\":\"UTC\"}"
+          }
+        }
+      },
+      "response_time_ms": 50
+    },
+    {
+      "kind": {
+        "Http": {
+          "request": {
+            "method": "POST",
+            "url": "https://api.example.com/v1/events",
+            "headers": {
+              "content-type": "application/json"
+            },
+            "body": [123, 34, 110, 97, 109, 101, 34, 58, 34, 116, 101, 115, 116, 34, 125]
+          },
+          "response": {
+            "status": 201,
+            "headers": {
+              "content-type": "application/json"
+            },
+            "body": "{\"id\":\"{{ uuid }}\",\"created_at\":\"{{ now }}\",\"updated_at\":\"{{ now }}\",\"name\":\"test\"}"
+          }
+        }
+      },
+      "response_time_ms": 120
+    }
+  ],
+  "cookies": null
+}

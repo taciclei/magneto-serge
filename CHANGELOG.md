@@ -7,12 +7,290 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (v0.5.0 - In Progress)
+- **Hydra Hypermedia API (Phase 1 - Backend)** 🎉
+  - Complete W3C Hydra Core Vocabulary implementation
+  - JSON-LD linked data support
+  - HATEOAS-compliant REST API
+  - 7 hypermedia endpoints with auto-discovery
+  - Pagination with HydraView (first/prev/next/last)
+  - Content negotiation (JSON-LD, JSON)
+  - 31 unit tests, 3,150 lines Rust
+  - Example: `examples/hydra_api_server.rs`
+
 ### Planned
-- UniFFI bindings for additional languages (Go, C#, Ruby)
+- WebSocket template support
+- Additional language bindings (Go, C#)
 - HAR (HTTP Archive) export format
 - Postman Collection export
 - Interactive TUI mode for CLI
-- WebSocket message filtering improvements
+- Better error messages with suggestions (v0.4.1)
+- Hydra Phase 2: Angular frontend with Alcaeus
+- Hydra Phase 2: E2E integration tests
+- Hydra Phase 2: Turtle/RDF-XML serialization
+
+---
+
+## [0.4.0] - 2025-10-26
+
+### Dynamic Templates & Response Rendering
+
+Complete Handlebars template engine integration for dynamic cassette responses, enabling environment variable substitution, dynamic timestamps, UUID generation, and request context access.
+
+### Added
+
+#### Templates Module (`src/templates.rs` - 400+ lines)
+- **Handlebars Template Engine** with optional feature flag
+  - Environment variable substitution: `{{ env "VAR_NAME" }}`
+  - Dynamic ISO 8601 timestamps: `{{ now }}`
+  - Unix epoch timestamps: `{{ now_timestamp }}`
+  - UUID v4 generation: `{{ uuid }}`
+  - Request context access: `{{ request.method }}`, `{{ request.url }}`, `{{ request.headers.xxx }}`
+  - Custom helper registration API
+  - Template detection (avoids rendering non-template responses)
+  - Stub implementation when feature disabled (zero overhead)
+
+#### Player Integration
+- `TemplateEngine` field in `Player` struct
+- `render_templates_in_response()` method for HTTP response rendering
+- `template_engine()` and `template_engine_mut()` accessors
+- Automatic template engine initialization in all Player constructors
+- Debug trait implementation for TemplateEngine
+
+#### Built-in Helpers
+- **`env`**: Environment variable lookup with empty string fallback
+- **`now`**: Current timestamp in ISO 8601 format (RFC3339)
+- **`now_timestamp`**: Unix epoch timestamp (seconds since 1970)
+- **`uuid`**: UUID v4 generation using `uuid` crate
+
+#### Error Handling
+- `TemplateError` variant in `MatgtoError` enum (feature-gated)
+- Detailed error messages for template rendering failures
+
+#### Testing
+- **Integration Tests** (`tests/test_templates.rs` - 542 lines)
+  - 8 tests with templates feature enabled
+  - 1 test for stub behavior when disabled
+  - Environment variable substitution tests
+  - Dynamic timestamp generation tests
+  - UUID generation tests
+  - Request header access tests
+  - Complex multi-feature template tests
+  - Pass-through tests for non-template responses
+  - Custom helper registration tests
+  - Multiple interactions with different templates
+
+- **Unit Tests** (8 tests in `src/templates.rs`)
+  - Template detection (`has_templates`)
+  - Plain text pass-through
+  - Request header rendering
+  - UUID generation
+  - Timestamp generation
+  - Environment variable rendering
+  - Custom helper functionality
+  - Complex template scenarios
+
+#### Documentation & Examples
+- **Example Cassettes** (`examples/cassettes-with-templates/`)
+  - `api-auth-with-env.json`: Environment variable patterns
+  - `webhook-with-request-data.json`: Request context patterns
+  - `dynamic-timestamps.json`: Multiple timestamp formats
+
+- **Comprehensive Guide** (`examples/cassettes-with-templates/README.md` - 388 lines)
+  - Template syntax reference
+  - Built-in helper documentation
+  - Custom helper registration guide
+  - Real-world use cases
+  - Best practices and security tips
+  - Integration examples
+  - Debugging tips
+
+- **README Updates**
+  - Added "Dynamic Templates" to features table
+  - New template example section with full API reference
+  - Links to examples and documentation
+
+### Dependencies
+- Added `handlebars = "5.1"` (optional, behind `templates` feature)
+- Added `chrono` (already present, now used for timestamp helpers)
+- Added `uuid` (already present, now used for UUID helper)
+
+### Changed
+- Player struct now includes `template_engine` field
+- All Player constructors initialize TemplateEngine
+
+### Performance
+- Zero overhead when `templates` feature is disabled (stub implementation)
+- Template detection checks for `{{` and `}}` before parsing
+- Handlebars rendering is only triggered for responses containing templates
+
+### Migration Guide
+No breaking changes. Templates are an opt-in feature requiring:
+1. Compile with `--features templates`
+2. Use Handlebars syntax in cassette response bodies
+3. Optionally call `player.render_templates_in_response()` during replay
+
+### Statistics
+- **Files Added**: 8 (src/templates.rs, tests/test_templates.rs, 3 example cassettes, 3 READMEs)
+- **Files Modified**: 4 (Cargo.toml, src/error.rs, src/lib.rs, src/player.rs, README.md)
+- **Lines Added**: 1,742+ (412 core, 542 tests, 388 examples, 400 docs)
+- **Tests**: 119 total (111 existing + 8 new template tests)
+- **Test Coverage**: All tests passing (103 unit, 8 template integration, 8 template unit)
+
+---
+
+## [0.3.1] - 2025-10-25
+
+### Test Framework Integration Release
+
+Complete test framework integrations for 5 languages, achieving 100% feature parity with VCR's test integration capabilities while maintaining Magneto-Serge's performance advantages.
+
+### Added
+
+#### Phase 1: Rust Test Macro
+- **`#[magneto_test]` Procedural Macro** (`magneto-test-macro` crate)
+  - Auto-start proxy with cassette name derived from test function
+  - Auto-stop and save cassette after test completion
+  - Support for custom cassette names: `#[magneto_test(cassette = "name")]`
+  - Support for mode override: `#[magneto_test(mode = "replay")]`
+  - Support for port override: `#[magneto_test(port = 9000)]`
+  - Support for cassette_dir override
+  - Full async/await support
+  - Syn 2.0 compatibility
+  - 200+ lines of documentation and examples
+
+#### Phase 2: Ruby RSpec Integration
+- **`magneto-serge-rspec` Gem** (16 files, 2,091 lines)
+  - RSpec metadata-driven cassette activation (`:magneto`, `:cassette`)
+  - Auto-generated cassette names from test hierarchy
+  - `use_cassette` helper method for manual control
+  - Configuration DSL with global defaults
+  - VCR-compatible record modes (:new_episodes, :once, :all, :none)
+  - Sensitive header filtering
+  - Custom cassette name generator support
+  - 350+ lines of documentation
+  - Basic and advanced examples
+  - Full RSpec hooks integration (before/after)
+
+#### Phase 3: JavaScript Jest Plugin
+- **`@magneto-serge/jest` Package** (11 files, 1,527 lines)
+  - Multiple API patterns:
+    - `magnetoTest()` - Wrapper for test() with auto cassette management
+    - `magnetoDescribe()` - Suite-level cassette management
+    - `useCassette()` - Manual cassette control
+    - `setupMagneto()` - Jest environment setup
+  - Full TypeScript support with type definitions
+  - VCR-compatible record mode translation
+  - Auto-generated cassette names from test names
+  - Global configuration via `configure()`
+  - `getCurrentCassette()` helper
+  - 600+ lines of documentation
+  - Basic and advanced examples with TypeScript
+
+#### Phase 4: Python pytest Plugin
+- **`pytest-magneto-serge` Package** (13 files, ~1,300 lines)
+  - Four flexible API patterns:
+    - Markers: `@pytest.mark.magneto_cassette()`
+    - Decorators: `@magneto_cassette()`
+    - Fixtures: `magneto_proxy`, `magneto_config`
+    - Context manager: `use_cassette()`
+  - pytest plugin registration via entry_points
+  - Auto-generated cassette names from test hierarchy
+  - VCR-compatible record mode translation
+  - Global configuration via conftest.py
+  - Support for pytest 6.0+, Python 3.8+
+  - 650+ lines of documentation
+  - Basic and advanced examples (350+ lines)
+  - Unit tests for plugin functionality
+
+#### Phase 5: PHP PHPUnit Integration
+- **`magneto-serge/phpunit` Package** (11 files, 1,693 lines)
+  - Modern PHP 8+ Attributes: `#[Cassette]`
+  - `MagnetoTestCase` base class
+  - `MagnetoTrait` for flexible integration
+  - Auto-generated cassette names from class/method
+  - VCR-compatible record mode translation
+  - `useCassette()` for manual control
+  - Support for PHPUnit 9, 10, 11
+  - 600+ lines of documentation
+  - Basic and advanced examples
+  - Comprehensive unit tests
+
+### Changed
+- Updated roadmap: v0.3.1 marked as 100% complete
+- Gap analysis score: 9.7/10 → 9.8/10
+- Test framework coverage: 25% → 100%
+
+### Documentation
+- Created `SESSION-RECAP-2025-10-25.md` (429 lines) documenting all implementations
+- Updated `ROADMAP-v0.3-v0.4.md` with completion status for all 5 phases
+- Updated `GAP-ANALYSIS.md` with 9.8/10 score and 100% framework coverage
+- Comprehensive README files for all 5 integration packages (3,250+ lines total)
+- Migration examples from VCR, vcrpy, go-vcr, php-vcr
+
+### Statistics
+- **Total Files Created**: 51+ files
+- **Total Lines of Code**: 6,611+ lines
+- **Total Documentation**: 3,250+ lines
+- **Languages Supported**: 5 (Rust, Ruby, JavaScript/TypeScript, Python, PHP)
+- **API Patterns**: 12+ different usage patterns across all languages
+- **Examples**: 10+ complete working examples
+
+### Framework Coverage Achievement
+- ✅ Rust - `#[magneto_test]` proc macro
+- ✅ Ruby/RSpec - `magneto-serge-rspec` gem
+- ✅ JavaScript/Jest - `@magneto-serge/jest` npm package
+- ✅ PHP/PHPUnit - `magneto-serge/phpunit` composer package
+- ✅ Python/pytest - `pytest-magneto-serge` PyPI package
+
+**Result**: 🎉 100% test framework integration coverage, matching VCR's capabilities across all major testing ecosystems
+
+---
+
+## [0.3.0] - 2025-10-25
+
+### Hook System Release (CRITICAL)
+
+Complete implementation of VCR-compatible hook system for customizing record/replay behavior.
+
+### Added
+
+#### Core Hook System
+- **`RecordHook` and `ReplayHook` Traits**
+  - `before_record` / `after_record` lifecycle methods
+  - `before_replay` / `after_replay` lifecycle methods
+  - Thread-safe with `Send + Sync + Debug` bounds
+  - Named hooks with `name()` method
+  - Arc-based storage for efficient sharing
+
+#### Built-in Hooks
+- **`SensitiveHeaderFilter`**
+  - Filters Authorization, Cookie, Set-Cookie, X-API-Key headers
+  - Extensible with custom header patterns
+  - Replaces sensitive values with `[FILTERED]` placeholder
+
+- **`BodyPatternReplacer`**
+  - Regex-based body content replacement
+  - Support for passwords, tokens, API keys in JSON
+  - Custom pattern registration
+  - Applies to both requests and responses
+
+- **`LoggingHook`**
+  - Logs all interactions to stderr
+  - Verbose mode with full request/response details
+  - Integration with tracing framework
+
+### Changed
+- Recorder and Player now accept hooks via `add_hook()` method
+- Hooks execute in registration order
+- Hook errors propagate to caller
+- Updated gap analysis score: 9.2/10 → 9.5/10
+
+### Documentation
+- Hook system API documentation (200+ lines)
+- Examples for all built-in hooks
+- Custom hook implementation guide
+- Updated roadmap with v0.3.0 completion
 
 ---
 

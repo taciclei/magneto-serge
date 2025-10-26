@@ -1,0 +1,32 @@
+{
+  "version": "1.0",
+  "name": "webhook-with-request-data",
+  "recorded_at": "2025-10-26T00:00:00Z",
+  "interactions": [
+    {
+      "kind": {
+        "Http": {
+          "request": {
+            "method": "POST",
+            "url": "https://webhooks.example.com/api/events",
+            "headers": {
+              "x-user-id": "user-12345",
+              "x-session-id": "sess-abc-def",
+              "content-type": "application/json"
+            },
+            "body": [123, 34, 101, 118, 101, 110, 116, 34, 58, 34, 117, 115, 101, 114, 46, 99, 114, 101, 97, 116, 101, 100, 34, 125]
+          },
+          "response": {
+            "status": 201,
+            "headers": {
+              "content-type": "application/json"
+            },
+            "body": "{\"webhook_id\":\"{{ uuid }}\",\"event\":\"user.created\",\"user_id\":\"{{ request.headers.x-user-id }}\",\"session_id\":\"{{ request.headers.x-session-id }}\",\"method\":\"{{ request.method }}\",\"endpoint\":\"{{ request.url }}\",\"timestamp\":\"{{ now }}\",\"unix_time\":{{ now_timestamp }}}"
+          }
+        }
+      },
+      "response_time_ms": 150
+    }
+  ],
+  "cookies": null
+}

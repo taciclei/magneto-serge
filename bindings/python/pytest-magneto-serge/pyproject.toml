@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pytest-magneto-serge"
+version = "0.3.1"
+description = "pytest integration for Magnéto-Serge HTTP/WebSocket recording library"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Magnéto-Serge contributors", email = "contact@taciclei.com"}
+]
+keywords = ["pytest", "testing", "http", "websocket", "recording", "replay", "vcr", "magneto-serge"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: Pytest",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Testing",
+]
+dependencies = [
+    "pytest>=6.0.0",
+    "magneto-serge>=0.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0.0",
+    "requests>=2.25.0",
+    "httpx>=0.23.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/taciclei/magneto-serge"
+Documentation = "https://github.com/taciclei/magneto-serge/tree/main/bindings/python/pytest-magneto-serge"
+Repository = "https://github.com/taciclei/magneto-serge"
+"Bug Tracker" = "https://github.com/taciclei/magneto-serge/issues"
+
+[project.entry-points.pytest11]
+magneto_serge = "pytest_magneto_serge.plugin"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pytest_magneto_serge*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

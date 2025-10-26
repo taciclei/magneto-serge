@@ -1,6 +1,6 @@
 [package]
 name = "magneto-serge"
-version = "0.2.0"
+version = "0.6.0"
 edition = "2021"
 rust-version = "1.75"
 authors = ["Magnéto-Serge contributors <contact@taciclei.com>"]
@@ -41,6 +41,10 @@ required-features = ["uniffi/cli"]
 [[example]]
 name = "api_server"
 required-features = ["api"]
+
+[[example]]
+name = "hydra_api_server"
+required-features = ["hydra"]
 
 [dependencies]
 axum = { version = "0.7", optional = true }
@@ -116,6 +120,9 @@ lazy_static = "1.4"
 chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1.6", features = ["v4", "serde"] }
 
+# === Templating ===
+handlebars = { version = "5.1", optional = true }
+
 # === Hashing ===
 sha2 = "0.10"
 base64 = "0.21"
@@ -138,6 +145,8 @@ cli = ["clap", "colored", "indicatif", "api"]
 api = ["axum", "tower", "tower-http"]
 msgpack = ["rmp-serde"]
 compression = ["flate2"]
+templates = ["handlebars"]
+hydra = ["api"]  # Hydra requires API feature
 
 [build-dependencies]
 uniffi = { version = "0.28", features = ["build"] }
@@ -165,3 +174,6 @@ harness = false
 [[bench]]
 name = "serialization_optim"
 harness = false
+
+[workspace]
+members = [".", "magneto-serge-test"]

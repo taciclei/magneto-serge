@@ -1,0 +1,9 @@
+src/
+examples/
+*.test.ts
+tsconfig.json
+jest.config.js
+coverage/
+__cassettes__/
+node_modules/
+.git/

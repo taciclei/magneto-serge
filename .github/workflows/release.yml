@@ -15,28 +15,28 @@ jobs:
           # Linux
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            binary_name: matgto
-            asset_name: matgto-linux-amd64
+            binary_name: magneto
+            asset_name: magneto-linux-amd64
           - os: ubuntu-latest
             target: aarch64-unknown-linux-gnu
-            binary_name: matgto
-            asset_name: matgto-linux-arm64
+            binary_name: magneto
+            asset_name: magneto-linux-arm64
 
           # macOS
-          - os: macos-latest
+          - os: macos-13
             target: x86_64-apple-darwin
-            binary_name: matgto
-            asset_name: matgto-macos-amd64
-          - os: macos-latest
+            binary_name: magneto
+            asset_name: magneto-macos-amd64
+          - os: macos-14
             target: aarch64-apple-darwin
-            binary_name: matgto
-            asset_name: matgto-macos-arm64
+            binary_name: magneto
+            asset_name: magneto-macos-arm64
 
           # Windows
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            binary_name: matgto.exe
-            asset_name: matgto-windows-amd64.exe
+            binary_name: magneto.exe
+            asset_name: magneto-windows-amd64.exe
 
     steps:
       - name: Checkout code
@@ -54,7 +54,7 @@ jobs:
           sudo apt-get install -y gcc-aarch64-linux-gnu
 
       - name: Build binary
-        run: cargo build --release --bin matgto --features cli --target ${{ matrix.target }}
+        run: cargo build --release --bin magneto --features cli --target ${{ matrix.target }}
 
       - name: Strip binary (Linux/macOS)
         if: matrix.os != 'windows-latest'

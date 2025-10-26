@@ -1,0 +1,214 @@
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+
+  mat-spinner {
+    margin-bottom: 20px;
+  }
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+  }
+
+  p {
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 16px;
+    margin-bottom: 20px;
+  }
+}
+
+.interactions-container {
+  padding: 20px;
+
+  .no-interactions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+
+    mat-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      color: rgba(0, 0, 0, 0.26);
+      margin-bottom: 16px;
+    }
+
+    p {
+      color: rgba(0, 0, 0, 0.6);
+      font-size: 16px;
+    }
+  }
+}
+
+mat-expansion-panel-header {
+  mat-panel-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+
+    mat-chip-set {
+      flex-shrink: 0;
+    }
+
+    .interaction-summary {
+      flex: 1;
+      font-size: 14px;
+      color: rgba(0, 0, 0, 0.87);
+
+      strong {
+        font-weight: 600;
+        margin-right: 8px;
+      }
+    }
+  }
+
+  mat-panel-description {
+    justify-content: flex-end;
+  }
+}
+
+// Type chips
+.http-type {
+  background-color: #4caf50 !important;
+  color: white !important;
+}
+
+.websocket-type {
+  background-color: #2196f3 !important;
+  color: white !important;
+}
+
+// Status chips
+.status-success {
+  background-color: #4caf50 !important;
+  color: white !important;
+}
+
+.status-redirect {
+  background-color: #ff9800 !important;
+  color: white !important;
+}
+
+.status-client-error {
+  background-color: #f44336 !important;
+  color: white !important;
+}
+
+.status-server-error {
+  background-color: #9c27b0 !important;
+  color: white !important;
+}
+
+.interaction-details {
+  margin-top: 16px;
+
+  mat-tab-group {
+    margin-bottom: 16px;
+  }
+
+  .tab-content {
+    padding: 16px 0;
+  }
+
+  .detail-section {
+    margin-bottom: 24px;
+
+    h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(0, 0, 0, 0.6);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .code-block {
+      background-color: rgba(0, 0, 0, 0.04);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 4px;
+      padding: 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    pre.code-block {
+      margin: 0;
+    }
+  }
+}
+
+// WebSocket messages
+.messages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .message-item {
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 4px;
+    padding: 12px;
+    background-color: rgba(0, 0, 0, 0.02);
+
+    .message-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+
+      mat-chip {
+        mat-icon {
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+          margin-right: 4px;
+        }
+      }
+
+      .direction-sent {
+        background-color: #673ab7 !important;
+        color: white !important;
+      }
+
+      .direction-received {
+        background-color: #009688 !important;
+        color: white !important;
+      }
+
+      .message-timestamp {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.6);
+        font-family: 'Courier New', monospace;
+      }
+
+      .message-type-chip {
+        background-color: rgba(0, 0, 0, 0.08) !important;
+        font-size: 11px;
+      }
+    }
+
+    .message-content {
+      margin: 0;
+      padding: 8px;
+      background-color: white;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+  }
+}

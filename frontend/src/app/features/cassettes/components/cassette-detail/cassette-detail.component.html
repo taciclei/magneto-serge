@@ -1,0 +1,139 @@
+<!-- Loading Spinner -->
+<div *ngIf="loading$ | async" class="loading-container">
+  <mat-spinner></mat-spinner>
+  <p>Chargement des détails...</p>
+</div>
+
+<!-- Error Message -->
+<div *ngIf="error$ | async as error" class="error-container">
+  <mat-card>
+    <mat-card-content>
+      <mat-icon color="warn">error</mat-icon>
+      <p>{{ error }}</p>
+      <div class="actions">
+        <button mat-raised-button color="primary" (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+          Retour
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<!-- Cassette Details -->
+<div *ngIf="!(loading$ | async) && !(error$ | async) && (cassette$ | async) as cassette" class="detail-container">
+  <!-- Header Card -->
+  <mat-card class="header-card">
+    <mat-card-header>
+      <button mat-icon-button (click)="goBack()" class="back-button">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div class="header-content">
+        <mat-card-title>{{ cassette.name }}</mat-card-title>
+        <mat-card-subtitle>
+          <mat-chip-set>
+            <mat-chip>
+              <mat-icon>label</mat-icon>
+              {{ cassette.version }}
+            </mat-chip>
+            <mat-chip *ngIf="cassette.hasTemplates">
+              <mat-icon>code</mat-icon>
+              Templates
+            </mat-chip>
+          </mat-chip-set>
+        </mat-card-subtitle>
+      </div>
+      <button mat-icon-button (click)="reload(cassette)">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </mat-card-header>
+  </mat-card>
+
+  <!-- Main Info Card -->
+  <mat-card class="info-card">
+    <mat-card-content>
+      <div class="info-grid">
+        <!-- Enregistrée le -->
+        <div class="info-item">
+          <mat-icon class="info-icon">schedule</mat-icon>
+          <div class="info-content">
+            <div class="info-label">Enregistrée le</div>
+            <div class="info-value">{{ formatDate(cassette.recordedAt) }}</div>
+          </div>
+        </div>
+
+        <!-- Nombre d'interactions -->
+        <div class="info-item">
+          <mat-icon class="info-icon">sync_alt</mat-icon>
+          <div class="info-content">
+            <div class="info-label">Interactions</div>
+            <div class="info-value">{{ cassette.interactionCount }}</div>
+          </div>
+        </div>
+
+        <!-- Taille -->
+        <div class="info-item">
+          <mat-icon class="info-icon">storage</mat-icon>
+          <div class="info-content">
+            <div class="info-label">Taille</div>
+            <div class="info-value">{{ formatSize(cassette.sizeBytes) }}</div>
+          </div>
+        </div>
+
+        <!-- ID Hydra -->
+        <div class="info-item full-width">
+          <mat-icon class="info-icon">link</mat-icon>
+          <div class="info-content">
+            <div class="info-label">Identifiant Hydra</div>
+            <div class="info-value monospace">{{ cassette['@id'] }}</div>
+          </div>
+        </div>
+
+        <!-- Description (si présente) -->
+        <div *ngIf="cassette.description" class="info-item full-width">
+          <mat-icon class="info-icon">description</mat-icon>
+          <div class="info-content">
+            <div class="info-label">Description</div>
+            <div class="info-value">{{ cassette.description }}</div>
+          </div>
+        </div>
+      </div>
+
+      <mat-divider class="section-divider"></mat-divider>
+
+      <!-- Actions -->
+      <div class="actions">
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="viewInteractions(cassette)"
+          [disabled]="cassette.interactionCount === 0"
+        >
+          <mat-icon>visibility</mat-icon>
+          Voir les interactions ({{ cassette.interactionCount }})
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Metadata Card -->
+  <mat-card class="metadata-card">
+    <mat-card-header>
+      <mat-card-title>Métadonnées Hydra</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="metadata-item">
+        <span class="metadata-label">&#64;type:</span>
+        <span class="metadata-value">{{ cassette['@type'] }}</span>
+      </div>
+      <div class="metadata-item">
+        <span class="metadata-label">Version:</span>
+        <span class="metadata-value">{{ cassette.version }}</span>
+      </div>
+      <div *ngIf="cassette.interactions" class="metadata-item">
+        <span class="metadata-label">Lien interactions:</span>
+        <span class="metadata-value monospace">{{ cassette.interactions }}</span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
