@@ -82,7 +82,7 @@ export class CassetteListComponent implements OnInit {
    * Recharge les cassettes
    */
   reload(): void {
-    this.store.dispatch(CassetteActions.loadCassettes({ params: {} }));
+    this.store.dispatch(CassetteActions.loadCassettes({}));
   }
 
   /**

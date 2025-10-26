@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, from } from 'rxjs';
-import  Alcaeus, { HydraResponse, Resource } from 'alcaeus';
+import { create } from 'alcaeus';
+import type { HydraResponse, Resource } from 'alcaeus';
 import { environment } from '../../../environments/environment';
 
 /**
@@ -13,7 +14,7 @@ import { environment } from '../../../environments/environment';
   providedIn: 'root'
 })
 export class AlcaeusService {
-  private readonly client = Alcaeus.withDefaults();
+  private readonly client = create({});
 
   constructor() {
     // Configuration du client Alcaeus
@@ -32,7 +33,7 @@ export class AlcaeusService {
    */
   loadResource<T extends Resource = Resource>(url: string): Observable<HydraResponse<T>> {
     const fullUrl = url.startsWith('http') ? url : `${environment.apiUrl}${url}`;
-    return from(this.client.loadResource(fullUrl));
+    return from(this.client.loadResource(fullUrl)) as Observable<HydraResponse<T>>;
   }
 
   /**

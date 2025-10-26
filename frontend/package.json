@@ -13,6 +13,7 @@
   "private": true,
   "dependencies": {
     "@angular/animations": "^17.3.0",
+    "@angular/cdk": "^17.3.0",
     "@angular/common": "^17.3.0",
     "@angular/compiler": "^17.3.0",
     "@angular/core": "^17.3.0",
@@ -21,10 +22,9 @@
     "@angular/platform-browser": "^17.3.0",
     "@angular/platform-browser-dynamic": "^17.3.0",
     "@angular/router": "^17.3.0",
-    "@angular/cdk": "^17.3.0",
-    "@ngrx/store": "^17.2.0",
     "@ngrx/effects": "^17.2.0",
     "@ngrx/entity": "^17.2.0",
+    "@ngrx/store": "^17.2.0",
     "@ngrx/store-devtools": "^17.2.0",
     "alcaeus": "^1.1.0",
     "rxjs": "^7.8.0",
@@ -42,10 +42,16 @@
     "karma-coverage": "^2.2.0",
     "karma-jasmine": "^5.1.0",
     "karma-jasmine-html-reporter": "^2.1.0",
-    "typescript": "~5.4.2"
+    "querystring-es3": "^0.2.1",
+    "typescript": "~5.4.2",
+    "url": "^0.11.4"
   },
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
+  },
+  "browser": {
+    "querystring": "querystring-es3",
+    "url": "url"
   }
 }
