@@ -51,6 +51,34 @@
 
 </td>
 </tr>
+<tr>
+<td>
+
+**📝 Dynamic Templates** 🆕
+- Environment variables
+- Dynamic timestamps
+- Request context access
+- Custom helpers
+
+</td>
+<td>
+
+**🎯 Test Integrations** 🆕
+- RSpec (Ruby)
+- Jest (JavaScript)
+- pytest (Python)
+- PHPUnit (PHP)
+
+</td>
+<td>
+
+**⚡ High Performance**
+- Rust-powered core
+- 10-100x faster than VCR
+- Minimal overhead
+
+</td>
+</tr>
 </table>
 
 ### Why Magnéto-Serge?
@@ -339,6 +367,69 @@ mod tests {
     }
 }
 ```
+
+</details>
+
+<details>
+<summary><b>📝 Dynamic Templates (v0.4.0+)</b></summary>
+
+Enable dynamic content generation during replay with Handlebars templates:
+
+```rust
+use magneto_serge::Player;
+use std::path::Path;
+
+// Compile with templates feature
+// cargo build --features templates
+
+// Set environment variable
+std::env::set_var("API_TOKEN", "sk-test-1234567890");
+
+// Load cassette with templates
+let player = Player::load(Path::new("./cassettes"), "api-test")?;
+
+// Templates are automatically rendered during replay
+let interaction = player.get_interaction(0)?;
+```
+
+**Example Cassette with Templates:**
+
+```json
+{
+  "response": {
+    "body": "{\"token\":\"{{ env \\\"API_TOKEN\\\" }}\",\"issued_at\":\"{{ now }}\",\"request_id\":\"{{ uuid }}\",\"user\":\"{{ request.headers.x-user-id }}\"}"
+  }
+}
+```
+
+**Built-in Helpers:**
+
+| Helper | Description | Example Output |
+|--------|-------------|----------------|
+| `{{ env "VAR" }}` | Environment variable | `sk-test-1234567890` |
+| `{{ now }}` | ISO 8601 timestamp | `2025-10-26T08:30:45Z` |
+| `{{ now_timestamp }}` | Unix epoch | `1729930245` |
+| `{{ uuid }}` | UUID v4 | `a1b2c3d4-e5f6-...` |
+| `{{ request.method }}` | HTTP method | `POST` |
+| `{{ request.url }}` | Request URL | `https://api.example.com/...` |
+| `{{ request.headers.xxx }}` | Request header | Header value |
+
+**Custom Helpers:**
+
+```rust
+let mut player = Player::load(path, cassette)?;
+
+player.template_engine_mut().register_helper("random_id", || {
+    format!("id_{}", rand::random::<u32>())
+});
+
+// Use in cassette: {"id":"{{ random_id }}"}
+```
+
+**Learn More:**
+- 📚 [Template Examples](examples/cassettes-with-templates/)
+- 📖 [Complete Guide](examples/cassettes-with-templates/README.md)
+- 🧪 [Integration Tests](tests/test_templates.rs)
 
 </details>
 

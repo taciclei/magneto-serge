@@ -8,13 +8,120 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- UniFFI bindings for additional languages (Go, C#)
+- WebSocket template support
+- Additional language bindings (Go, C#)
 - HAR (HTTP Archive) export format
 - Postman Collection export
 - Interactive TUI mode for CLI
-- WebSocket message filtering improvements
-- Templates & dynamic responses (v0.4.0)
 - Better error messages with suggestions (v0.4.1)
+
+---
+
+## [0.4.0] - 2025-10-26
+
+### Dynamic Templates & Response Rendering
+
+Complete Handlebars template engine integration for dynamic cassette responses, enabling environment variable substitution, dynamic timestamps, UUID generation, and request context access.
+
+### Added
+
+#### Templates Module (`src/templates.rs` - 400+ lines)
+- **Handlebars Template Engine** with optional feature flag
+  - Environment variable substitution: `{{ env "VAR_NAME" }}`
+  - Dynamic ISO 8601 timestamps: `{{ now }}`
+  - Unix epoch timestamps: `{{ now_timestamp }}`
+  - UUID v4 generation: `{{ uuid }}`
+  - Request context access: `{{ request.method }}`, `{{ request.url }}`, `{{ request.headers.xxx }}`
+  - Custom helper registration API
+  - Template detection (avoids rendering non-template responses)
+  - Stub implementation when feature disabled (zero overhead)
+
+#### Player Integration
+- `TemplateEngine` field in `Player` struct
+- `render_templates_in_response()` method for HTTP response rendering
+- `template_engine()` and `template_engine_mut()` accessors
+- Automatic template engine initialization in all Player constructors
+- Debug trait implementation for TemplateEngine
+
+#### Built-in Helpers
+- **`env`**: Environment variable lookup with empty string fallback
+- **`now`**: Current timestamp in ISO 8601 format (RFC3339)
+- **`now_timestamp`**: Unix epoch timestamp (seconds since 1970)
+- **`uuid`**: UUID v4 generation using `uuid` crate
+
+#### Error Handling
+- `TemplateError` variant in `MatgtoError` enum (feature-gated)
+- Detailed error messages for template rendering failures
+
+#### Testing
+- **Integration Tests** (`tests/test_templates.rs` - 542 lines)
+  - 8 tests with templates feature enabled
+  - 1 test for stub behavior when disabled
+  - Environment variable substitution tests
+  - Dynamic timestamp generation tests
+  - UUID generation tests
+  - Request header access tests
+  - Complex multi-feature template tests
+  - Pass-through tests for non-template responses
+  - Custom helper registration tests
+  - Multiple interactions with different templates
+
+- **Unit Tests** (8 tests in `src/templates.rs`)
+  - Template detection (`has_templates`)
+  - Plain text pass-through
+  - Request header rendering
+  - UUID generation
+  - Timestamp generation
+  - Environment variable rendering
+  - Custom helper functionality
+  - Complex template scenarios
+
+#### Documentation & Examples
+- **Example Cassettes** (`examples/cassettes-with-templates/`)
+  - `api-auth-with-env.json`: Environment variable patterns
+  - `webhook-with-request-data.json`: Request context patterns
+  - `dynamic-timestamps.json`: Multiple timestamp formats
+
+- **Comprehensive Guide** (`examples/cassettes-with-templates/README.md` - 388 lines)
+  - Template syntax reference
+  - Built-in helper documentation
+  - Custom helper registration guide
+  - Real-world use cases
+  - Best practices and security tips
+  - Integration examples
+  - Debugging tips
+
+- **README Updates**
+  - Added "Dynamic Templates" to features table
+  - New template example section with full API reference
+  - Links to examples and documentation
+
+### Dependencies
+- Added `handlebars = "5.1"` (optional, behind `templates` feature)
+- Added `chrono` (already present, now used for timestamp helpers)
+- Added `uuid` (already present, now used for UUID helper)
+
+### Changed
+- Player struct now includes `template_engine` field
+- All Player constructors initialize TemplateEngine
+
+### Performance
+- Zero overhead when `templates` feature is disabled (stub implementation)
+- Template detection checks for `{{` and `}}` before parsing
+- Handlebars rendering is only triggered for responses containing templates
+
+### Migration Guide
+No breaking changes. Templates are an opt-in feature requiring:
+1. Compile with `--features templates`
+2. Use Handlebars syntax in cassette response bodies
+3. Optionally call `player.render_templates_in_response()` during replay
+
+### Statistics
+- **Files Added**: 8 (src/templates.rs, tests/test_templates.rs, 3 example cassettes, 3 READMEs)
+- **Files Modified**: 4 (Cargo.toml, src/error.rs, src/lib.rs, src/player.rs, README.md)
+- **Lines Added**: 1,742+ (412 core, 542 tests, 388 examples, 400 docs)
+- **Tests**: 119 total (111 existing + 8 new template tests)
+- **Test Coverage**: All tests passing (103 unit, 8 template integration, 8 template unit)
 
 ---
 
