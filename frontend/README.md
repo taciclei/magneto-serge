@@ -8,8 +8,9 @@ Frontend Angular 17+ pour l'API Hydra Hypermedia de Magnéto-Serge (v0.5.0 Phase
 - ✅ **Alcaeus Client** pour navigation hypermedia Hydra
 - ✅ **NgRx** pour gestion d'état (Store + Effects + Entity)
 - ✅ **TypeScript strict** avec modèles typés
-- ⏳ **Angular Material** UI (à installer)
-- ⏳ **Composants** (cassette-list, cassette-detail, interaction-list)
+- ✅ **Angular Material** UI components
+- ✅ **Composants** (cassette-list, cassette-detail, interaction-list)
+- ✅ **Routing** configuré (/, /cassettes, /cassettes/:name)
 
 ## 📁 Structure
 
@@ -33,13 +34,16 @@ frontend/
 │   │   │       │   ├── cassette.effects.ts     ✅ Effects
 │   │   │       │   └── cassette.selectors.ts   ✅ Selectors
 │   │   │       └── components/
-│   │   │           ├── cassette-list/      ⏳ À implémenter
-│   │   │           ├── cassette-detail/    ⏳ À implémenter
-│   │   │           └── interaction-list/   ⏳ À implémenter
+│   │   │           ├── cassette-list/      ✅ Liste avec Material Table
+│   │   │           ├── cassette-detail/    ✅ Détails avec Material Cards
+│   │   │           └── interaction-list/   ✅ Liste avec Expansion Panels
+│   │   │
+│   │   ├── app.component.ts                ✅ Root component
+│   │   ├── app.config.ts                   ✅ Configuration NgRx + Routing
+│   │   └── app.routes.ts                   ✅ Routes configurées
 │   │   │
 │   │   └── shared/                         # Composants réutilisables
 │   │       ├── components/
-│   │       │   └── pagination/             ⏳ Pagination Hydra
 │   │       └── pipes/
 │   │
 │   ├── environments/
@@ -147,19 +151,22 @@ ng serve --proxy-config proxy.conf.json
 
 ## 📝 Prochaines Étapes
 
-### Phase 2.1 - Composants UI
+### Phase 2.1 - Composants UI ✅ TERMINÉE
 
-- [ ] Installer Angular Material
-- [ ] Créer `CassetteListComponent` avec table Material
-- [ ] Créer `CassetteDetailComponent`
-- [ ] Créer `InteractionListComponent`
-- [ ] Créer `PaginationComponent` Hydra
+- [x] Créer `CassetteListComponent` avec table Material
+- [x] Créer `CassetteDetailComponent`
+- [x] Créer `InteractionListComponent`
+- [x] Configurer routing (app.routes.ts, app.config.ts)
+- [x] Créer app.component avec toolbar
+- [x] Configurer styles globaux Material
 
-### Phase 2.2 - Routing
+### Phase 2.2 - Installation et Tests
 
-- [ ] Configurer app.routes.ts
-- [ ] Routes : `/`, `/cassettes`, `/cassettes/:name`
-- [ ] Guards de navigation
+- [ ] Installer dépendances npm (npm install)
+- [ ] Installer Angular Material (ng add @angular/material)
+- [ ] Tester l'application (ng serve)
+- [ ] Créer proxy.conf.json pour l'API
+- [ ] Vérifier connexion avec API backend
 
 ### Phase 2.3 - Tests
 
@@ -196,6 +203,6 @@ Voir [CONTRIBUTING.md](../CONTRIBUTING.md) à la racine du projet.
 
 ---
 
-**Status:** 🚧 Phase 2.0 Foundation - Service Alcaeus + NgRx Store complétés
+**Status:** ✅ Phase 2.1 COMPLÉTÉE - Tous les composants UI créés avec Material Design
 
-**Next:** Phase 2.1 - UI Components avec Angular Material
+**Next:** Phase 2.2 - Installation npm et tests de l'application

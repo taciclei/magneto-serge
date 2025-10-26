@@ -5,8 +5,8 @@
 **Frontend:** Angular 17+ avec Heracles.ts / Alcaeus
 **Date de début:** 2025-10-26
 **Durée estimée:** 6-8 semaines
-**Status:** ✅ Phase 1 COMPLÉTÉE - Backend Hypermedia API
-**Dernière mise à jour:** 2025-10-26 18:15
+**Status:** 🚀 Phase 2.0 DÉMARRÉE - Frontend Foundation (Angular + Alcaeus + NgRx)
+**Dernière mise à jour:** 2025-10-26 18:30
 
 ---
 
@@ -34,11 +34,16 @@
   - `ApiServer::start_with_hydra()` method
   - Example: `examples/hydra_api_server.rs`
 
-### 🚀 Prochaines Étapes (Phase 2)
-- ⏳ Frontend Angular avec Alcaeus
-- ⏳ Tests d'intégration E2E
-- ⏳ Content negotiation Turtle/RDF-XML
-- ⏳ Documentation API complète
+### 🚀 Phase 2.0 EN COURS: Frontend Foundation
+- ✅ Structure projet Angular (frontend/src/)
+- ✅ Service Alcaeus (loadResource, followLink, pagination)
+- ✅ Modèles TypeScript (CassetteResource, InteractionResource, HydraView)
+- ✅ NgRx Store (actions, reducer, effects, selectors)
+- ✅ Environnements (dev: localhost:8889, prod)
+- ⏳ Composants UI (cassette-list, cassette-detail, interaction-list)
+- ⏳ Angular Material installation
+- ⏳ Routing configuration
+- ⏳ Tests E2E (Cypress)
 
 ### 📈 Statistiques Finales Phase 1
 - **Total lignes:** ~3,150 lignes Rust

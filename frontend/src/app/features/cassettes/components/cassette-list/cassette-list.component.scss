@@ -1,0 +1,144 @@
+mat-card {
+  margin: 20px;
+}
+
+mat-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+
+  mat-card-title {
+    font-size: 24px;
+    font-weight: 500;
+  }
+
+  mat-card-subtitle {
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 14px;
+  }
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+
+  mat-spinner {
+    margin-bottom: 20px;
+  }
+
+  p {
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 16px;
+  }
+}
+
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+  }
+
+  p {
+    color: rgba(0, 0, 0, 0.87);
+    font-size: 16px;
+    margin-bottom: 20px;
+  }
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.cassette-table {
+  width: 100%;
+
+  th {
+    font-weight: 600;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.87);
+  }
+
+  td {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.87);
+  }
+
+  .text-center {
+    text-align: center;
+  }
+
+  .interaction-icon {
+    vertical-align: middle;
+    margin-right: 4px;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .cassette-row {
+    cursor: default;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+  }
+}
+
+.no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: rgba(0, 0, 0, 0.26);
+    margin-bottom: 16px;
+  }
+
+  p {
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 16px;
+  }
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+
+  .pagination-info {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  .pagination-controls {
+    display: flex;
+    gap: 8px;
+
+    button {
+      &[disabled] {
+        opacity: 0.5;
+      }
+    }
+  }
+}
