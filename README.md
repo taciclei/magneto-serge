@@ -134,13 +134,17 @@ mv magneto /usr/local/bin/
 
 ```toml
 [dependencies]
-magneto-serge = "0.2.0"
+magneto-serge = "0.6.0"
 ```
 
 Or install the CLI:
 
 ```bash
+# From crates.io (pending)
 cargo install magneto-serge --features cli
+
+# Or from GitHub (current)
+cargo install --git https://github.com/taciclei/magneto-serge --branch main --features cli
 ```
 
 ### 🟨 JavaScript/TypeScript (npm)
@@ -667,9 +671,10 @@ make dev-manual
 ```
 
 **Opens:**
-- **API**: http://localhost:8889 (Rust/Axum)
+- **API**: http://localhost:8889/api (Rust/Axum - Hydra API)
 - **Backend**: http://localhost:3000 (Node.js/Express)
-- **Client**: http://localhost:4201 (Angular)
+- **Frontend**: http://localhost:4201 (Angular 17 - Production client)
+- **Hydra Demo**: http://localhost:4200 (Angular 17 - Direct Alcaeus demo)
 
 ### Components
 
@@ -693,16 +698,55 @@ npm start
 
 **Docs**: [nodejs-backend/README.md](examples/nodejs-backend/README.md) | [ARCHITECTURE.md](examples/nodejs-backend/ARCHITECTURE.md)
 
-#### 2. Angular Simple Client (Production)
+#### 2. Angular Frontend (Production)
+**Location**: `frontend/`
+
+**Production Angular 17 client** with Hydra hypermedia navigation:
+
+```bash
+cd frontend
+npm install
+
+# Development server (with workaround for Angular 17 + Vite)
+./dev-server.sh
+# → http://localhost:4201
+
+# Or using npm scripts
+npm run build:dev
+npm run serve:built
+```
+
+**Features**:
+- ✅ **Angular 17** with standalone components
+- ✅ **Material Design** UI components
+- ✅ **NgRx** state management (Redux pattern)
+- ✅ **Alcaeus** Hydra client integration
+- ✅ **Hypermedia navigation** (HATEOAS)
+- ✅ Cassette list with pagination
+- ✅ Cassette detail view with interactions
+- ✅ Real-time updates
+
+**Stack:**
+- Angular 17.3 (Standalone Components)
+- Angular Material 17.3
+- NgRx 17.2 (Store + Effects)
+- Alcaeus 1.1.0
+- RxJS 7.8
+
+**Docs**: [frontend/DEVELOPMENT.md](frontend/DEVELOPMENT.md) | [PHASE-2-COMPLETE.md](PHASE-2-COMPLETE.md)
+
+**Note:** Due to Angular 17 + Vite dev server issue, use `dev-server.sh` script which builds and serves with http-server + auto-rebuild. See [PHASE-2.4-TESTING.md](PHASE-2.4-TESTING.md) for details.
+
+#### 3. Angular Simple Client (Alternative)
 **Location**: `examples/angular-simple-client/`
 
-Production Angular client using the Node.js backend:
+Alternative lightweight Angular client using the Node.js backend:
 
 ```bash
 cd examples/angular-simple-client
 npm install
 npm start
-# → http://localhost:4201
+# → http://localhost:4202
 ```
 
 **Features**:
@@ -713,10 +757,10 @@ npm start
 
 **Docs**: [angular-simple-client/README.md](examples/angular-simple-client/README.md)
 
-#### 3. Angular Hydra Client (Demo)
+#### 4. Angular Hydra Demo
 **Location**: `examples/angular-client/`
 
-Demonstration of Hydra/JSON-LD navigation with Alcaeus in browser:
+Educational demonstration of Hydra/JSON-LD navigation with Alcaeus in browser:
 
 ```bash
 cd examples/angular-client
@@ -735,18 +779,22 @@ npm start
 
 ### Architecture Comparison
 
-| Aspect | CLI | Simple Client + Backend | Hydra Client Direct |
-|--------|-----|------------------------|---------------------|
-| **Use Case** | Scripts, CI/CD | Production web app | Hydra demo |
-| **Complexity** | ✅ Simple | ✅ Medium | ⚠️ Complex |
-| **Build Size** | N/A | ✅ ~50kb | ⚠️ ~150kb |
-| **Dependencies** | Rust only | Node + Angular | Alcaeus + RDF + Polyfills |
-| **Performance** | ✅ Maximum | ✅ Server cache | ⚠️ Client parsing |
-| **Production** | ✅ Yes | ✅ **Recommended** | ⚠️ Demo only |
+| Aspect | CLI | Frontend (Hydra) | Simple Client + Backend | Hydra Demo |
+|--------|-----|------------------|------------------------|------------|
+| **Use Case** | Scripts, CI/CD | Production web app | Lightweight web app | Education |
+| **Complexity** | ✅ Simple | ✅ Medium | ✅ Medium | ⚠️ Complex |
+| **Build Size** | N/A | ⚠️ ~4.2MB (dev) | ✅ ~50kb | ⚠️ ~150kb |
+| **Features** | Full CLI | Hypermedia + NgRx | REST API | Alcaeus demo |
+| **Dependencies** | Rust only | Angular + Alcaeus | Node + Angular | Alcaeus + RDF |
+| **Performance** | ✅ Maximum | ✅ Client-side state | ✅ Server cache | ⚠️ Client parsing |
+| **Production** | ✅ Yes | ✅ **Recommended** | ✅ Yes | ⚠️ Demo only |
 
 ### Complete Guides
 
 - **[QUICK_START.md](QUICK_START.md)**: Comprehensive startup guide with 5 use cases
+- **[PHASE-2-COMPLETE.md](PHASE-2-COMPLETE.md)**: Phase 2 summary (Hydra API + Angular frontend)
+- **[frontend/DEVELOPMENT.md](frontend/DEVELOPMENT.md)**: Frontend development guide
+- **[PHASE-2.4-TESTING.md](PHASE-2.4-TESTING.md)**: Angular 17 + Vite issue documentation
 - **[examples/README.md](examples/README.md)**: All examples catalog
 - **[examples/nodejs-backend/ARCHITECTURE.md](examples/nodejs-backend/ARCHITECTURE.md)**: 3-tier production architecture
 
@@ -975,12 +1023,19 @@ magneto-serge/
 | [**SECRETS_SETUP.md**](docs/SECRETS_SETUP.md) | 🔐 GitHub secrets setup for CD |
 | [**CLAUDE.md**](CLAUDE.md) | 🤖 AI assistant instructions |
 
+**Phase 2 (Hydra API + Frontend):**
+| Documentation | Description |
+|---------------|-------------|
+| [**PHASE-2-COMPLETE.md**](PHASE-2-COMPLETE.md) | ✅ Phase 2 completion summary |
+| [**frontend/DEVELOPMENT.md**](frontend/DEVELOPMENT.md) | 🅰️ Frontend development guide |
+| [**PHASE-2.4-TESTING.md**](PHASE-2.4-TESTING.md) | 🔧 Angular 17 + Vite troubleshooting |
+
 **Web Ecosystem:**
 | Documentation | Description |
 |---------------|-------------|
 | [**nodejs-backend/README.md**](examples/nodejs-backend/README.md) | 🟢 Node.js backend guide |
 | [**nodejs-backend/ARCHITECTURE.md**](examples/nodejs-backend/ARCHITECTURE.md) | 🏗️ Production architecture (3-tier) |
-| [**angular-simple-client/README.md**](examples/angular-simple-client/README.md) | 🅰️ Production Angular client |
+| [**angular-simple-client/README.md**](examples/angular-simple-client/README.md) | 🅰️ Alternative Angular client |
 | [**angular-client/README.md**](examples/angular-client/README.md) | 🅰️ Hydra demo client |
 | [**examples/README.md**](examples/README.md) | 📚 All examples catalog |
 
@@ -996,33 +1051,37 @@ magneto-serge/
 | Phase | Status | Progress | Details |
 |-------|--------|----------|---------|
 | **Phase 1** - HTTP/HTTPS Proxy | ✅ Complete | 100% | MITM proxy, record/replay |
-| **Phase 2** - WebSocket Support | ✅ Complete | 100% | Bidirectional capture |
+| **Phase 2** - Hydra API + Frontend | ✅ Complete | 100% | REST API, Angular UI, Hypermedia |
 | **Phase 3** - Multi-language Bindings | 🟡 In Progress | 50% | Rust ✅, JS ✅, Python/Java pending |
-| **Phase 4** - CLI & Production | ⏳ Planned | 0% | CLI tool, benchmarks, 1.0 release |
+| **Phase 4** - CLI & Production | ✅ Complete | 100% | CLI tool, templates, benchmarks |
 
-### Current Status (v0.0.1)
+### Current Status (v0.6.0)
 
 **✅ Completed:**
 - Core Rust library with full HTTP/HTTPS support
-- WebSocket record/replay
+- WebSocket record/replay with timing preservation
 - JavaScript bindings (NAPI-RS)
-- 68 tests passing
-- CI/CD pipeline functional
+- **CLI tool** with 8 commands (`magneto record`, `replay`, `auto`, etc.)
+- **REST API with Hydra/JSON-LD** (hypermedia-driven)
+- **Angular 17 frontend** with Material Design and NgRx
+- **Dynamic templates** with Handlebars (env vars, timestamps, custom helpers)
+- 92 tests passing (Rust + integration + WebSocket)
+- CI/CD pipeline with GitHub Actions
 - Auto-generated TLS certificates
+- Docker support (Alpine + Debian images)
 
 **🚧 In Progress:**
-- Publishing to crates.io (pending email verification)
+- Publishing to crates.io (code ready, pending registry)
 - Publishing to npm (GitHub Packages)
-- TypeScript definitions for JS bindings
+- Homebrew formula (needs update for v0.6.0)
 
-**📅 Planned:**
+**📅 Planned (Phase 5):**
 - Python bindings (UniFFI)
 - Java/Kotlin bindings
-- CLI tool (`magneto` command)
-- Performance benchmarks
+- Performance benchmarks documentation
 - Release 1.0
 
-See [ROADMAP.md](docs/ROADMAP.md) for detailed milestones.
+See **[PHASE-2-COMPLETE.md](PHASE-2-COMPLETE.md)** for Phase 2 details and [ROADMAP.md](docs/ROADMAP.md) for detailed milestones.
 
 ---
 
@@ -1131,7 +1190,7 @@ Unless you explicitly state otherwise, any contribution intentionally submitted 
 
 **⚡ Made with Rust for maximum performance and safety**
 
-**Current Version: 0.0.1-alpha**
+**Current Version: 0.6.0**
 
 [⭐ Star on GitHub](https://github.com/taciclei/magneto-serge) • [📝 Report Bug](https://github.com/taciclei/magneto-serge/issues) • [💡 Request Feature](https://github.com/taciclei/magneto-serge/issues)
 
