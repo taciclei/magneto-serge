@@ -3,13 +3,13 @@
 //! This module provides validation functions for user inputs,
 //! particularly for cassette names and other API parameters.
 
+use once_cell::sync::Lazy;
 use regex::Regex;
-use std::sync::LazyLock;
 
 /// Regex pattern for valid cassette names
 /// Allows alphanumeric characters, hyphens, and underscores (1-100 chars)
-static CASSETTE_NAME_REGEX: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^[a-zA-Z0-9_-]{1,100}$").unwrap());
+static CASSETTE_NAME_REGEX: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"^[a-zA-Z0-9_-]{1,100}$").unwrap());
 
 /// Reserved cassette names that cannot be used
 const RESERVED_NAMES: &[&str] = &[
