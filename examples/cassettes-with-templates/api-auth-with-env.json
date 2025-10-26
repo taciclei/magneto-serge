@@ -1,0 +1,30 @@
+{
+  "version": "1.0",
+  "name": "api-auth-with-env",
+  "recorded_at": "2025-10-26T00:00:00Z",
+  "interactions": [
+    {
+      "kind": {
+        "Http": {
+          "request": {
+            "method": "POST",
+            "url": "https://api.example.com/v1/auth/token",
+            "headers": {
+              "content-type": "application/json"
+            },
+            "body": [123, 34, 117, 115, 101, 114, 110, 97, 109, 101, 34, 58, 34, 116, 101, 115, 116, 34, 125]
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "content-type": "application/json"
+            },
+            "body": "{\"access_token\":\"{{ env \\\"API_ACCESS_TOKEN\\\" }}\",\"token_type\":\"Bearer\",\"expires_in\":3600,\"issued_at\":\"{{ now }}\",\"request_id\":\"{{ uuid }}\"}"
+          }
+        }
+      },
+      "response_time_ms": null
+    }
+  ],
+  "cookies": null
+}
