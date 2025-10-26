@@ -8,14 +8,23 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 
 import { CassetteActions } from '../../state/cassette.actions';
 import {
   selectCassettes,
   selectLoading,
   selectError,
-  selectPaginationInfo
+  selectPaginationInfo,
+  selectSearch,
+  selectSortBy,
+  selectSortOrder
 } from '../../state/cassette.selectors';
 import { CassetteResource } from '../../../../core/models/cassette.model';
 
@@ -29,12 +38,17 @@ import { CassetteResource } from '../../../../core/models/cassette.model';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatTableModule,
     MatProgressSpinnerModule,
     MatButtonModule,
     MatIconModule,
     MatCardModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatTooltipModule
   ],
   templateUrl: './cassette-list.component.html',
   styleUrl: './cassette-list.component.scss'
@@ -45,6 +59,30 @@ export class CassetteListComponent implements OnInit {
   loading$: Observable<boolean>;
   error$: Observable<string | null>;
   paginationInfo$: Observable<any>;
+  search$: Observable<string | null>;
+  sortBy$: Observable<string | null>;
+  sortOrder$: Observable<string>;
+
+  // Form values
+  searchQuery: string = '';
+  selectedSortBy: string = '';
+  selectedSortOrder: string = 'asc';
+
+  // Subject pour debounce de recherche
+  private searchSubject = new Subject<string>();
+
+  // Options de tri
+  sortOptions = [
+    { value: '', label: 'Défaut' },
+    { value: 'name', label: 'Nom' },
+    { value: 'date', label: 'Date' },
+    { value: 'interactions', label: 'Interactions' }
+  ];
+
+  sortOrderOptions = [
+    { value: 'asc', label: 'Croissant' },
+    { value: 'desc', label: 'Décroissant' }
+  ];
 
   // Configuration de la table
   displayedColumns: string[] = [
@@ -64,9 +102,27 @@ export class CassetteListComponent implements OnInit {
     this.loading$ = this.store.select(selectLoading);
     this.error$ = this.store.select(selectError);
     this.paginationInfo$ = this.store.select(selectPaginationInfo);
+    this.search$ = this.store.select(selectSearch);
+    this.sortBy$ = this.store.select(selectSortBy);
+    this.sortOrder$ = this.store.select(selectSortOrder);
   }
 
   ngOnInit(): void {
+    // Synchroniser les form values avec le store
+    this.search$.subscribe(search => this.searchQuery = search || '');
+    this.sortBy$.subscribe(sortBy => this.selectedSortBy = sortBy || '');
+    this.sortOrder$.subscribe(sortOrder => this.selectedSortOrder = sortOrder);
+
+    // Debounce pour la recherche (300ms)
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(search => {
+      this.store.dispatch(CassetteActions.updateSearch({
+        search: search || null
+      }));
+    });
+
     // Charger les cassettes au démarrage
     this.store.dispatch(CassetteActions.loadCassettes({ params: { page: 1, limit: 20 } }));
   }
@@ -138,5 +194,42 @@ export class CassetteListComponent implements OnInit {
       hour: '2-digit',
       minute: '2-digit'
     });
+  }
+
+  /**
+   * Déclenché quand l'utilisateur tape dans la recherche
+   */
+  onSearchChange(value: string): void {
+    this.searchSubject.next(value);
+  }
+
+  /**
+   * Déclenché quand l'utilisateur change le critère de tri
+   */
+  onSortByChange(value: string): void {
+    this.store.dispatch(CassetteActions.updateSort({
+      sortBy: value || null,
+      sortOrder: this.selectedSortOrder
+    }));
+  }
+
+  /**
+   * Déclenché quand l'utilisateur change l'ordre de tri
+   */
+  onSortOrderChange(value: string): void {
+    this.store.dispatch(CassetteActions.updateSort({
+      sortBy: this.selectedSortBy || null,
+      sortOrder: value
+    }));
+  }
+
+  /**
+   * Efface tous les filtres et la recherche
+   */
+  clearFilters(): void {
+    this.searchQuery = '';
+    this.selectedSortBy = '';
+    this.selectedSortOrder = 'asc';
+    this.store.dispatch(CassetteActions.clearFilters());
   }
 }

@@ -46,6 +46,26 @@ export const selectError = createSelector(
   (state) => state.error
 );
 
+export const selectSearch = createSelector(
+  selectCassetteState,
+  (state) => state.search
+);
+
+export const selectFilterType = createSelector(
+  selectCassetteState,
+  (state) => state.filterType
+);
+
+export const selectSortBy = createSelector(
+  selectCassetteState,
+  (state) => state.sortBy
+);
+
+export const selectSortOrder = createSelector(
+  selectCassetteState,
+  (state) => state.sortOrder
+);
+
 // Selectors composés
 export const selectTotalPages = createSelector(
   selectTotalItems,

@@ -34,5 +34,11 @@ export const CassetteActions = createActionGroup({
     // Sélection de cassette
     'Select Cassette': props<{ name: string }>(),
     'Clear Selection': emptyProps(),
+
+    // Recherche et tri
+    'Update Search': props<{ search: string | null }>(),
+    'Update Filter Type': props<{ filterType: string | null }>(),
+    'Update Sort': props<{ sortBy: string | null; sortOrder?: string }>(),
+    'Clear Filters': emptyProps(),
   }
 });

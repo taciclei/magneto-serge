@@ -19,6 +19,35 @@ mat-card-header {
   }
 }
 
+.search-filter-bar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+
+  .search-field {
+    flex: 1;
+    min-width: 250px;
+  }
+
+  .sort-field {
+    width: 180px;
+  }
+
+  .sort-order-field {
+    width: 150px;
+  }
+
+  mat-form-field {
+    margin-bottom: 0;
+  }
+
+  button {
+    margin-top: -8px;
+  }
+}
+
 .loading-container {
   display: flex;
   flex-direction: column;

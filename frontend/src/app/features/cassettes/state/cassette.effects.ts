@@ -6,7 +6,7 @@ import { map, catchError, switchMap, withLatestFrom } from 'rxjs/operators';
 
 import { AlcaeusService } from '../../../core/services/alcaeus.service';
 import { CassetteActions } from './cassette.actions';
-import { selectPage, selectLimit } from './cassette.selectors';
+import { selectPage, selectLimit, selectSearch, selectFilterType, selectSortBy, selectSortOrder } from './cassette.selectors';
 import { CassetteCollection, CassetteResource } from '../../../core/models/cassette.model';
 
 /**
@@ -35,15 +35,40 @@ export class CassetteEffects {
         CassetteActions.navigateToNextPage,
         CassetteActions.navigateToPreviousPage,
         CassetteActions.navigateToFirstPage,
-        CassetteActions.navigateToLastPage
+        CassetteActions.navigateToLastPage,
+        CassetteActions.updateSearch,
+        CassetteActions.updateFilterType,
+        CassetteActions.updateSort,
+        CassetteActions.clearFilters
       ),
       withLatestFrom(
         this.store.select(selectPage),
-        this.store.select(selectLimit)
+        this.store.select(selectLimit),
+        this.store.select(selectSearch),
+        this.store.select(selectFilterType),
+        this.store.select(selectSortBy),
+        this.store.select(selectSortOrder)
       ),
-      switchMap(([action, page, limit]) => {
-        // Construire l'URL avec pagination
-        const url = `/cassettes?page=${page}&limit=${limit}`;
+      switchMap(([action, page, limit, search, filterType, sortBy, sortOrder]) => {
+        // Construire l'URL avec pagination et paramètres de recherche/tri
+        const params = new URLSearchParams();
+        params.set('page', page.toString());
+        params.set('limit', limit.toString());
+
+        if (search) {
+          params.set('search', search);
+        }
+        if (filterType) {
+          params.set('filter_type', filterType);
+        }
+        if (sortBy) {
+          params.set('sort_by', sortBy);
+        }
+        if (sortOrder) {
+          params.set('sort_order', sortOrder);
+        }
+
+        const url = `/cassettes?${params.toString()}`;
 
         return this.alcaeusService.loadResource<CassetteCollection>(url).pipe(
           map(response => {

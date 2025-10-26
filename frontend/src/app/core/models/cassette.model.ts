@@ -44,9 +44,13 @@ export interface HydraView {
 }
 
 /**
- * Paramètres de pagination
+ * Paramètres de pagination, recherche et tri
  */
 export interface PaginationParams {
   page: number;
   limit: number;
+  search?: string;
+  filter_type?: string;
+  sort_by?: string;
+  sort_order?: string;
 }

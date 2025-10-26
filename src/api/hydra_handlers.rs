@@ -273,19 +273,31 @@ pub async fn list_cassettes(
             "name" => {
                 filtered_cassettes.sort_by(|a, b| {
                     let cmp = a.name.cmp(&b.name);
-                    if ascending { cmp } else { cmp.reverse() }
+                    if ascending {
+                        cmp
+                    } else {
+                        cmp.reverse()
+                    }
                 });
             }
             "date" => {
                 filtered_cassettes.sort_by(|a, b| {
                     let cmp = a.recorded_at.cmp(&b.recorded_at);
-                    if ascending { cmp } else { cmp.reverse() }
+                    if ascending {
+                        cmp
+                    } else {
+                        cmp.reverse()
+                    }
                 });
             }
             "interactions" => {
                 filtered_cassettes.sort_by(|a, b| {
                     let cmp = a.interaction_count.cmp(&b.interaction_count);
-                    if ascending { cmp } else { cmp.reverse() }
+                    if ascending {
+                        cmp
+                    } else {
+                        cmp.reverse()
+                    }
                 });
             }
             _ => {
@@ -302,7 +314,11 @@ pub async fn list_cassettes(
     let limit = params.limit.clamp(1, 100); // Entre 1 et 100
     let offset = (page - 1) * limit;
 
-    let cassettes: Vec<_> = filtered_cassettes.into_iter().skip(offset).take(limit).collect();
+    let cassettes: Vec<_> = filtered_cassettes
+        .into_iter()
+        .skip(offset)
+        .take(limit)
+        .collect();
 
     let collection_id = format!("{}/api/cassettes", state.base_url);
     let mut collection = HydraCollection::new(&collection_id, cassettes, total);

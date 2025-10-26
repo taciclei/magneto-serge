@@ -12,6 +12,64 @@
   </mat-card-header>
 
   <mat-card-content>
+    <!-- Search and Filter Bar -->
+    <div class="search-filter-bar">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Rechercher</mat-label>
+        <input
+          matInput
+          type="text"
+          [(ngModel)]="searchQuery"
+          (ngModelChange)="onSearchChange($event)"
+          placeholder="Rechercher par nom..."
+        >
+        <mat-icon matPrefix>search</mat-icon>
+        <button
+          *ngIf="searchQuery"
+          mat-icon-button
+          matSuffix
+          (click)="searchQuery = ''; onSearchChange('')"
+          matTooltip="Effacer"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="sort-field">
+        <mat-label>Trier par</mat-label>
+        <mat-select
+          [(ngModel)]="selectedSortBy"
+          (ngModelChange)="onSortByChange($event)"
+        >
+          <mat-option *ngFor="let option of sortOptions" [value]="option.value">
+            {{ option.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="sort-order-field">
+        <mat-label>Ordre</mat-label>
+        <mat-select
+          [(ngModel)]="selectedSortOrder"
+          (ngModelChange)="onSortOrderChange($event)"
+        >
+          <mat-option *ngFor="let option of sortOrderOptions" [value]="option.value">
+            {{ option.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button
+        mat-raised-button
+        color="warn"
+        (click)="clearFilters()"
+        *ngIf="searchQuery || selectedSortBy"
+        matTooltip="Réinitialiser les filtres"
+      >
+        <mat-icon>filter_list_off</mat-icon>
+        Effacer
+      </button>
+    </div>
     <!-- Loading Spinner -->
     <div *ngIf="loading$ | async" class="loading-container">
       <mat-spinner></mat-spinner>

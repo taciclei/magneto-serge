@@ -11,6 +11,10 @@ export interface CassetteState {
   totalItems: number;
   page: number;
   limit: number;
+  search: string | null;
+  filterType: string | null;
+  sortBy: string | null;
+  sortOrder: string;
   loading: boolean;
   error: string | null;
 }
@@ -24,6 +28,10 @@ export const initialState: CassetteState = {
   totalItems: 0,
   page: 1,
   limit: 20,
+  search: null,
+  filterType: null,
+  sortBy: null,
+  sortOrder: 'asc',
   loading: false,
   error: null
 };
@@ -40,7 +48,11 @@ export const cassettesReducer = createReducer(
     loading: true,
     error: null,
     page: params?.page ?? state.page,
-    limit: params?.limit ?? state.limit
+    limit: params?.limit ?? state.limit,
+    search: params?.search ?? state.search,
+    filterType: params?.filter_type ?? state.filterType,
+    sortBy: params?.sort_by ?? state.sortBy,
+    sortOrder: params?.sort_order ?? state.sortOrder
   })),
 
   on(CassetteActions.loadCassettesSuccess, (state, { cassettes, totalItems, page, limit }) => ({
@@ -125,5 +137,37 @@ export const cassettesReducer = createReducer(
   on(CassetteActions.clearSelection, (state) => ({
     ...state,
     selectedCassette: null
+  })),
+
+  // Recherche et tri
+  on(CassetteActions.updateSearch, (state, { search }) => ({
+    ...state,
+    search,
+    page: 1, // Reset to page 1 when search changes
+    loading: true
+  })),
+
+  on(CassetteActions.updateFilterType, (state, { filterType }) => ({
+    ...state,
+    filterType,
+    page: 1, // Reset to page 1 when filter changes
+    loading: true
+  })),
+
+  on(CassetteActions.updateSort, (state, { sortBy, sortOrder }) => ({
+    ...state,
+    sortBy,
+    sortOrder: sortOrder ?? state.sortOrder,
+    loading: true
+  })),
+
+  on(CassetteActions.clearFilters, (state) => ({
+    ...state,
+    search: null,
+    filterType: null,
+    sortBy: null,
+    sortOrder: 'asc',
+    page: 1,
+    loading: true
   }))
 );
