@@ -7,7 +7,8 @@ use axum::{
     extract::{Path, State},
     http::{HeaderMap, StatusCode},
     response::{IntoResponse, Response},
-    Json,
+    routing::get,
+    Json, Router,
 };
 use std::sync::Arc;
 
@@ -438,6 +439,33 @@ pub async fn vocabulary(State(state): State<HydraState>, headers: HeaderMap) -> 
         )
             .into_response(),
     }
+}
+
+/// Construit le routeur Axum pour les endpoints Hydra
+///
+/// # Exemple
+///
+/// ```rust,no_run
+/// use magneto_serge::api::{CassetteManager, hydra_handlers::{HydraState, build_hydra_router}};
+/// use std::sync::Arc;
+///
+/// let manager = Arc::new(CassetteManager::new("./cassettes"));
+/// let state = HydraState::new(manager, "http://localhost:8889");
+/// let router = build_hydra_router(state);
+/// ```
+#[cfg(feature = "hydra")]
+pub fn build_hydra_router(state: HydraState) -> Router {
+    Router::new()
+        // API Documentation entrypoint
+        .route("/api", get(api_entrypoint))
+        // Cassette endpoints
+        .route("/api/cassettes", get(list_cassettes))
+        .route("/api/cassettes/:name", get(get_cassette))
+        // Template endpoints
+        .route("/api/templates", get(list_templates))
+        // Vocabulary endpoint
+        .route("/vocab", get(vocabulary))
+        .with_state(state)
 }
 
 #[cfg(test)]

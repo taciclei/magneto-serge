@@ -14,7 +14,8 @@ pub use cassettes::CassetteManager;
 pub use handlers::{build_router, build_router as create_router};
 #[cfg(feature = "hydra")]
 pub use hydra_handlers::{
-    api_entrypoint, get_cassette, list_cassettes, list_templates, vocabulary, HydraState,
+    api_entrypoint, build_hydra_router, get_cassette, list_cassettes, list_templates, vocabulary,
+    HydraState,
 };
 pub use openapi::{generate_openapi_spec, OpenApiSpec};
 pub use server::ApiServer;
