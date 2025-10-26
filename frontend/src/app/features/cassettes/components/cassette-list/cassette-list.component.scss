@@ -17,6 +17,18 @@ mat-card-header {
     color: rgba(0, 0, 0, 0.6);
     font-size: 14px;
   }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    button {
+      mat-icon {
+        margin-right: 4px;
+      }
+    }
+  }
 }
 
 .loading-container {

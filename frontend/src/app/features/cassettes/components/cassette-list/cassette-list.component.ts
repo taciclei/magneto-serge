@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
@@ -8,6 +8,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 
 import { CassetteActions } from '../../state/cassette.actions';
@@ -18,6 +20,8 @@ import {
   selectPaginationInfo
 } from '../../state/cassette.selectors';
 import { CassetteResource } from '../../../../core/models/cassette.model';
+import { CassetteCreateDialogComponent } from '../cassette-create-dialog/cassette-create-dialog.component';
+import { CassetteDeleteDialogComponent, DeleteDialogData } from '../cassette-delete-dialog/cassette-delete-dialog.component';
 
 /**
  * Component affichant la liste paginée des cassettes
@@ -34,7 +38,9 @@ import { CassetteResource } from '../../../../core/models/cassette.model';
     MatButtonModule,
     MatIconModule,
     MatCardModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    MatDialogModule,
+    MatTooltipModule
   ],
   templateUrl: './cassette-list.component.html',
   styleUrl: './cassette-list.component.scss'
@@ -55,6 +61,8 @@ export class CassetteListComponent implements OnInit {
     'sizeBytes',
     'actions'
   ];
+
+  private dialog = inject(MatDialog);
 
   constructor(
     private store: Store,
@@ -137,6 +145,32 @@ export class CassetteListComponent implements OnInit {
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit'
+    });
+  }
+
+  /**
+   * Opens the create cassette dialog
+   */
+  openCreateDialog(): void {
+    this.dialog.open(CassetteCreateDialogComponent, {
+      width: '500px',
+      disableClose: false
+    });
+  }
+
+  /**
+   * Opens the delete confirmation dialog
+   */
+  openDeleteDialog(cassette: CassetteResource): void {
+    const dialogData: DeleteDialogData = {
+      cassetteName: cassette.name,
+      interactionCount: cassette.interactionCount
+    };
+
+    this.dialog.open(CassetteDeleteDialogComponent, {
+      width: '500px',
+      data: dialogData,
+      disableClose: false
     });
   }
 }

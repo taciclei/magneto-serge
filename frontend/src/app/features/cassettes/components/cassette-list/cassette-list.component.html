@@ -6,9 +6,19 @@
         Affichage {{ pagination.startIndex }} - {{ pagination.endIndex }} sur {{ pagination.totalItems }}
       </ng-container>
     </mat-card-subtitle>
-    <button mat-icon-button (click)="reload()" [disabled]="(loading$ | async) ?? false">
-      <mat-icon>refresh</mat-icon>
-    </button>
+    <div class="header-actions">
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="openCreateDialog()"
+        [disabled]="(loading$ | async) ?? false">
+        <mat-icon>add</mat-icon>
+        Nouvelle Cassette
+      </button>
+      <button mat-icon-button (click)="reload()" [disabled]="(loading$ | async) ?? false" matTooltip="Recharger">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
   </mat-card-header>
 
   <mat-card-content>
@@ -77,6 +87,14 @@
               matTooltip="Voir les détails"
             >
               <mat-icon>visibility</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              color="warn"
+              (click)="openDeleteDialog(cassette)"
+              matTooltip="Supprimer"
+            >
+              <mat-icon>delete</mat-icon>
             </button>
           </td>
         </ng-container>
