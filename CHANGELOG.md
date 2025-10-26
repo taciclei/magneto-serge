@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (v0.5.0 - In Progress)
+- **Hydra Hypermedia API (Phase 1 - Backend)** 🎉
+  - Complete W3C Hydra Core Vocabulary implementation
+  - JSON-LD linked data support
+  - HATEOAS-compliant REST API
+  - 7 hypermedia endpoints with auto-discovery
+  - Pagination with HydraView (first/prev/next/last)
+  - Content negotiation (JSON-LD, JSON)
+  - 31 unit tests, 3,150 lines Rust
+  - Example: `examples/hydra_api_server.rs`
+
 ### Planned
 - WebSocket template support
 - Additional language bindings (Go, C#)
@@ -14,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Postman Collection export
 - Interactive TUI mode for CLI
 - Better error messages with suggestions (v0.4.1)
+- Hydra Phase 2: Angular frontend with Alcaeus
+- Hydra Phase 2: E2E integration tests
+- Hydra Phase 2: Turtle/RDF-XML serialization
 
 ---
 
