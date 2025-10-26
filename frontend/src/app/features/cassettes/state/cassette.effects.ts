@@ -123,7 +123,7 @@ export class CassetteEffects {
   refreshAfterCreate$ = createEffect(() =>
     this.actions$.pipe(
       ofType(CassetteActions.createCassetteSuccess),
-      map(() => CassetteActions.loadCassettes({ params: {} }))
+      map(() => CassetteActions.loadCassettes({}))
     )
   );
 
@@ -158,7 +158,7 @@ export class CassetteEffects {
   refreshAfterUpdate$ = createEffect(() =>
     this.actions$.pipe(
       ofType(CassetteActions.updateCassetteSuccess),
-      map(() => CassetteActions.loadCassettes({ params: {} }))
+      map(() => CassetteActions.loadCassettes({}))
     )
   );
 
@@ -189,7 +189,7 @@ export class CassetteEffects {
   refreshAfterDelete$ = createEffect(() =>
     this.actions$.pipe(
       ofType(CassetteActions.deleteCassetteSuccess),
-      map(() => CassetteActions.loadCassettes({ params: {} }))
+      map(() => CassetteActions.loadCassettes({}))
     )
   );
 }

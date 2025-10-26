@@ -113,7 +113,7 @@ export class CassetteCreateDialogComponent {
 
       this.store.dispatch(CassetteActions.createCassette({
         name: formValue.name!,
-        mode: formValue.mode,
+        mode: formValue.mode || undefined,
         description: formValue.description || undefined
       }));
 
