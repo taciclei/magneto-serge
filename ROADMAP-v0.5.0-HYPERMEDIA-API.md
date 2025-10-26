@@ -5,8 +5,8 @@
 **Frontend:** Angular 17+ avec Heracles.ts / Alcaeus
 **Date de début:** 2025-10-26
 **Durée estimée:** 6-8 semaines
-**Status:** 🚀 Phase 2.0 DÉMARRÉE - Frontend Foundation (Angular + Alcaeus + NgRx)
-**Dernière mise à jour:** 2025-10-26 18:30
+**Status:** ✅ Phase 2.1 COMPLÉTÉE - Tous les composants UI créés avec Material Design
+**Dernière mise à jour:** 2025-10-26 19:00
 
 ---
 
@@ -34,15 +34,26 @@
   - `ApiServer::start_with_hydra()` method
   - Example: `examples/hydra_api_server.rs`
 
-### 🚀 Phase 2.0 EN COURS: Frontend Foundation
+### ✅ Phase 2.0 Complétée: Frontend Foundation
 - ✅ Structure projet Angular (frontend/src/)
 - ✅ Service Alcaeus (loadResource, followLink, pagination)
 - ✅ Modèles TypeScript (CassetteResource, InteractionResource, HydraView)
 - ✅ NgRx Store (actions, reducer, effects, selectors)
 - ✅ Environnements (dev: localhost:8889, prod)
-- ⏳ Composants UI (cassette-list, cassette-detail, interaction-list)
-- ⏳ Angular Material installation
-- ⏳ Routing configuration
+
+### ✅ Phase 2.1 Complétée: UI Components avec Material Design
+- ✅ CassetteListComponent (Material Table + pagination Hydra)
+- ✅ CassetteDetailComponent (Material Cards + metadata)
+- ✅ InteractionListComponent (Expansion Panels HTTP/WebSocket)
+- ✅ Routing (app.routes.ts, app.config.ts, app.component)
+- ✅ Styles globaux Material (index.html, styles.scss)
+- ✅ Infrastructure standalone (main.ts, bootstrap)
+
+### 🚀 Phase 2.2 EN COURS: Installation et Tests
+- ⏳ Installer dépendances npm
+- ⏳ Installer Angular Material (ng add)
+- ⏳ Tester l'application (ng serve)
+- ⏳ Créer proxy.conf.json pour l'API
 - ⏳ Tests E2E (Cypress)
 
 ### 📈 Statistiques Finales Phase 1
