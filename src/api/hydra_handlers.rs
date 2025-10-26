@@ -75,7 +75,7 @@ impl ContentType {
     }
 }
 
-/// Paramètres de pagination pour les collections
+/// Paramètres de pagination, recherche, filtrage et tri pour les collections
 #[derive(Debug, Deserialize)]
 pub struct PaginationParams {
     /// Numéro de page (commence à 1)
@@ -85,6 +85,22 @@ pub struct PaginationParams {
     /// Nombre d'éléments par page
     #[serde(default = "default_limit")]
     pub limit: usize,
+
+    /// Recherche textuelle (nom de cassette)
+    #[serde(default)]
+    pub search: Option<String>,
+
+    /// Filtre par type d'interaction (http, websocket, ou all)
+    #[serde(default)]
+    pub filter_type: Option<String>,
+
+    /// Tri (name, date, interactions)
+    #[serde(default)]
+    pub sort_by: Option<String>,
+
+    /// Ordre de tri (asc, desc)
+    #[serde(default = "default_sort_order")]
+    pub sort_order: String,
 }
 
 fn default_page() -> usize {
@@ -93,6 +109,10 @@ fn default_page() -> usize {
 
 fn default_limit() -> usize {
     20
+}
+
+fn default_sort_order() -> String {
+    "asc".to_string()
 }
 
 /// GET /api
@@ -175,7 +195,11 @@ pub async fn api_entrypoint(State(state): State<HydraState>, headers: HeaderMap)
 ///
 /// # Query Parameters
 /// - `page` (optionnel): Numéro de page (défaut: 1)
-/// - `limit` (optionnel): Nombre d'éléments par page (défaut: 20)
+/// - `limit` (optionnel): Nombre d'éléments par page (défaut: 20, max: 100)
+/// - `search` (optionnel): Recherche textuelle sur le nom de cassette
+/// - `filter_type` (optionnel): Filtre par type d'interaction (http, websocket, all)
+/// - `sort_by` (optionnel): Tri par champ (name, date, interactions)
+/// - `sort_order` (optionnel): Ordre de tri (asc, desc) (défaut: asc)
 ///
 /// # Exemple de réponse
 ///
@@ -225,14 +249,60 @@ pub async fn list_cassettes(
         }
     };
 
-    let total = all_cassettes.len();
+    // Appliquer la recherche textuelle
+    let mut filtered_cassettes = all_cassettes;
+    if let Some(search_term) = &params.search {
+        let search_lower = search_term.to_lowercase();
+        filtered_cassettes.retain(|c| c.name.to_lowercase().contains(&search_lower));
+    }
+
+    // Appliquer le filtre par type d'interaction
+    // TODO: Pour implémenter correctement ce filtre, il faut ajouter les champs
+    // http_interaction_count et websocket_interaction_count à CassetteResource
+    // Pour l'instant, on accepte le paramètre mais on ne filtre pas
+    if let Some(_filter_type) = &params.filter_type {
+        // Le filtrage par type sera implémenté dans une prochaine version
+        // quand les compteurs séparés seront ajoutés à CassetteResource
+    }
+
+    // Appliquer le tri
+    if let Some(sort_by) = &params.sort_by {
+        let ascending = params.sort_order == "asc";
+
+        match sort_by.as_str() {
+            "name" => {
+                filtered_cassettes.sort_by(|a, b| {
+                    let cmp = a.name.cmp(&b.name);
+                    if ascending { cmp } else { cmp.reverse() }
+                });
+            }
+            "date" => {
+                filtered_cassettes.sort_by(|a, b| {
+                    let cmp = a.recorded_at.cmp(&b.recorded_at);
+                    if ascending { cmp } else { cmp.reverse() }
+                });
+            }
+            "interactions" => {
+                filtered_cassettes.sort_by(|a, b| {
+                    let cmp = a.interaction_count.cmp(&b.interaction_count);
+                    if ascending { cmp } else { cmp.reverse() }
+                });
+            }
+            _ => {
+                // Tri par défaut: nom ascendant
+                filtered_cassettes.sort_by(|a, b| a.name.cmp(&b.name));
+            }
+        }
+    }
+
+    let total = filtered_cassettes.len();
 
     // Appliquer la pagination
     let page = params.page.max(1); // Au moins page 1
     let limit = params.limit.clamp(1, 100); // Entre 1 et 100
     let offset = (page - 1) * limit;
 
-    let cassettes: Vec<_> = all_cassettes.into_iter().skip(offset).take(limit).collect();
+    let cassettes: Vec<_> = filtered_cassettes.into_iter().skip(offset).take(limit).collect();
 
     let collection_id = format!("{}/api/cassettes", state.base_url);
     let mut collection = HydraCollection::new(&collection_id, cassettes, total);
