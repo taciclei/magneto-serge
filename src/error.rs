@@ -77,6 +77,11 @@ pub enum MatgtoError {
     /// URL parsing error
     #[error("URL parsing error: {0}")]
     UrlParse(#[from] url::ParseError),
+
+    /// Template rendering error
+    #[cfg(feature = "templates")]
+    #[error("Template error: {message}")]
+    TemplateError { message: String },
 }
 
 impl<T> From<tokio::sync::mpsc::error::SendError<T>> for MatgtoError {

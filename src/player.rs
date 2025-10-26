@@ -5,6 +5,7 @@ use crate::cookies::CookieJar;
 use crate::error::{MatgtoError, Result};
 use crate::hooks::ReplayHooks;
 use crate::matching::{MatchingStrategy, RequestSignature as MatchingSignature};
+use crate::templates::TemplateEngine;
 use std::collections::HashMap;
 use std::fs::File;
 use std::path::Path;
@@ -78,6 +79,9 @@ pub struct Player {
 
     /// Replay hooks
     hooks: ReplayHooks,
+
+    /// Template engine for dynamic response rendering
+    template_engine: TemplateEngine,
 }
 
 impl Player {
@@ -92,6 +96,7 @@ impl Player {
             matching_strategy: MatchingStrategy::default(),
             cookie_jar: CookieJar::new(),
             hooks: ReplayHooks::new(),
+            template_engine: TemplateEngine::new(),
         }
     }
 
@@ -106,6 +111,7 @@ impl Player {
             matching_strategy: MatchingStrategy::strict(),
             cookie_jar: CookieJar::new(),
             hooks: ReplayHooks::new(),
+            template_engine: TemplateEngine::new(),
         }
     }
 
@@ -223,6 +229,7 @@ impl Player {
             matching_strategy,
             cookie_jar,
             hooks: ReplayHooks::new(),
+            template_engine: TemplateEngine::new(),
         })
     }
 
@@ -390,6 +397,35 @@ impl Player {
     /// Get mutable cookie jar (Phase 1.1)
     pub fn cookie_jar_mut(&mut self) -> &mut CookieJar {
         &mut self.cookie_jar
+    }
+
+    /// Get template engine
+    pub fn template_engine(&self) -> &TemplateEngine {
+        &self.template_engine
+    }
+
+    /// Get mutable template engine (for registering custom helpers)
+    pub fn template_engine_mut(&mut self) -> &mut TemplateEngine {
+        &mut self.template_engine
+    }
+
+    /// Render templates in an HTTP response body (if templates feature is enabled)
+    #[cfg(feature = "templates")]
+    pub fn render_templates_in_response(
+        &self,
+        request: &crate::cassette::HttpRequest,
+        response: &mut crate::cassette::HttpResponse,
+    ) -> Result<()> {
+        // Only render if body contains template syntax
+        if let Some(body) = &response.body {
+            if let Ok(body_str) = std::str::from_utf8(body) {
+                if TemplateEngine::has_templates(body_str) {
+                    let rendered = self.template_engine.render(body_str, request)?;
+                    response.body = Some(rendered.into_bytes());
+                }
+            }
+        }
+        Ok(())
     }
 }
 

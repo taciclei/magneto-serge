@@ -18,6 +18,7 @@ pub mod matching;
 pub mod player;
 pub mod proxy;
 pub mod recorder;
+pub mod templates;
 pub mod test_helpers;
 pub mod tls;
 pub mod websocket;
@@ -36,6 +37,7 @@ pub use matching::{
 pub use player::{LatencyMode, Player};
 pub use proxy::{MagnetoProxy, ProxyMode};
 pub use recorder::Recorder;
+pub use templates::TemplateEngine;
 pub use tls::CertificateAuthority;
 pub use websocket::{WebSocketInterceptor, WebSocketPlayer, WebSocketRecorder};
 
