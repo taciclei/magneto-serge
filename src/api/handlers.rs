@@ -334,7 +334,51 @@ pub fn build_router(state: ApiState) -> Router {
         .with_state(state)
 }
 
-/// Start the API server
+/// Build router with both REST API and Hydra Hypermedia API
+#[cfg(feature = "hydra")]
+pub fn build_combined_router(cassette_dir: impl Into<std::path::PathBuf>, base_url: impl Into<String>) -> Router {
+    use crate::api::hydra_handlers::{build_hydra_router, HydraState};
+
+    let cassette_dir_path = cassette_dir.into();
+
+    // REST API state
+    let rest_state = ApiState::new(cassette_dir_path.clone());
+
+    // Hydra API state
+    let manager = Arc::new(CassetteManager::new(cassette_dir_path));
+    let hydra_state = HydraState::new(manager, base_url);
+
+    // Combine both routers
+    Router::new()
+        // Health check (shared)
+        .route("/health", get(health))
+        // Merge REST API routes
+        .merge(build_router(rest_state))
+        // Merge Hydra API routes
+        .merge(build_hydra_router(hydra_state))
+}
+
+/// Start the API server with Hydra support
+#[cfg(feature = "hydra")]
+pub async fn start_server_with_hydra(
+    host: &str,
+    port: u16,
+    cassette_dir: impl Into<std::path::PathBuf>,
+) -> Result<()> {
+    let base_url = format!("http://{}:{}", host, port);
+    let app = build_combined_router(cassette_dir, base_url);
+
+    let addr = format!("{}:{}", host, port);
+    let listener = tokio::net::TcpListener::bind(&addr).await?;
+
+    tracing::info!("API server listening on {}", addr);
+
+    axum::serve(listener, app).await?;
+
+    Ok(())
+}
+
+/// Start the API server (legacy REST API only)
 pub async fn start_server(
     host: &str,
     port: u16,
