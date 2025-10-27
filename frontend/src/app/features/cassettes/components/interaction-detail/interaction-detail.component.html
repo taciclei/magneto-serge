@@ -1,0 +1,278 @@
+<div class="interaction-detail-container">
+  <!-- Header -->
+  <div class="header">
+    <button mat-icon-button (click)="goBack()" class="back-button">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>Interaction Details</h1>
+  </div>
+
+  <!-- Loading state -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Loading interaction...</p>
+  </div>
+
+  <!-- Error state -->
+  <mat-card *ngIf="error && !loading" class="error-card">
+    <mat-card-header>
+      <mat-icon color="warn">error</mat-icon>
+      <mat-card-title>Error Loading Interaction</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <p>{{ error }}</p>
+      <button mat-raised-button color="primary" (click)="loadInteraction()">
+        <mat-icon>refresh</mat-icon>
+        Retry
+      </button>
+      <button mat-button (click)="goBack()">Go Back</button>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- HTTP Interaction -->
+  <div *ngIf="isHttp && httpInteraction && !loading" class="http-interaction">
+    <!-- Overview Card -->
+    <mat-card class="overview-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>http</mat-icon>
+        <mat-card-title>HTTP Interaction</mat-card-title>
+        <mat-card-subtitle>{{ cassetteName }} / Interaction #{{ interactionId }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="method-url">
+          <mat-chip [color]="getMethodColor(httpInteraction.request.method)">
+            {{ httpInteraction.request.method }}
+          </mat-chip>
+          <span class="url">{{ httpInteraction.request.url }}</span>
+        </div>
+        <div class="status">
+          <mat-chip [color]="getStatusColor(httpInteraction.response.status)">
+            {{ httpInteraction.response.status }} {{ getStatusText(httpInteraction.response.status) }}
+          </mat-chip>
+          <mat-chip *ngIf="httpInteraction.response.hasTemplates" color="accent">
+            <mat-icon>code</mat-icon>
+            Has Templates
+          </mat-chip>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-button (click)="copyRequest()">
+          <mat-icon>content_copy</mat-icon>
+          Copy Request
+        </button>
+        <button mat-button (click)="copyResponse()">
+          <mat-icon>content_copy</mat-icon>
+          Copy Response
+        </button>
+        <button mat-button color="warn" (click)="deleteInteraction()">
+          <mat-icon>delete</mat-icon>
+          Delete
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <!-- Request/Response Tabs -->
+    <mat-card class="details-card">
+      <mat-tab-group>
+        <!-- Request Tab -->
+        <mat-tab label="Request">
+          <div class="tab-content">
+            <!-- Request Headers -->
+            <mat-expansion-panel [expanded]="true">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <mat-icon>list</mat-icon>
+                  Headers ({{ Object.keys(httpInteraction.request.headers).length }})
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <div class="headers-list">
+                <div *ngFor="let header of Object.entries(httpInteraction.request.headers)" class="header-item">
+                  <span class="header-name">{{ header[0] }}:</span>
+                  <span class="header-value">{{ header[1] }}</span>
+                </div>
+                <p *ngIf="Object.keys(httpInteraction.request.headers).length === 0" class="empty">
+                  No headers
+                </p>
+              </div>
+            </mat-expansion-panel>
+
+            <!-- Request Body -->
+            <mat-expansion-panel [expanded]="!!httpInteraction.request.body">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <mat-icon>description</mat-icon>
+                  Body
+                  <mat-chip *ngIf="isJsonBody(httpInteraction.request.body)" class="json-chip">JSON</mat-chip>
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <div class="body-content">
+                <pre *ngIf="httpInteraction.request.body" class="code-block">{{ formatJson(httpInteraction.request.body) }}</pre>
+                <p *ngIf="!httpInteraction.request.body" class="empty">No body</p>
+                <button
+                  *ngIf="httpInteraction.request.body"
+                  mat-icon-button
+                  class="copy-button"
+                  (click)="copyToClipboard(httpInteraction.request.body!, 'Request body')">
+                  <mat-icon>content_copy</mat-icon>
+                </button>
+              </div>
+            </mat-expansion-panel>
+          </div>
+        </mat-tab>
+
+        <!-- Response Tab -->
+        <mat-tab label="Response">
+          <div class="tab-content">
+            <!-- Response Status -->
+            <div class="response-status">
+              <h3>Status</h3>
+              <mat-chip [color]="getStatusColor(httpInteraction.response.status)">
+                {{ httpInteraction.response.status }} {{ getStatusText(httpInteraction.response.status) }}
+              </mat-chip>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <!-- Response Headers -->
+            <mat-expansion-panel [expanded]="true">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <mat-icon>list</mat-icon>
+                  Headers ({{ Object.keys(httpInteraction.response.headers).length }})
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <div class="headers-list">
+                <div *ngFor="let header of Object.entries(httpInteraction.response.headers)" class="header-item">
+                  <span class="header-name">{{ header[0] }}:</span>
+                  <span class="header-value">{{ header[1] }}</span>
+                </div>
+                <p *ngIf="Object.keys(httpInteraction.response.headers).length === 0" class="empty">
+                  No headers
+                </p>
+              </div>
+            </mat-expansion-panel>
+
+            <!-- Response Body -->
+            <mat-expansion-panel [expanded]="!!httpInteraction.response.body">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <mat-icon>description</mat-icon>
+                  Body
+                  <mat-chip *ngIf="isJsonBody(httpInteraction.response.body)" class="json-chip">JSON</mat-chip>
+                  <mat-chip *ngIf="httpInteraction.response.hasTemplates" color="accent" class="template-chip">
+                    <mat-icon>code</mat-icon>
+                    Templates
+                  </mat-chip>
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <div class="body-content">
+                <pre *ngIf="httpInteraction.response.body" class="code-block">{{ formatJson(httpInteraction.response.body) }}</pre>
+                <p *ngIf="!httpInteraction.response.body" class="empty">No body</p>
+                <button
+                  *ngIf="httpInteraction.response.body"
+                  mat-icon-button
+                  class="copy-button"
+                  (click)="copyToClipboard(httpInteraction.response.body!, 'Response body')">
+                  <mat-icon>content_copy</mat-icon>
+                </button>
+              </div>
+            </mat-expansion-panel>
+          </div>
+        </mat-tab>
+
+        <!-- cURL Tab -->
+        <mat-tab label="cURL">
+          <div class="tab-content">
+            <p class="info">
+              <mat-icon>info</mat-icon>
+              Copy this command to reproduce the request with cURL
+            </p>
+            <pre class="code-block curl-command">{{ getCurlCommand() }}</pre>
+            <button mat-raised-button color="primary" (click)="copyCurlCommand()">
+              <mat-icon>content_copy</mat-icon>
+              Copy cURL Command
+            </button>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </mat-card>
+  </div>
+
+  <!-- WebSocket Interaction -->
+  <div *ngIf="isWebSocket && wsInteraction && !loading" class="websocket-interaction">
+    <!-- Overview Card -->
+    <mat-card class="overview-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>swap_horiz</mat-icon>
+        <mat-card-title>WebSocket Interaction</mat-card-title>
+        <mat-card-subtitle>{{ cassetteName }} / Interaction #{{ interactionId }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="ws-info">
+          <p><strong>URL:</strong> {{ wsInteraction.url }}</p>
+          <p><strong>Messages:</strong> {{ wsInteraction.messages.length }}</p>
+          <div class="message-stats">
+            <mat-chip color="primary">
+              <mat-icon>arrow_upward</mat-icon>
+              Sent: {{ sentMessagesCount }}
+            </mat-chip>
+            <mat-chip color="accent">
+              <mat-icon>arrow_downward</mat-icon>
+              Received: {{ receivedMessagesCount }}
+            </mat-chip>
+          </div>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-button (click)="copyWebSocketMessages()">
+          <mat-icon>content_copy</mat-icon>
+          Copy All Messages
+        </button>
+        <button mat-button color="warn" (click)="deleteInteraction()">
+          <mat-icon>delete</mat-icon>
+          Delete
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <!-- Messages Timeline -->
+    <mat-card class="messages-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>timeline</mat-icon>
+          Message Timeline
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="timeline">
+          <div
+            *ngFor="let message of wsInteraction.messages; let idx = index"
+            class="message-item"
+            [class.sent]="message.direction === 'Sent'"
+            [class.received]="message.direction === 'Received'">
+            <div class="message-header">
+              <mat-chip [color]="message.direction === 'Sent' ? 'primary' : 'accent'" class="direction-chip">
+                <mat-icon>{{ message.direction === 'Sent' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+                {{ message.direction }}
+              </mat-chip>
+              <span class="timestamp">{{ formatTimestamp(message.timestampMs) }}</span>
+              <mat-chip class="type-chip">{{ message.msgType }}</mat-chip>
+            </div>
+            <div class="message-content">
+              <pre class="code-block">{{ message.data }}</pre>
+              <button
+                mat-icon-button
+                class="copy-button"
+                (click)="copyToClipboard(message.data, 'Message')">
+                <mat-icon>content_copy</mat-icon>
+              </button>
+            </div>
+          </div>
+          <p *ngIf="wsInteraction.messages.length === 0" class="empty">
+            No messages recorded
+          </p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
