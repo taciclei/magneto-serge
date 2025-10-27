@@ -446,14 +446,20 @@ Magneto-Serge provides a **complete REST API with Hydra/JSON-LD** and **OpenAPI 
 ### Starting the API Server
 
 ```bash
-# Start the API server
+# Start the API server (with Hydra hypermedia support)
+magneto serve
+# Opens: http://127.0.0.1:8889
+# REST API: http://127.0.0.1:8889/cassettes
+# Hydra API: http://127.0.0.1:8889/api/cassettes
+
+# Or legacy API command
 magneto api
 
 # With authentication
 magneto api --auth --api-key your-secret-key
 
 # Custom host/port
-magneto api --host 0.0.0.0 --port 8889
+magneto serve --host 0.0.0.0 --port 8889
 ```
 
 ### Key Features
@@ -724,6 +730,11 @@ npm run serve:built
 - ✅ **Hypermedia navigation** (HATEOAS)
 - ✅ Cassette list with pagination
 - ✅ Cassette detail view with interactions
+- ✅ **Interaction details view** (Phase 3.4) 🆕
+  - HTTP request/response visualization
+  - WebSocket message timeline
+  - Copy-to-clipboard functionality
+  - cURL command generation
 - ✅ Real-time updates
 
 **Stack:**
@@ -1052,7 +1063,7 @@ magneto-serge/
 |-------|--------|----------|---------|
 | **Phase 1** - HTTP/HTTPS Proxy | ✅ Complete | 100% | MITM proxy, record/replay |
 | **Phase 2** - Hydra API + Frontend | ✅ Complete | 100% | REST API, Angular UI, Hypermedia |
-| **Phase 3** - Multi-language Bindings | 🟡 In Progress | 50% | Rust ✅, JS ✅, Python/Java pending |
+| **Phase 3** - Frontend Enhancement | 🟡 In Progress | 80% | Cassette list ✅, Detail view ✅, Interaction details ✅ |
 | **Phase 4** - CLI & Production | ✅ Complete | 100% | CLI tool, templates, benchmarks |
 
 ### Current Status (v0.6.0)
@@ -1064,6 +1075,10 @@ magneto-serge/
 - **CLI tool** with 8 commands (`magneto record`, `replay`, `auto`, etc.)
 - **REST API with Hydra/JSON-LD** (hypermedia-driven)
 - **Angular 17 frontend** with Material Design and NgRx
+  - Cassette list with pagination and filtering
+  - Cassette detail view with interactions list
+  - **Interaction details view** with HTTP/WebSocket visualization 🆕
+  - Copy-to-clipboard and cURL generation 🆕
 - **Dynamic templates** with Handlebars (env vars, timestamps, custom helpers)
 - 92 tests passing (Rust + integration + WebSocket)
 - CI/CD pipeline with GitHub Actions
