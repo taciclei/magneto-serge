@@ -248,11 +248,11 @@
           <div
             *ngFor="let message of wsInteraction.messages; let idx = index"
             class="message-item"
-            [class.sent]="message.direction === 'Sent'"
-            [class.received]="message.direction === 'Received'">
+            [class.sent]="isMessageSent(message.direction)"
+            [class.received]="isMessageReceived(message.direction)">
             <div class="message-header">
-              <mat-chip [color]="message.direction === 'Sent' ? 'primary' : 'accent'" class="direction-chip">
-                <mat-icon>{{ message.direction === 'Sent' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+              <mat-chip [color]="getMessageDirectionColor(message.direction)" class="direction-chip">
+                <mat-icon>{{ getMessageDirectionIcon(message.direction) }}</mat-icon>
                 {{ message.direction }}
               </mat-chip>
               <span class="timestamp">{{ formatTimestamp(message.timestampMs) }}</span>
@@ -268,7 +268,7 @@
               </button>
             </div>
           </div>
-          <p *ngIf="wsInteraction.messages.length === 0" class="empty">
+          <p *ngIf="isEmpty(wsInteraction.messages.length)" class="empty">
             No messages recorded
           </p>
         </div>

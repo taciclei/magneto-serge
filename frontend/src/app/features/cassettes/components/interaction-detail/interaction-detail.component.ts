@@ -103,7 +103,7 @@ export class InteractionDetailComponent implements OnInit, OnDestroy {
       const response = await this.alcaeus.loadResource<any>(url);
 
       // Extract the actual resource from the Hydra response
-      this.interaction = response as InteractionResource;
+      this.interaction = response as unknown as InteractionResource;
       this.loading = false;
     } catch (err: any) {
       console.error('Failed to load interaction:', err);
@@ -150,6 +150,41 @@ export class InteractionDetailComponent implements OnInit, OnDestroy {
   get receivedMessagesCount(): number {
     if (!this.wsInteraction) return 0;
     return this.wsInteraction.messages.filter(m => m.direction === 'Received').length;
+  }
+
+  /**
+   * Vérifie si un message est envoyé
+   */
+  isMessageSent(direction: string): boolean {
+    return direction === 'Sent';
+  }
+
+  /**
+   * Vérifie si un message est reçu
+   */
+  isMessageReceived(direction: string): boolean {
+    return direction === 'Received';
+  }
+
+  /**
+   * Retourne la couleur pour la direction du message
+   */
+  getMessageDirectionColor(direction: string): string {
+    return direction === 'Sent' ? 'primary' : 'accent';
+  }
+
+  /**
+   * Retourne l'icône pour la direction du message
+   */
+  getMessageDirectionIcon(direction: string): string {
+    return direction === 'Sent' ? 'arrow_upward' : 'arrow_downward';
+  }
+
+  /**
+   * Vérifie si la longueur d'un tableau est zéro
+   */
+  isEmpty(length: number): boolean {
+    return length === 0;
   }
 
   /**
