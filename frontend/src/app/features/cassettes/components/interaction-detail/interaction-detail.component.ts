@@ -11,7 +11,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Store } from '@ngrx/store';
-import { Observable, Subject, takeUntil } from 'rxjs';
+import { Observable, Subject, takeUntil, firstValueFrom } from 'rxjs';
 
 import { AlcaeusService } from '../../../../core/services/alcaeus.service';
 import {
@@ -100,7 +100,7 @@ export class InteractionDetailComponent implements OnInit, OnDestroy {
 
     try {
       const url = `/api/cassettes/${this.cassetteName}/interactions/${this.interactionId}`;
-      const response = await this.alcaeus.loadResource<any>(url);
+      const response = await firstValueFrom(this.alcaeus.loadResource<any>(url));
 
       // Extract the actual resource from the Hydra response
       this.interaction = response as unknown as InteractionResource;

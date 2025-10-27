@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick, flush } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { of, throwError } from 'rxjs';
@@ -167,6 +167,11 @@ describe('InteractionDetailComponent', () => {
   });
 
   describe('loadInteraction()', () => {
+    beforeEach(() => {
+      component.cassetteName = 'test-cassette';
+      component.interactionId = '1';
+    });
+
     it('should load HTTP interaction successfully', async () => {
       mockAlcaeusService.loadResource.and.returnValue(of(mockHttpInteraction as any));
 
@@ -194,6 +199,8 @@ describe('InteractionDetailComponent', () => {
       );
 
       await component.loadInteraction();
+      await fixture.whenStable();
+      fixture.detectChanges();
 
       expect(component.error).toBe(errorMessage);
       expect(component.loading).toBe(false);
@@ -211,6 +218,8 @@ describe('InteractionDetailComponent', () => {
       );
 
       await component.loadInteraction();
+      await fixture.whenStable();
+      fixture.detectChanges();
 
       expect(component.error).toBe('Failed to load interaction');
     });
