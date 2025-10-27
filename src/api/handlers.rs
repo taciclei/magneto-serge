@@ -349,12 +349,11 @@ pub fn build_combined_router(cassette_dir: impl Into<std::path::PathBuf>, base_u
     let hydra_state = HydraState::new(manager, base_url);
 
     // Combine both routers
+    // build_router already includes /health endpoint
     Router::new()
-        // Health check (shared)
-        .route("/health", get(health))
-        // Merge REST API routes
+        // Merge REST API routes (includes /health, /cassettes, etc.)
         .merge(build_router(rest_state))
-        // Merge Hydra API routes
+        // Merge Hydra API routes (/api/cassettes, etc.)
         .merge(build_hydra_router(hydra_state))
 }
 

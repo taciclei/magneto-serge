@@ -23,6 +23,8 @@ use magneto_serge::{
     api::{cassettes::CassetteManager, handlers::start_server},
     error::Result,
 };
+#[cfg(feature = "hydra")]
+use magneto_serge::api::handlers::start_server_with_hydra;
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -775,18 +777,28 @@ fn cmd_export(manager: &CassetteManager, name: &str, output: &PathBuf, format: &
 
 /// Start API server
 async fn cmd_serve(host: &str, port: u16, cassette_dir: &PathBuf) -> Result<()> {
-    println!(
-        "\n{}",
-        "🚀 Starting Magnéto-Serge API Server..."
-            .bright_cyan()
-            .bold()
-    );
+    println!("\n{}", "🚀 Starting Magnéto-Serge API Server...".bright_cyan().bold());
     println!("📂 Cassette directory: {:?}", cassette_dir);
     println!("🌐 Listening on: {}:{}", host, port);
-    println!("📖 API documentation: http://{}:{}/health\n", host, port);
-    println!("{} Press Ctrl+C to stop\n", "ℹ️ ".blue());
 
-    start_server(host, port, cassette_dir).await?;
+    #[cfg(feature = "hydra")]
+    {
+        println!("📖 REST API: http://{}:{}/cassettes", host, port);
+        println!("📖 Hydra API: http://{}:{}/api/cassettes\n", host, port);
+        println!("{} Press Ctrl+C to stop\n", "ℹ️ ".blue());
+
+        // Use Hydra-enabled server for full hypermedia support
+        start_server_with_hydra(host, port, cassette_dir).await?;
+    }
+
+    #[cfg(not(feature = "hydra"))]
+    {
+        println!("📖 API documentation: http://{}:{}/health\n", host, port);
+        println!("{} Press Ctrl+C to stop\n", "ℹ️ ".blue());
+
+        // Use REST API only
+        start_server(host, port, cassette_dir).await?;
+    }
 
     Ok(())
 }
