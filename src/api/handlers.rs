@@ -336,7 +336,10 @@ pub fn build_router(state: ApiState) -> Router {
 
 /// Build router with both REST API and Hydra Hypermedia API
 #[cfg(feature = "hydra")]
-pub fn build_combined_router(cassette_dir: impl Into<std::path::PathBuf>, base_url: impl Into<String>) -> Router {
+pub fn build_combined_router(
+    cassette_dir: impl Into<std::path::PathBuf>,
+    base_url: impl Into<String>,
+) -> Router {
     use crate::api::hydra_handlers::{build_hydra_router, HydraState};
 
     let cassette_dir_path = cassette_dir.into();

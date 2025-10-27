@@ -19,12 +19,11 @@
 
 use clap::{Parser, Subcommand};
 use colored::*;
-use magneto_serge::{
-    api::{cassettes::CassetteManager, handlers::start_server},
-    error::Result,
-};
+#[cfg(not(feature = "hydra"))]
+use magneto_serge::api::handlers::start_server;
 #[cfg(feature = "hydra")]
 use magneto_serge::api::handlers::start_server_with_hydra;
+use magneto_serge::{api::cassettes::CassetteManager, error::Result};
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -777,7 +776,12 @@ fn cmd_export(manager: &CassetteManager, name: &str, output: &PathBuf, format: &
 
 /// Start API server
 async fn cmd_serve(host: &str, port: u16, cassette_dir: &PathBuf) -> Result<()> {
-    println!("\n{}", "🚀 Starting Magnéto-Serge API Server...".bright_cyan().bold());
+    println!(
+        "\n{}",
+        "🚀 Starting Magnéto-Serge API Server..."
+            .bright_cyan()
+            .bold()
+    );
     println!("📂 Cassette directory: {:?}", cassette_dir);
     println!("🌐 Listening on: {}:{}", host, port);
 
