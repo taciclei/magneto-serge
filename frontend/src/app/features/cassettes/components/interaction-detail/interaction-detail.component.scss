@@ -1,0 +1,421 @@
+.interaction-detail-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+
+    .back-button {
+      flex-shrink: 0;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2rem;
+      font-weight: 500;
+    }
+  }
+
+  // Loading state
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    text-align: center;
+
+    mat-spinner {
+      margin-bottom: 24px;
+    }
+
+    p {
+      font-size: 1.1rem;
+      color: rgba(0, 0, 0, 0.6);
+    }
+  }
+
+  // Error state
+  .error-card {
+    margin: 20px 0;
+
+    mat-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+
+      mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+      }
+    }
+
+    mat-card-content {
+      p {
+        margin-bottom: 16px;
+        color: #f44336;
+      }
+
+      button {
+        margin-right: 8px;
+      }
+    }
+  }
+
+  // HTTP Interaction
+  .http-interaction,
+  .websocket-interaction {
+    .overview-card {
+      margin-bottom: 24px;
+
+      mat-card-header {
+        margin-bottom: 16px;
+
+        mat-icon[mat-card-avatar] {
+          width: 40px;
+          height: 40px;
+          font-size: 40px;
+        }
+      }
+
+      .method-url {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+
+        .url {
+          font-family: 'Courier New', monospace;
+          font-size: 1rem;
+          word-break: break-all;
+          flex: 1;
+        }
+      }
+
+      .status {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+
+        mat-chip {
+          mat-icon {
+            margin-right: 4px;
+          }
+        }
+      }
+
+      mat-card-actions {
+        display: flex;
+        gap: 8px;
+        padding: 16px;
+        border-top: 1px solid rgba(0, 0, 0, 0.12);
+      }
+    }
+
+    .details-card {
+      .tab-content {
+        padding: 24px;
+
+        .response-status {
+          margin-bottom: 24px;
+
+          h3 {
+            margin: 0 0 12px 0;
+            font-size: 1.2rem;
+          }
+        }
+
+        mat-divider {
+          margin: 24px 0;
+        }
+
+        mat-expansion-panel {
+          margin-bottom: 16px;
+
+          mat-panel-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            mat-icon {
+              font-size: 20px;
+              width: 20px;
+              height: 20px;
+            }
+
+            .json-chip,
+            .template-chip {
+              margin-left: 8px;
+              height: 24px;
+              font-size: 0.75rem;
+            }
+          }
+        }
+
+        .headers-list {
+          padding: 16px;
+          background: #f5f5f5;
+          border-radius: 4px;
+
+          .header-item {
+            display: flex;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+
+            &:last-child {
+              border-bottom: none;
+            }
+
+            .header-name {
+              font-weight: 600;
+              color: #1976d2;
+              min-width: 150px;
+            }
+
+            .header-value {
+              font-family: 'Courier New', monospace;
+              color: rgba(0, 0, 0, 0.87);
+              word-break: break-all;
+            }
+          }
+        }
+
+        .body-content {
+          position: relative;
+          padding: 16px;
+
+          .code-block {
+            background: #263238;
+            color: #aed581;
+            padding: 16px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin: 0;
+            max-height: 500px;
+            overflow-y: auto;
+
+            &.curl-command {
+              background: #212121;
+              color: #00e676;
+              white-space: pre-wrap;
+              word-break: break-all;
+            }
+          }
+
+          .copy-button {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255, 255, 255, 0.9);
+
+            &:hover {
+              background: white;
+            }
+          }
+        }
+
+        .empty {
+          color: rgba(0, 0, 0, 0.5);
+          font-style: italic;
+          padding: 16px;
+          text-align: center;
+        }
+
+        .info {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 12px 16px;
+          background: #e3f2fd;
+          border-left: 4px solid #1976d2;
+          border-radius: 4px;
+          margin-bottom: 16px;
+
+          mat-icon {
+            color: #1976d2;
+          }
+        }
+      }
+    }
+
+    // WebSocket specific
+    .ws-info {
+      p {
+        margin: 8px 0;
+        font-size: 1rem;
+
+        strong {
+          color: rgba(0, 0, 0, 0.6);
+        }
+      }
+
+      .message-stats {
+        display: flex;
+        gap: 12px;
+        margin-top: 16px;
+
+        mat-chip {
+          mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+            margin-right: 4px;
+          }
+        }
+      }
+    }
+
+    .messages-card {
+      mat-card-header {
+        margin-bottom: 16px;
+
+        mat-card-title {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+      }
+
+      .timeline {
+        padding: 16px 0;
+
+        .message-item {
+          padding: 16px;
+          margin-bottom: 16px;
+          border-radius: 8px;
+          border-left: 4px solid;
+          background: #f5f5f5;
+
+          &.sent {
+            border-left-color: #1976d2;
+            background: #e3f2fd;
+          }
+
+          &.received {
+            border-left-color: #7b1fa2;
+            background: #f3e5f5;
+          }
+
+          .message-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+
+            .direction-chip {
+              mat-icon {
+                font-size: 16px;
+                width: 16px;
+                height: 16px;
+                margin-right: 4px;
+              }
+            }
+
+            .timestamp {
+              font-family: 'Courier New', monospace;
+              font-size: 0.9rem;
+              color: rgba(0, 0, 0, 0.6);
+            }
+
+            .type-chip {
+              font-size: 0.75rem;
+              height: 24px;
+            }
+          }
+
+          .message-content {
+            position: relative;
+
+            .code-block {
+              background: white;
+              color: rgba(0, 0, 0, 0.87);
+              padding: 12px;
+              border-radius: 4px;
+              font-family: 'Courier New', monospace;
+              font-size: 0.9rem;
+              margin: 0;
+              max-height: 200px;
+              overflow-y: auto;
+              word-break: break-all;
+            }
+
+            .copy-button {
+              position: absolute;
+              top: 4px;
+              right: 4px;
+              background: rgba(255, 255, 255, 0.9);
+
+              &:hover {
+                background: white;
+              }
+            }
+          }
+        }
+
+        .empty {
+          text-align: center;
+          padding: 40px;
+          color: rgba(0, 0, 0, 0.5);
+          font-style: italic;
+        }
+      }
+    }
+  }
+}
+
+// Utility to expose Object to template
+:host {
+  ::ng-deep {
+    // Make Object available in template via property
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .interaction-detail-container {
+    padding: 16px;
+
+    .header {
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+
+    .http-interaction,
+    .websocket-interaction {
+      .overview-card {
+        .method-url {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+
+      .details-card {
+        .tab-content {
+          padding: 16px;
+
+          .headers-list {
+            .header-item {
+              flex-direction: column;
+              gap: 4px;
+
+              .header-name {
+                min-width: unset;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
