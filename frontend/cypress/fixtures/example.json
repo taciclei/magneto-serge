@@ -1,0 +1,34 @@
+{
+  "cassettes": [
+    {
+      "name": "test-cassette",
+      "recordedAt": "2025-10-28T00:00:00Z",
+      "interactionCount": 5
+    },
+    {
+      "name": "api-test",
+      "recordedAt": "2025-10-27T12:00:00Z",
+      "interactionCount": 12
+    }
+  ],
+  "interaction": {
+    "id": 0,
+    "type": "Http",
+    "request": {
+      "method": "GET",
+      "url": "https://api.example.com/users",
+      "headers": {
+        "Accept": "application/json",
+        "User-Agent": "magneto-serge/0.7.0"
+      },
+      "body": null
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": "{\"users\": [{\"id\": 1, \"name\": \"John Doe\"}]}"
+    }
+  }
+}
