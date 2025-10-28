@@ -1,0 +1,171 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/e2e.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/e2e.yml'
+
+env:
+  NODE_VERSION: '20'
+  RUST_VERSION: 'stable'
+
+# Cancel in-progress runs for the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  # E2E tests with Cypress
+  e2e-tests:
+    name: Cypress E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chrome, firefox, edge]
+        containers: [1, 2]  # Parallel execution
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build Magneto API server
+        run: |
+          cargo build --bin magneto --features cli --release
+          chmod +x target/release/magneto
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Build Angular frontend
+        run: |
+          cd frontend
+          npm run build
+        env:
+          NODE_OPTIONS: --max_old_space_size=4096
+
+      - name: Start Magneto API server
+        run: |
+          # Create test cassettes directory
+          mkdir -p ./cassettes
+
+          # Start API server in background
+          ./target/release/magneto -c ./cassettes serve &
+          MAGNETO_PID=$!
+          echo "MAGNETO_PID=$MAGNETO_PID" >> $GITHUB_ENV
+
+          # Wait for API to be ready (max 30 seconds)
+          echo "Waiting for API server to start..."
+          for i in {1..30}; do
+            if curl -s http://localhost:8889/health > /dev/null 2>&1; then
+              echo "✅ API server is ready"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "❌ API server failed to start"
+              exit 1
+            fi
+            sleep 1
+          done
+
+      - name: Start Angular dev server
+        run: |
+          cd frontend
+          npm start &
+          ANGULAR_PID=$!
+          echo "ANGULAR_PID=$ANGULAR_PID" >> $GITHUB_ENV
+
+          # Wait for Angular to be ready (max 60 seconds)
+          echo "Waiting for Angular dev server to start..."
+          for i in {1..60}; do
+            if curl -s http://localhost:4200 > /dev/null 2>&1; then
+              echo "✅ Angular dev server is ready"
+              break
+            fi
+            if [ $i -eq 60 ]; then
+              echo "❌ Angular dev server failed to start"
+              exit 1
+            fi
+            sleep 1
+          done
+
+      - name: Run Cypress tests
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: frontend
+          browser: ${{ matrix.browser }}
+          record: false
+          parallel: true
+          group: 'E2E Tests - ${{ matrix.browser }}'
+          spec: cypress/e2e/**/*.cy.ts
+        env:
+          CYPRESS_BASE_URL: http://localhost:4200
+          CYPRESS_API_URL: http://localhost:8889
+
+      - name: Upload Cypress screenshots (on failure)
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots-${{ matrix.browser }}-${{ matrix.containers }}
+          path: frontend/cypress/screenshots
+          retention-days: 7
+
+      - name: Upload Cypress videos
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cypress-videos-${{ matrix.browser }}-${{ matrix.containers }}
+          path: frontend/cypress/videos
+          retention-days: 7
+
+      - name: Stop servers
+        if: always()
+        run: |
+          if [ ! -z "$ANGULAR_PID" ]; then
+            kill $ANGULAR_PID || true
+          fi
+          if [ ! -z "$MAGNETO_PID" ]; then
+            kill $MAGNETO_PID || true
+          fi
+
+  # E2E test summary
+  e2e-summary:
+    name: E2E Test Summary
+    runs-on: ubuntu-latest
+    needs: [e2e-tests]
+    if: always()
+    steps:
+      - name: Check E2E test results
+        run: |
+          if [[ "${{ needs.e2e-tests.result }}" == "failure" ]]; then
+            echo "❌ E2E tests failed"
+            exit 1
+          elif [[ "${{ needs.e2e-tests.result }}" == "cancelled" ]]; then
+            echo "⚠️ E2E tests were cancelled"
+            exit 1
+          fi
+          echo "✅ All E2E tests passed! 🎉"
