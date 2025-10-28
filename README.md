@@ -7,16 +7,17 @@
 [![CI](https://github.com/taciclei/magneto-serge/workflows/CI/badge.svg)](https://github.com/taciclei/magneto-serge/actions)
 [![Rust](https://img.shields.io/badge/rust-1.75%2B-orange.svg?logo=rust)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-92%20passing-brightgreen.svg)](#-development)
-[![Issues](https://img.shields.io/github/issues/taciclei/magneto-serge)](https://github.com/taciclei/magneto-serge/issues)
+[![Version](https://img.shields.io/badge/version-0.7.0-blue.svg)](https://github.com/taciclei/magneto-serge/releases/tag/v0.7.0)
+[![Tests](https://img.shields.io/badge/tests-230%20passing-brightgreen.svg)](#testing)
+[![Coverage](https://img.shields.io/badge/coverage-74.7%25-brightgreen.svg)](#testing)
 
 *VCR for the modern web - Record HTTP/HTTPS and WebSocket traffic, replay it deterministically*
 
 [Features](#-features) •
 [Installation](#-installation) •
 [Quick Start](#-quick-start) •
-[Documentation](#-documentation) •
-[Examples](#-examples)
+[Web UI](#-web-ui-new) •
+[Documentation](#-documentation)
 
 </div>
 
@@ -44,30 +45,30 @@
 </td>
 <td>
 
-**🌍 Multi-Language**
-- JavaScript, Rust
-- Python, Kotlin, Swift (planned)
-- Universal cassette format
+**🖥️ Web UI** 🆕
+- Angular 17 frontend
+- Hydra Hypermedia API
+- Real-time cassette viewing
+- Material Design
 
 </td>
 </tr>
 <tr>
 <td>
 
-**📝 Dynamic Templates** 🆕
-- Environment variables
-- Dynamic timestamps
-- Request context access
-- Custom helpers
+**🌍 Multi-Language**
+- JavaScript, Rust, Python
+- Java, Kotlin, Swift
+- Universal cassette format
 
 </td>
 <td>
 
-**🎯 Test Integrations** 🆕
-- RSpec (Ruby)
+**🎯 Test Integrations**
 - Jest (JavaScript)
 - pytest (Python)
-- PHPUnit (PHP)
+- JUnit (Java/Kotlin)
+- XCTest (Swift)
 
 </td>
 <td>
@@ -75,7 +76,7 @@
 **⚡ High Performance**
 - Rust-powered core
 - 10-100x faster than VCR
-- Minimal overhead
+- Minimal overhead (~49ns)
 
 </td>
 </tr>
@@ -85,8 +86,9 @@
 
 | Feature | Magnéto-Serge | VCR (Ruby) | Polly (JS) |
 |---------|---------------|------------|------------|
-| **Multi-language** | ✅ Rust + JS ready | ❌ Ruby only | ❌ JS only |
+| **Multi-language** | ✅ 6+ languages | ❌ Ruby only | ❌ JS only |
 | **WebSocket** | ✅ Full support | ❌ No | ⚠️ Limited |
+| **Web UI** | ✅ Angular + Hydra API | ❌ No | ❌ No |
 | **Performance** | ⚡ Rust-powered | 🐌 Ruby | 🐌 JS |
 | **HTTPS MITM** | ✅ Auto certs | ⚠️ Manual | ⚠️ Manual |
 | **Zero config** | ✅ Auto mode | ❌ | ❌ |
@@ -134,7 +136,7 @@ mv magneto /usr/local/bin/
 
 ```toml
 [dependencies]
-magneto-serge = "0.6.0"
+magneto-serge = "0.7.0"
 ```
 
 Or install the CLI:
@@ -268,6 +270,127 @@ graph LR
 - 🔴 **Record**: Proxy → Real API → Save to cassette
 - ▶️ **Replay**: Proxy → Load from cassette → Return cached
 - 🟢 **Auto**: Record if cassette missing, replay if exists
+
+---
+
+## 🖥️ Web UI **NEW**
+
+v0.7.0 introduces a complete web interface for managing cassettes!
+
+### Quick Start
+
+```bash
+# Start the server with Hydra API and web UI
+./target/release/magneto serve --cassette-dir ./cassettes
+
+# The server starts on http://localhost:8889
+# API available at http://localhost:8889/api
+```
+
+### Features
+
+**🎨 Angular 17 Frontend**
+- Material Design components
+- Real-time cassette viewing
+- HTTP/WebSocket interaction details
+- Responsive and modern UI
+
+**🔗 Hydra Hypermedia API**
+- RESTful endpoints with hypermedia controls
+- JSON-LD format
+- Self-documenting API
+- Pagination support
+
+**📋 Cassette Management**
+- View all cassettes in a paginated list
+- Inspect cassette details and metadata
+- Browse HTTP and WebSocket interactions
+- View request/response details with syntax highlighting
+- Copy cURL commands for interactions
+- Delete cassettes
+
+### Frontend Setup
+
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start development server (proxies API to :8889)
+npm start
+
+# Open browser at http://localhost:4200
+```
+
+### Architecture
+
+```
+┌─────────────────┐
+│  Angular 17     │  Port 4200
+│  Frontend       │  Material Design + NgRx
+└────────┬────────┘
+         │ HTTP
+         ▼
+┌─────────────────┐
+│  Rust API       │  Port 8889
+│  Axum + Hydra   │  JSON-LD + Hypermedia
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Cassettes      │  Filesystem
+│  JSON/MessagePack│ ./cassettes/
+└─────────────────┘
+```
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api` | GET | API entrypoint (Hydra) |
+| `/api/cassettes` | GET | List cassettes (paginated) |
+| `/api/cassettes/{name}` | GET | Get cassette details |
+| `/api/cassettes/{name}` | DELETE | Delete cassette |
+| `/api/cassettes/{name}/interactions` | GET | List interactions |
+| `/api/cassettes/{name}/interactions/{id}` | GET | Get interaction details |
+| `/health` | GET | Health check |
+
+**Try it:**
+```bash
+# Get API entrypoint
+curl http://localhost:8889/api | jq
+
+# List cassettes
+curl http://localhost:8889/api/cassettes | jq
+
+# Get cassette details
+curl http://localhost:8889/api/cassettes/my-test | jq
+```
+
+### Testing
+
+The frontend includes comprehensive unit tests:
+
+```bash
+cd frontend
+
+# Run tests
+npm test
+
+# Results:
+# - 186 unit tests
+# - 98.9% pass rate (184/186)
+# - 74.73% code coverage
+```
+
+### Documentation
+
+- [Frontend Architecture](frontend/README.md)
+- [Hydra API Reference](docs/API.md)
+- [State Management](frontend/src/app/features/cassettes/state/)
+- [Components](frontend/src/app/features/cassettes/components/)
 
 ---
 
