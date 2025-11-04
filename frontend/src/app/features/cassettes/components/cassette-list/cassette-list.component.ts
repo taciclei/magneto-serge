@@ -8,6 +8,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 
 import { CassetteActions } from '../../state/cassette.actions';
@@ -34,7 +36,9 @@ import { CassetteResource } from '../../../../core/models/cassette.model';
     MatButtonModule,
     MatIconModule,
     MatCardModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    MatSnackBarModule,
+    MatTooltipModule
   ],
   templateUrl: './cassette-list.component.html',
   styleUrl: './cassette-list.component.scss'
@@ -58,7 +62,8 @@ export class CassetteListComponent implements OnInit {
 
   constructor(
     private store: Store,
-    private router: Router
+    private router: Router,
+    private snackBar: MatSnackBar
   ) {
     this.cassettes$ = this.store.select(selectCassettes);
     this.loading$ = this.store.select(selectLoading);
@@ -83,6 +88,9 @@ export class CassetteListComponent implements OnInit {
    */
   reload(): void {
     this.store.dispatch(CassetteActions.loadCassettes({}));
+    this.snackBar.open('Rechargement des cassettes...', '', {
+      duration: 1500
+    });
   }
 
   /**

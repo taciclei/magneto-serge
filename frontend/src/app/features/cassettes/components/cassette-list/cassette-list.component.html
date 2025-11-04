@@ -12,10 +12,16 @@
   </mat-card-header>
 
   <mat-card-content>
-    <!-- Loading Spinner -->
-    <div *ngIf="loading$ | async" class="loading-container">
-      <mat-spinner></mat-spinner>
-      <p>Chargement des cassettes...</p>
+    <!-- Loading Skeleton -->
+    <div *ngIf="loading$ | async" class="loading-skeleton">
+      <div class="skeleton-row" *ngFor="let item of [1,2,3,4,5]">
+        <div class="skeleton-cell skeleton-name"></div>
+        <div class="skeleton-cell skeleton-version"></div>
+        <div class="skeleton-cell skeleton-date"></div>
+        <div class="skeleton-cell skeleton-count"></div>
+        <div class="skeleton-cell skeleton-size"></div>
+        <div class="skeleton-cell skeleton-actions"></div>
+      </div>
     </div>
 
     <!-- Error Message -->
@@ -92,8 +98,9 @@
         <tr class="mat-row" *matNoDataRow>
           <td class="mat-cell" [attr.colspan]="displayedColumns.length">
             <div class="no-data">
-              <mat-icon>inbox</mat-icon>
+              <mat-icon>inventory_2</mat-icon>
               <p>Aucune cassette disponible</p>
+              <span class="empty-subtitle">Commencez par enregistrer une interaction avec Magnéto-Serge</span>
             </div>
           </td>
         </tr>
