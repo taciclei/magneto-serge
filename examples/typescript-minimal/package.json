@@ -1,0 +1,37 @@
+{
+  "name": "magneto-serge-typescript-example",
+  "version": "1.0.0",
+  "description": "Minimal TypeScript example using Magneto-Serge for HTTP/WebSocket recording",
+  "private": true,
+  "scripts": {
+    "test": "jest",
+    "test:record": "MAGNETO_MODE=record jest",
+    "test:replay": "MAGNETO_MODE=replay jest",
+    "test:watch": "jest --watch",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist __cassettes__/*.json node_modules"
+  },
+  "keywords": [
+    "magneto-serge",
+    "testing",
+    "http",
+    "websocket",
+    "typescript",
+    "jest"
+  ],
+  "author": "Magnéto-Serge contributors",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "magneto-serge": "file:../../bindings/javascript"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

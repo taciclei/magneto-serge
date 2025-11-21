@@ -177,3 +177,4 @@ harness = false
 
 [workspace]
 members = [".", "magneto-serge-test"]
+exclude = ["bindings/javascript"]
